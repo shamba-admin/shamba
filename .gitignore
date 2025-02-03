@@ -111,3 +111,6 @@ dmypy.json
 
 shamba/shamba_projects/*/output_WL/
 shamba/rasters/soil/hwsd.bil
+
+# MacOS
+**/.DS_Store
