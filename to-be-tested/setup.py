@@ -64,7 +64,7 @@ class build_qt(Command):
             uic.compileUi(ui_file, fp)
             fp.close()
             log.info('compiled %s into %s' % (ui_file, py_file))
-        except Exception, e:
+        except Exception as e:
             self.warn('Unable to compile user interface %s: %s' % (py_file, e))
             if not os.path.exists(py_file) or not file(py_file).read():
                 raise SystemExit(1)
