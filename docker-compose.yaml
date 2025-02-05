@@ -1,0 +1,9 @@
+services:
+  shamba:
+    build:
+      context: shamba/
+      dockerfile: Dockerfile
+    container_name: shamba
+    volumes:
+      - ./shamba:/app  # Mount the shamba directory to /app in the container
+    command: python shamba_cl_.py 

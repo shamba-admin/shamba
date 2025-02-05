@@ -114,3 +114,4 @@ shamba/rasters/soil/hwsd.bil
 
 # MacOS
 **/.DS_Store
+**/*.swp
