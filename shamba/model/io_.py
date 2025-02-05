@@ -76,7 +76,7 @@ def print_csv(fileOut, array, col_names=[],
 
     if print_years and not isList:
         # Add years as first column
-        years = np.array(range(array.shape[0]))
+        years = np.array(list(range(array.shape[0])))
         col_names.insert(0, 'year')
         array = np.column_stack((years,array))
         
@@ -89,7 +89,7 @@ def print_csv(fileOut, array, col_names=[],
             if isList:
                 for row in array:
                     if row:
-                        writer.writerow(map(lambda x: round_(x), row))
+                        writer.writerow([round_(x) for x in row])
             else:
                 if array.ndim == 1 and print_column:
                     np.savetxt(

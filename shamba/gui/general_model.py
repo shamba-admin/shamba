@@ -3,7 +3,7 @@
 import os
 import sys
 try:
-    from StringIO import StringIO ## for Python 2
+    from io import StringIO ## for Python 2
 except ImportError:
     from io import StringIO ## for Python 3
 import logging as log
@@ -53,7 +53,7 @@ class GeneralModel(object):
         lat = np.round(self.ui.latitude.value(), decimals=6)
         long = np.round(self.ui.longitude.value(), decimals=6)
 
-        location = (lat, long)
+        location = (lat, int)
         n_years = self.ui.mitigationYears.value()
         n_acct = self.ui.mitigationYears.value()
 
@@ -149,25 +149,25 @@ class GeneralModel(object):
         print ("GENERAL PROJECT INFORMATION")
 
         print ("\nOVERVIEW")
-        print ("Project name:\n\t%s" % cfg.PROJ_NAME)
-        print ("Level of assessment:\n\t%s" % str(
-                self.ui.projectType.currentText()))
+        print(("Project name:\n\t%s" % cfg.PROJ_NAME))
+        print(("Level of assessment:\n\t%s" % str(
+                self.ui.projectType.currentText())))
         if self.ui.projectType.currentIndex() != 0:
-            print ("Name of farmer:\n\t%s" % str(self.ui.farmerName.text()))
-            print ("Field number:\n\t%d" % self.ui.fieldNum.value())
-            print ("Field area:\n\t%d ha" % (self.ui.area.value()))
+            print(("Name of farmer:\n\t%s" % str(self.ui.farmerName.text())))
+            print(("Field number:\n\t%d" % self.ui.fieldNum.value()))
+            print(("Field area:\n\t%d ha" % (self.ui.area.value())))
 
         print ("\nLocation and Project Periods")
-        print ("Project location:\n\t(lat,long) = (%f, %f)" % (
-                self.location[0], self.location[1]))
-        print ("Quantification period:\n\t%d years" % cfg.N_ACCT)
+        print(("Project location:\n\t(lat,long) = (%f, %f)" % (
+                self.location[0], self.location[1])))
+        print(("Quantification period:\n\t%d years" % cfg.N_ACCT))
 
         print ("\nCLIMATE")
         print ("Climate data loaded from:")
         if self.ui.climFromCRU.isChecked():
             print ("\tSHAMBA default data")
         elif self.ui.climFromCsv.isChecked():
-            print ("\t%s" % self.climateFilename)
+            print(("\t%s" % self.climateFilename))
         else:
             print ("\tcustom data")
         self.climate.print_()

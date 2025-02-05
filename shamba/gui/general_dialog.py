@@ -146,7 +146,7 @@ class GeneralDialog(GenericDialog, Ui_general):
         
          # Stuff for setting the text in the column labels        
         self.climateTable.horizontalHeaderItem(0).setText(
-                _("Temperature ("+u"\N{DEGREE CELSIUS}"+")"))
+                _("Temperature ("+"\N{DEGREE CELSIUS}"+")"))
         self.climateTable.horizontalHeaderItem(2).setText(_(""))
 
         # Set row label based on whether PET or evap selected

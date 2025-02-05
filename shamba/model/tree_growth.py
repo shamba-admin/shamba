@@ -332,44 +332,44 @@ class TreeGrowth(object):
         
         print ("\n\nTREE GROWTH DATA")
         print ("=========\n")
-        print ("Allometric: ",self.allom)
+        print(("Allometric: ",self.allom))
         print ("\n  Age    Diameter  Biomass")
         print ("(years)    (cm)     (kg C)")
         print ("--------------------------")
         for i in range(len(self.age)):
-            print ("  %2d      %5.2f     %6.2f" % (
-                    self.age[i], self.diam[i], self.biomass[i]))
+            print(("  %2d      %5.2f     %6.2f" % (
+                    self.age[i], self.diam[i], self.biomass[i])))
         if fit:
             print ("\n Data      Exp.     Hyp.     Lin.     Log.")
             print ("-----------------------------------------")
             for i in range(len(self.age)):
-                print ("%6.2f   %6.2f   %6.2f   %6.2f   %6.2f" % (
+                print(("%6.2f   %6.2f   %6.2f   %6.2f   %6.2f" % (
                         self.biomass[i], 
                         self.allFitData['exp'][i],
                         self.allFitData['hyp'][i],
                         self.allFitData['lin'][i], 
                         self.allFitData['log'][i])
-                )
+                ))
         if params and mse:
-            print ("\nMSE      %6.2f   %6.2f   %6.2f   %6.2f" % (
+            print(("\nMSE      %6.2f   %6.2f   %6.2f   %6.2f" % (
                     self.allMse['exp'], 
                     self.allMse['hyp'], 
                     self.allMse['lin'], 
                     self.allMse['log']
-            ))
-            print ("a        %6.2f   %6.2f   %6.2f   %6.2f" % (
+            )))
+            print(("a        %6.2f   %6.2f   %6.2f   %6.2f" % (
                     self.allFitParams['exp'][0], 
                     self.allFitParams['hyp'][0],
                     self.allFitParams['lin'][0], 
                     self.allFitParams['log'][0]
-            ))
-            print ("b          -     %6.2f    -      %6.2f" % (
+            )))
+            print(("b          -     %6.2f    -      %6.2f" % (
                     self.allFitParams['hyp'][1],
                     self.allFitParams['log'][1]
-            ))
-            print ("c           -         -       -      %5.2f" % (
+            )))
+            print(("c           -         -       -      %5.2f" % (
                     self.allFitParams['log'][2]
-            ))
+            )))
 
     def save_(self, file='tree_growth.csv'):
         """Save growth stuff to a csv file

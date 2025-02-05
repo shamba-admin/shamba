@@ -70,7 +70,7 @@ class Climate(object):
         long = location[1]
         # Indices for picking out clim data from rasters
         x = math.ceil(180 - 2*lat)
-        y = math.ceil(360 + 2*long)
+        y = math.ceil(360 + 2*int)
 
         # Read data from rasters
         # file path of raster directory 
@@ -164,7 +164,7 @@ class Climate(object):
     def plot_(self):
         """Plot climate data in a matplotlib figure."""
 
-        xAxis = range(1,13)
+        xAxis = list(range(1,13))
         fig, ax1 = plt.subplots()
         fig.canvas.set_window_title('Climate data')
 
@@ -196,9 +196,9 @@ class Climate(object):
         print ("        (*C)     (mm)     (mm) ")
         print ("-------------------------------")
         for i in range(12):
-            print (" %s    %5.2f   %6.2f   %6.2f" % (
+            print((" %s    %5.2f   %6.2f   %6.2f" % (
                     monthNames[i], self.temp[i], self.rain[i], self.evap[i]
-            ))
+            )))
         print ("")
 
     def save_(self, file='climate.csv'):

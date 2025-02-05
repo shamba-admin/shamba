@@ -11,7 +11,7 @@ from PyQt5 import QtCore,QtGui,QtWidgets
 from shamba.model import cfg
 
 COLOURS = 'brkwyc'
-SUB_2 = u'\u2082'
+SUB_2 = '\u2082'
 
 class PlotWidget(FigureCanvas):
     """a QtWidget and FigureCanvasAgg that displays the model plots"""
@@ -50,7 +50,7 @@ class PlotWidget(FigureCanvas):
         # No support for ranges (uncertainties) yet
         plots = []
         plots += self.axes.plot(
-                np.array(range(len(data)))+1, # to make it start at year 1
+                np.array(list(range(len(data))))+1, # to make it start at year 1
                 data,color=COLOURS[plotID],label=name)
         totals = (name,np.sum(data))
 
@@ -129,7 +129,7 @@ class PlotWidget(FigureCanvas):
         
 
     def updateLegend(self):
-        if len(self.plots.keys())>0:
+        if len(list(self.plots.keys()))>0:
             handles, labels = self.axes.get_legend_handles_labels()
             if len(self.have_range) > 0:
                 l = Line2D([0,1],[0,1],linestyle="--",color='k')

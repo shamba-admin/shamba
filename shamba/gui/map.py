@@ -44,7 +44,7 @@ class MapWidget(FigureCanvas):
                              resolution='i',projection=basemapData.projection,
                              lon_0=basemapData.lon_0,lat_0=basemapData.lat_0,ax = self.axes)
         else:
-            raise ValueError, 'Unknown Projection %s'%basemapData.projection
+            raise ValueError('Unknown Projection %s'%basemapData.projection)
         
         if basemapData.geotiff == None:
             self.m.fillcontinents(color='coral',lake_color='aqua')

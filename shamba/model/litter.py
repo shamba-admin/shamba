@@ -131,7 +131,7 @@ class LitterModel(object):
             DMinput = np.zeros(cfg.N_YEARS)
             
             # loop through years when litter is added
-            years = range(-1,cfg.N_YEARS,litterFreq)
+            years = list(range(-1,cfg.N_YEARS,litterFreq))
             years = years[1:]
             DMinput[years] = litterQty
             Cinput[years] = litterQty * self.carbon

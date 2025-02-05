@@ -134,7 +134,7 @@ class LitterModel(object):
             if litterFreq is 0:
                 years = 0
             else:
-                years = range(-1,cfg.N_YEARS,litterFreq)
+                years = list(range(-1,cfg.N_YEARS,litterFreq))
                 years = years[1:]
             DMinput[years] = litterQty
             Cinput[years] = litterQty * self.carbon

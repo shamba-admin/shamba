@@ -5,7 +5,7 @@
 import os
 import sys
 try:
-    from StringIO import StringIO ## for Python 2
+    from io import StringIO ## for Python 2
 except ImportError:
     from io import StringIO ## for Python 3
 import logging as log
@@ -174,98 +174,98 @@ class ProjectModel(object):
 
         if self.isBaseline:
             print ("NEW BASELINE")
-            print ("Baseline name:\n\t%s" % self.name)
+            print(("Baseline name:\n\t%s" % self.name))
         else:
             print ("NEW INTERVENTION")
-            print ("Intervention name:\n\t%s" % self.name)
+            print(("Intervention name:\n\t%s" % self.name))
 
         print ("\nSOIL PARAMETERS")
         print ("Soil parameters loaded from:")
         if self.ui.soilFromHWSD.isChecked():
             print ("\tHWSD data")
         elif self.ui.soilFromCsv.isChecked():
-            print ("\t%s" % self.soil.soilFilename)
+            print(("\t%s" % self.soil.soilFilename))
         else:
             print ("\tcustom data")
         self.soil.soil_params.print_()
 
         print ("\nSOIL MANAGEMENT")
-        print ("Soil cover (1 covered, 0 bare):\n\t", self.soil.cover )
+        print(("Soil cover (1 covered, 0 bare):\n\t", self.soil.cover ))
         print ("Fire:")
         if self.ui.fireNever.isChecked():
             print ("\tNever")
         elif self.ui.fireInterval.isChecked():
-            print ("\tEvery %d years" % self.ui.fireFreq.value())
+            print(("\tEvery %d years" % self.ui.fireFreq.value()))
         else:
-            print ("\tIn years: %s" % str(self.ui.fireCustomLine.text()))
+            print(("\tIn years: %s" % str(self.ui.fireCustomLine.text())))
         
         print ("\nCROP MANAGEMENT")
         if self.ui.cropNum.value() == 0:
             print ("*** No crop management ***")
         else:
             for i in range(self.ui.cropNum.value()):
-                print ("\nCROP %d" % (i+1))
-                print ("Crop type:\n\t%s" % (
+                print(("\nCROP %d" % (i+1)))
+                print(("Crop type:\n\t%s" % (
                         str(self.ui.crop_type[i].currentText())
-                ))
-                print ("Crop yield:\n\t%.1f t DM / ha" % (
-                        self.ui.crop_yield[i].value()))
-                print ("Residues left in field after harvest:\n\t%d %%" % (
-                        self.ui.crop_leftinfield[i].value()))
-                print ("Off-farm residues burned:\n\t%s" % (
-                        str(self.ui.crop_burnyes[i].isChecked())))
+                )))
+                print(("Crop yield:\n\t%.1f t DM / ha" % (
+                        self.ui.crop_yield[i].value())))
+                print(("Residues left in field after harvest:\n\t%d %%" % (
+                        self.ui.crop_leftinfield[i].value())))
+                print(("Off-farm residues burned:\n\t%s" % (
+                        str(self.ui.crop_burnyes[i].isChecked()))))
                 
         print ("\nTREE MANAGEMENT")
         if self.ui.treeNum.value() == 0:
             print ("*** No tree management ***")
         else:
             for i in range(self.ui.treeNum.value()):
-                print ("\nTREE %d" % (i+1))
-                print ("Tree species:\n\t%s" % (
+                print(("\nTREE %d" % (i+1)))
+                print(("Tree species:\n\t%s" % (
                         str(self.ui.tree_name[i].text())
-                ))
-                print ("Tree type:\n\t%s" % (
+                )))
+                print(("Tree type:\n\t%s" % (
                         str(self.ui.tree_type[i].currentText())
-                ))
-                print ("Tree stocking density:\n\t%d / ha" % (
-                        self.ui.tree_standdens[i].value()))
-                print ("Year planted:\n\tyear %d" % (
-                        self.ui.tree_yearplanted[i].value()))
+                )))
+                print(("Tree stocking density:\n\t%d / ha" % (
+                        self.ui.tree_standdens[i].value())))
+                print(("Year planted:\n\tyear %d" % (
+                        self.ui.tree_yearplanted[i].value())))
                 
                 print ("Thinning:")
                 if self.ui.thin_neverbut[i].isChecked():
                     print ("\tNever")
                 elif self.ui.thin_intervalbut[i].isChecked():
-                    print ("\tEvery %d years" % self.ui.thin_freq[i].value())
+                    print(("\tEvery %d years" % self.ui.thin_freq[i].value()))
                 else:
-                    print ("\tIn years: %s" % (
+                    print(("\tIn years: %s" % (
                             str(self.ui.thin_customline[i].text())
-                    ))
+                    )))
                 if not self.ui.thin_neverbut[i].isChecked():
-                    print ("Trees thinned when thinning occurs:\n\t%d %%" % (
-                            self.ui.thin_amount[i].value()))
+                    print(("Trees thinned when thinning occurs:\n\t%d %%" % (
+                            self.ui.thin_amount[i].value())))
                     print ("Amount of thinned mass left in field:")
-                    print ("\tStems:\n\t\t%d %%" % (
-                            self.ui.thin_stemsleft[i].value()))
-                    print ("\tBranches:\n\t\t%d %%" % (
-                            self.ui.thin_branchesleft[i].value()))
+                    print(("\tStems:\n\t\t%d %%" % (
+                            self.ui.thin_stemsleft[i].value())))
+                    print(("\tBranches:\n\t\t%d %%" % (
+                            self.ui.thin_branchesleft[i].value())))
                     
-                print ("Mortality rate:\n\t %d %% per year" % (
-                        self.ui.mort_amount[i].value()))
+                print(("Mortality rate:\n\t %d %% per year" % (
+                        self.ui.mort_amount[i].value())))
                 if self.ui.mort_amount[i].value() != 0:
                     print ("Amount of dead mass left in field:")
-                    print ("\tStems:\n\t\t%d %%" % (
-                            self.ui.mort_stemsleft[i].value()))
-                    print ("\tBranches:\n\t\t%d %%" % (
-                            self.ui.mort_branchesleft[i].value()))
+                    print(("\tStems:\n\t\t%d %%" % (
+                            self.ui.mort_stemsleft[i].value())))
+                    print(("\tBranches:\n\t\t%d %%" % (
+                            self.ui.mort_branchesleft[i].value())))
                 
                 print ("Tree growth loaded from:")
                 if self.ui.growth_csvbut[i].isChecked():
-                    print ("\t%s" % self.trees[i].growthFilename)
+                    print(("\t%s" % self.trees[i].growthFilename))
                 else:
                     print ("\tcustom data")
-                print ("Allometric:\n\t%s" % (
-                        str(self.ui.growth_allom[i].currentText())))
+                print(("Allometric:\n\t%s" % (
+                        str(self.ui.growth_allom[i].currentText()))))
                 self.trees[i].growth.print_()
         
         print ("\nEXTERNAL ORGANIC INPUTS")
@@ -273,34 +273,34 @@ class ProjectModel(object):
             print ("*** No external organic inputs ***")
         else:
             for i in range(self.ui.litterNum.value()):
-                print ("\nEOI %d" % (i+1))
-                print ("Input quantity:\n\t%.1f t DM / ha" % (
-                        self.ui.litter_input[i].value()))
+                print(("\nEOI %d" % (i+1)))
+                print(("Input quantity:\n\t%.1f t DM / ha" % (
+                        self.ui.litter_input[i].value())))
                 print ("Input frequency:")
                 if self.ui.litter_intervalbut[i].isChecked():
-                    print ("\tEvery %d years" % self.ui.litter_freq[i].value())
+                    print(("\tEvery %d years" % self.ui.litter_freq[i].value()))
                 else:
-                    print ("\tIn years: %s" % (
+                    print(("\tIn years: %s" % (
                             str(self.ui.litter_customline[i].text())
-                    ))
+                    )))
 
         print ("\nSYNTHETIC FERTILISER")
         if self.ui.fertNum.value() == 0:
             print ("*** No fertiliser ***")
         else:
             for i in range(self.ui.fertNum.value()):
-                print ("\nFERTILISER %d" % (i+1))
-                print ("Input quantity:\n\t%.1f t DM / ha" % (
-                        self.ui.fert_input[i].value()))
-                print ("Nitrogen content:\n\t%.1f %% N" % (
-                        self.ui.fert_nitrogen[i].value()))
+                print(("\nFERTILISER %d" % (i+1)))
+                print(("Input quantity:\n\t%.1f t DM / ha" % (
+                        self.ui.fert_input[i].value())))
+                print(("Nitrogen content:\n\t%.1f %% N" % (
+                        self.ui.fert_nitrogen[i].value())))
                 print ("Input frequency:")
                 if self.ui.fert_intervalbut[i].isChecked():
-                    print ("\tEvery %d years" % self.ui.fert_freq[i].value())
+                    print(("\tEvery %d years" % self.ui.fert_freq[i].value()))
                 else:
-                    print ("\tIn years: %s" % (
+                    print(("\tIn years: %s" % (
                             str(self.ui.fert_customline[i].text())
-                    ))
+                    )))
 
         # save the description from the StringIO object
         sys.stdout = old_stdout
@@ -357,7 +357,7 @@ class Soil(object):
         if self.ui.fireNever.isChecked():
             pass     # already 0
         elif self.ui.fireInterval.isChecked():
-            years = range(0, cfg.N_YEARS, self.ui.fireFreq.value())
+            years = list(range(0, cfg.N_YEARS, self.ui.fireFreq.value()))
             years = years[1:]
             fire[years] = 1  # shift
         elif self.ui.fireCustom.isChecked():
@@ -492,7 +492,7 @@ class Tree(object):
             if self.ui.thin_intervalbut[self.tree_num].isChecked():
                 yp = self.ui.tree_yearplanted[self.tree_num].value()
                 freq = self.ui.thin_freq[self.tree_num].value()
-                years = range(yp-1, cfg.N_YEARS+1, freq)
+                years = list(range(yp-1, cfg.N_YEARS+1, freq))
                 years = years[1:]
                 thin[years] = thin_amt
             elif self.ui.thin_custombut[self.tree_num].isChecked():
