@@ -158,7 +158,7 @@ class Emission(object):
             ax = Emission.ax
         except AttributeError:
             fig = plt.figure()
-            fig.canvas.set_window_title("Emissions")
+            fig.canvas.manager.set_window_title("Emissions")
             Emission.ax = fig.add_subplot(1,1,1)
             ax = Emission.ax
             ax.set_title("Emissions vs time")

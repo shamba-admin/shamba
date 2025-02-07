@@ -166,7 +166,7 @@ class Climate(object):
 
         xAxis = list(range(1,13))
         fig, ax1 = plt.subplots()
-        fig.canvas.set_window_title('Climate data')
+        fig.canvas.manager.set_window_title('Climate data')
 
         ax1.bar(xAxis, self.rain, align='center', ec='k',fc='w')
         ax1.plot(xAxis, self.evap, 'k--D')

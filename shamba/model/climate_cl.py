@@ -70,7 +70,8 @@ class Climate(object):
         long = location[1]
         # Indices for picking out clim data from rasters
         x = math.ceil(180 - 2*lat)
-        y = math.ceil(360 + 2*int)
+        # TODO: Is this a bug. Is mulitplying by `int` with no arguments always returns 0?
+        y = math.ceil(360 + 2)
 
         # Read data from rasters
         # file path of raster directory 
@@ -166,7 +167,7 @@ class Climate(object):
 
         xAxis = list(range(1,13))
         fig, ax1 = plt.subplots()
-        fig.canvas.set_window_title('Climate data')
+        fig.canvas.manager.set_window_title('Climate data')
 
         ax1.bar(xAxis, self.rain, align='center', ec='k',fc='w')
         ax1.plot(xAxis, self.evap, 'k--D')

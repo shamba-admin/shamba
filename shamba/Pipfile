@@ -12,6 +12,7 @@ setuptools = "*"
 pip = "*"
 basemap = "*"
 gdal = "*"
+pandas = "*"
 
 [dev-packages]
 

@@ -293,9 +293,9 @@ class InverseRothC(RothC):
         print ("====================\n")
         print(("Equilibrium C -",self.eqC.sum() + self.soil.iom))
         for i in range(len(self.eqC)):
-            print(("   ",pools[i],"- - - -",self.eqC[i]))
-        print(("    IOM","- - - -",self.soil.iom))
-        print(("Equil. inputs -",self.inputC))
+            print("   ",pools[i],"- - - -",self.eqC[i])
+        print("    IOM","- - - -",self.soil.iom)
+        print("Equil. inputs -",self.inputC)
         print ("")
 
     def save_(self, file='soil_model_inverse.csv'):
@@ -484,7 +484,7 @@ class ForwardRothC(RothC):
         except AttributeError:
             # first time this has been called
             fig = plt.figure()
-            fig.canvas.set_window_title("Soil Carbon")
+            fig.canvas.manager.set_window_title("Soil Carbon")
             ForwardRothC.ax = fig.add_subplot(1,1,1)
             ax = ForwardRothC.ax
             ax.set_xlabel("Time (years)")
@@ -512,30 +512,30 @@ class ForwardRothC(RothC):
         """Print data from forward RothC run to stdout."""
         print ("\n\nFORWARD CALCULATIONS")
         print ("====================\n")
-        print(("Length: ", cfg.N_YEARS, "years"))
+        print("Length: ", cfg.N_YEARS, "years")
         print ("year carbon  crop_in  tree_in")
         tot_soc = np.sum(self.SOC, axis=1)
         if len(tot_soc) == cfg.N_YEARS+1:
             for i in range(len(tot_soc)):
                 if i == cfg.N_YEARS:
-                    print((i, "  ",))
-                    print((tot_soc[i] + self.soil.iom))
+                    print(i, "  ",)
+                    print(tot_soc[i] + self.soil.iom)
                 else:
-                    print((i, "  ", ))
-                    print((tot_soc[i] + self.soil.iom, "  ",))
-                    print((self.inputs[i][0], "  ", self.inputs[i][1]))
+                    print(i, "  ", )
+                    print(tot_soc[i] + self.soil.iom, "  ",)
+                    print(self.inputs[i][0], "  ", self.inputs[i][1])
         else:
             x = np.array(list(range(-len(tot_soc)+2,2)))
             x = x - self.Cy0Year
             x[-1] = 0
             for i in range(len(tot_soc)):
                 print(("%6.3f" % (x[i]),))
-                print(("  ",))
-                print((tot_soc[i] + self.soil.iom, "  ",))
+                print("  ",)
+                print(tot_soc[i] + self.soil.iom, "  ",)
                 if i == len(tot_soc)-1:
                     pass
                 else:  
-                    print((self.inputs[i][0], "  ",self.inputs[i][1]))
+                    print(self.inputs[i][0], "  ",self.inputs[i][1])
 
     def save_(self, file='soil_model_forward.csv'):
         """Save data from forward RothC run to a csv.

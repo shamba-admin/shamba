@@ -105,11 +105,11 @@ class SoilParams(object):
         """Print soil information to stdout."""
         print ("\nSOIL INFORMATION")
         print ("================\n")
-        print(("Equilibrium C -",self.Ceq))
-        print(("C at y=0  - - -",self.Cy0))
-        print(("IOM - - - - - -",self.iom))
-        print(("Clay  - - - - -",self.clay))
-        print(("Depth - - - - -",self.depth))         
+        print("Equilibrium C -",self.Ceq)
+        print("C at y=0  - - -",self.Cy0)
+        print("IOM - - - - - -",self.iom)
+        print("Clay  - - - - -",self.clay)
+        print("Depth - - - - -",self.depth)         
         print ("")
 
     def save_(self, file='soil_params.csv'):
@@ -220,7 +220,7 @@ if __name__ == '__main__':
 
     for i in range(len(mu)):
         a = Soil((lat[i],int[i]))
-        print(("\nlocation = %f, %f " % (lat[i], int[i])))
-        print(("mu actual= %d" % mu[i]))
-        print(("mu python= %d" % a.mu_global))
+        print("\nlocation = %f, %f " % (lat[i], int[i]))
+        print("mu actual= %d" % mu[i])
+        print("mu python= %d" % a.mu_global)
 

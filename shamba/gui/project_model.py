@@ -174,17 +174,17 @@ class ProjectModel(object):
 
         if self.isBaseline:
             print ("NEW BASELINE")
-            print(("Baseline name:\n\t%s" % self.name))
+            print("Baseline name:\n\t%s" % self.name)
         else:
             print ("NEW INTERVENTION")
-            print(("Intervention name:\n\t%s" % self.name))
+            print("Intervention name:\n\t%s" % self.name)
 
         print ("\nSOIL PARAMETERS")
         print ("Soil parameters loaded from:")
         if self.ui.soilFromHWSD.isChecked():
             print ("\tHWSD data")
         elif self.ui.soilFromCsv.isChecked():
-            print(("\t%s" % self.soil.soilFilename))
+            print("\t%s" % self.soil.soilFilename)
         else:
             print ("\tcustom data")
         self.soil.soil_params.print_()
@@ -195,16 +195,16 @@ class ProjectModel(object):
         if self.ui.fireNever.isChecked():
             print ("\tNever")
         elif self.ui.fireInterval.isChecked():
-            print(("\tEvery %d years" % self.ui.fireFreq.value()))
+            print("\tEvery %d years" % self.ui.fireFreq.value())
         else:
-            print(("\tIn years: %s" % str(self.ui.fireCustomLine.text())))
+            print("\tIn years: %s" % str(self.ui.fireCustomLine.text()))
         
         print ("\nCROP MANAGEMENT")
         if self.ui.cropNum.value() == 0:
             print ("*** No crop management ***")
         else:
             for i in range(self.ui.cropNum.value()):
-                print(("\nCROP %d" % (i+1)))
+                print("\nCROP %d" % (i+1))
                 print(("Crop type:\n\t%s" % (
                         str(self.ui.crop_type[i].currentText())
                 )))
@@ -220,7 +220,7 @@ class ProjectModel(object):
             print ("*** No tree management ***")
         else:
             for i in range(self.ui.treeNum.value()):
-                print(("\nTREE %d" % (i+1)))
+                print("\nTREE %d" % (i+1))
                 print(("Tree species:\n\t%s" % (
                         str(self.ui.tree_name[i].text())
                 )))
@@ -236,7 +236,7 @@ class ProjectModel(object):
                 if self.ui.thin_neverbut[i].isChecked():
                     print ("\tNever")
                 elif self.ui.thin_intervalbut[i].isChecked():
-                    print(("\tEvery %d years" % self.ui.thin_freq[i].value()))
+                    print("\tEvery %d years" % self.ui.thin_freq[i].value())
                 else:
                     print(("\tIn years: %s" % (
                             str(self.ui.thin_customline[i].text())
@@ -261,7 +261,7 @@ class ProjectModel(object):
                 
                 print ("Tree growth loaded from:")
                 if self.ui.growth_csvbut[i].isChecked():
-                    print(("\t%s" % self.trees[i].growthFilename))
+                    print("\t%s" % self.trees[i].growthFilename)
                 else:
                     print ("\tcustom data")
                 print(("Allometric:\n\t%s" % (
@@ -273,12 +273,12 @@ class ProjectModel(object):
             print ("*** No external organic inputs ***")
         else:
             for i in range(self.ui.litterNum.value()):
-                print(("\nEOI %d" % (i+1)))
+                print("\nEOI %d" % (i+1))
                 print(("Input quantity:\n\t%.1f t DM / ha" % (
                         self.ui.litter_input[i].value())))
                 print ("Input frequency:")
                 if self.ui.litter_intervalbut[i].isChecked():
-                    print(("\tEvery %d years" % self.ui.litter_freq[i].value()))
+                    print("\tEvery %d years" % self.ui.litter_freq[i].value())
                 else:
                     print(("\tIn years: %s" % (
                             str(self.ui.litter_customline[i].text())
@@ -289,14 +289,14 @@ class ProjectModel(object):
             print ("*** No fertiliser ***")
         else:
             for i in range(self.ui.fertNum.value()):
-                print(("\nFERTILISER %d" % (i+1)))
+                print("\nFERTILISER %d" % (i+1))
                 print(("Input quantity:\n\t%.1f t DM / ha" % (
                         self.ui.fert_input[i].value())))
                 print(("Nitrogen content:\n\t%.1f %% N" % (
                         self.ui.fert_nitrogen[i].value())))
                 print ("Input frequency:")
                 if self.ui.fert_intervalbut[i].isChecked():
-                    print(("\tEvery %d years" % self.ui.fert_freq[i].value()))
+                    print("\tEvery %d years" % self.ui.fert_freq[i].value())
                 else:
                     print(("\tIn years: %s" % (
                             str(self.ui.fert_customline[i].text())

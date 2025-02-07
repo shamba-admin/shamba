@@ -139,7 +139,7 @@ class TreeModel(object):
 
         # First get params from bpFile and ppFile
         print ('new tree cohort running...')
-        print((initialBiomass, yearPlanted, initialStandDens   ))
+        print(initialBiomass, yearPlanted, initialStandDens   )
         
         yp = yearPlanted
         print ('yp,  then initialSD')
@@ -268,7 +268,7 @@ class TreeModel(object):
         """Plot the biomass pool data."""
 
         fig = plt.figure()
-        fig.canvas.set_window_title("Biomass Pools")
+        fig.canvas.manager.set_window_title("Biomass Pools")
         ax = fig.add_subplot(1,1,1)
         ax.plot(self.woodyBiom[:,0], label='leaf')
         ax.plot(self.woodyBiom[:,1], label='branch')
@@ -287,7 +287,7 @@ class TreeModel(object):
         """Plot the mass balance data."""
 
         fig = plt.figure()
-        fig.canvas.set_window_title("Biomass Mass Balance")
+        fig.canvas.manager.set_window_title("Biomass Mass Balance")
         ax = fig.add_subplot(1,1,1)
         ax.plot(self.balance['in'], label='in')
         ax.plot(self.balance['out'], label='out')
@@ -307,7 +307,7 @@ class TreeModel(object):
         totalBiomass = np.sum(self.woodyBiom, axis=1)
         print ("year  biomass")
         for i in range(len(totalBiomass)):
-            print((i, "  ",totalBiomass[i] ))
+            print(i, "  ",totalBiomass[i] )
 
     def print_balance(self):
         print(("\nMass-balance sum (kg C /ha): ", self.balance['bal'].sum()))

@@ -100,7 +100,7 @@ def main(n):
     Specify below the unique name of the new project folder in the 
     shamba/shamba_projects folder
     """
-    project_name = 'UG_TS_2016'
+    project_name = 'UG_TS_2025'
     cfg.SAV_DIR = os.path.join(cfg.PROJ_DIR, project_name)
     
     # specifiying input and output files
@@ -185,33 +185,33 @@ def main(n):
 
     # linking tree growth
     spp = int(val['species_base'])
-    if spp is 1:
+    if spp == 1:
         growth_base = TreeGrowth.from_csv1(tree_par_base, n, filename=input_csv)
-    elif spp is 2:
+    elif spp == 2:
         growth_base = TreeGrowth.from_csv2(tree_par_base, n, filename=input_csv)
     else:
         growth_base = TreeGrowth.from_csv3(tree_par_base, n, filename=input_csv)
 
     spp = int(val['species1'])
-    if spp is 1:
+    if spp == 1:
         growth1 = TreeGrowth.from_csv1(tree_par1, n, filename=input_csv)
-    elif spp is 2:
+    elif spp == 2:
         growth1 = TreeGrowth.from_csv2(tree_par1, n, filename=input_csv)
     else:
         growth1 = TreeGrowth.from_csv3(tree_par1, n, filename=input_csv)
 
     spp = int(val['species2'])
-    if spp is 1:
+    if spp == 1:
         growth2 = TreeGrowth.from_csv1(tree_par2, n, filename=input_csv)
-    elif spp is 2:
+    elif spp == 2:
         growth2 = TreeGrowth.from_csv2(tree_par2, n, filename=input_csv)
     else:
         growth2 = TreeGrowth.from_csv3(tree_par2, n, filename=input_csv)            
 
     spp = int(val['species3'])
-    if spp is 1:
+    if spp == 1:
         growth3 = TreeGrowth.from_csv1(tree_par3, n, filename=input_csv)
-    elif spp is 2:
+    elif spp == 2:
         growth3 = TreeGrowth.from_csv2(tree_par3, n, filename=input_csv)
     else:
         growth3 = TreeGrowth.from_csv3(tree_par3, n, filename=input_csv)
@@ -297,14 +297,14 @@ def main(n):
     # ----------
     #return interval of fire, [::2] = 1 is return interval of two years
     base_fire_interval = int(val['fire_int_base'])   
-    if base_fire_interval is 0:
+    if base_fire_interval == 0:
         fire_base = np.zeros(cfg.N_YEARS)
     else:
         fire_base = np.zeros(cfg.N_YEARS)
         fire_base[::base_fire_interval] = int(val['fire_pres_base'])
 
     proj_fire_interval = int(val['fire_int_proj'])   
-    if proj_fire_interval is 0:
+    if proj_fire_interval == 0:
         fire_proj = np.zeros(cfg.N_YEARS)
     else:
         fire_proj = np.zeros(cfg.N_YEARS)
@@ -454,7 +454,7 @@ def main(n):
     # ----------
 
     # print stuff
-    print(("location: ", loc))
+    print("location: ", loc)
     climate.print_()
     soil.print_()
     growth1.print_()
@@ -480,7 +480,7 @@ def main(n):
     
     crop_diff = crop_proj_emit.emissions - crop_base_emit.emissions
     for i in range(len(crop_base_emit.emissions)):
-        print((crop_base_emit.emissions[i], crop_proj_emit.emissions[i], crop_diff[i]))
+        print(crop_base_emit.emissions[i], crop_proj_emit.emissions[i], crop_diff[i])
     
     print(("\nTotal crop difference: ", sum(crop_diff), " t CO2 ha^-1"))
 
@@ -496,11 +496,11 @@ def main(n):
     
     fert_diff = fert_proj_emit.emissions - fert_base_emit.emissions
     for i in range(len(fert_base_emit.emissions)):
-        print((fert_base_emit.emissions[i], fert_proj_emit.emissions[i], fert_diff[i]))
+        print(fert_base_emit.emissions[i], fert_proj_emit.emissions[i], fert_diff[i])
     
     print(("\nTotal fertiliser difference: ", sum(fert_diff), " t CO2 ha^-1"))
 
-    print(("Average fertiliser difference: ", np.mean(fert_diff)))
+    print("Average fertiliser difference: ", np.mean(fert_diff))
 
     # litter emissions print
     print("\n\nLITTER EMISSIONS (t CO2)")
@@ -512,11 +512,11 @@ def main(n):
     
     lit_diff = lit_proj_emit.emissions - lit_base_emit.emissions
     for i in range(len(lit_base_emit.emissions)):
-        print((lit_base_emit.emissions[i], lit_proj_emit.emissions[i], lit_diff[i]))
+        print(lit_base_emit.emissions[i], lit_proj_emit.emissions[i], lit_diff[i])
     
     print(("\nTotal Litter difference: ", sum(lit_diff), " t CO2 ha^-1"))
 
-    print(("Average Litter difference: ", np.mean(lit_diff)))
+    print("Average Litter difference: ", np.mean(lit_diff))
 
     # fire emissions print
     print("\n\nFIRE EMISSIONS (t CO2)")
@@ -528,11 +528,11 @@ def main(n):
     
     fire_diff = fire_proj_emit.emissions - fire_base_emit.emissions
     for i in range(len(fire_base_emit.emissions)):
-        print((fire_base_emit.emissions[i], fire_proj_emit.emissions[i], fire_diff[i]))
+        print(fire_base_emit.emissions[i], fire_proj_emit.emissions[i], fire_diff[i])
     
     print(("\nTotal Fire difference: ", sum(fire_diff), " t CO2 ha^-1"))
 
-    print(("Average Fire difference: ", np.mean(fire_diff)))
+    print("Average Fire difference: ", np.mean(fire_diff))
 
     # tree emissions print
     print("\n\nTREE EMISSIONS (t CO2)")
@@ -544,11 +544,11 @@ def main(n):
     
     tree_diff = tree_proj_emit.emissions - tree_base_emit.emissions
     for i in range(len(tree_base_emit.emissions)):
-        print((tree_base_emit.emissions[i], tree_proj_emit.emissions[i], tree_diff[i]))
+        print(tree_base_emit.emissions[i], tree_proj_emit.emissions[i], tree_diff[i])
     
     print(("\nTotal tree difference: ", sum(tree_diff), " t CO2 ha^-1"))
 
-    print(("Average tree difference: ", np.mean(tree_diff)))
+    print("Average tree difference: ", np.mean(tree_diff))
     
     # soil diff emissions print
     print("\n\nSOIL EMISSIONS (t CO2)")
@@ -562,11 +562,11 @@ def main(n):
 
     soil_diff = soil_proj_emit - soil_base_emit
     for i in range(len(emit_base.emissions)):
-        print((soil_base_emit[i], soil_proj_emit[i], soil_diff[i]))
+        print(soil_base_emit[i], soil_proj_emit[i], soil_diff[i])
 
     print(("\nTotal Soil difference: ", sum(soil_diff), " t CO2 ha^-1"))
 
-    print(("Average Soil difference: ", np.mean(soil_diff)))
+    print("Average Soil difference: ", np.mean(soil_diff))
 
     # total emissions print    
     print("\n\nTOTAL EMISSIONS (t CO2)")
@@ -575,11 +575,11 @@ def main(n):
 
     emit_diff = emit_proj.emissions - emit_base.emissions
     for i in range(len(emit_base.emissions)):
-        print((emit_base.emissions[i],emit_proj.emissions[i],emit_diff[i]))
+        print(emit_base.emissions[i],emit_proj.emissions[i],emit_diff[i])
 
     print(("\nTotal difference: ",sum(emit_diff), " t CO2 ha^-1"))
       
-    print(("Average difference: ", np.mean(emit_diff)))
+    print("Average difference: ", np.mean(emit_diff))
 
     # summary of GHG pools
     print("\n\nSUMMARY OF EMISSIONS (t CO2)")

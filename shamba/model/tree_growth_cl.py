@@ -437,7 +437,7 @@ class TreeGrowth(object):
         """Plot growth data and all four fits in a matplotlib figure."""
         
         fig = plt.figure()
-        fig.canvas.set_window_title('Tree Growth')
+        fig.canvas.manager.set_window_title('Tree Growth')
 
         ax = fig.add_subplot(1,1,1)
 
@@ -476,7 +476,7 @@ class TreeGrowth(object):
         
         print ("\n\nTREE GROWTH DATA")
         print ("=========\n")
-        print(("Allometric: ",self.allom))
+        print("Allometric: ",self.allom)
         print ("\n  Age    Diameter  Biomass")
         print ("(years)    (cm)     (kg C)")
         print ("--------------------------")

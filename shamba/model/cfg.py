@@ -9,8 +9,10 @@ import uuid
 
 # input and output files for specific project
 # change this for specific projects
-#BASE_PATH = os.path.expanduser("W:/ShambaDev/shamba_git_repositories/shamba_v1.1/shamba/shamba_stable_1.1/shamba") 
-BASE_PATH = os.path.expanduser("c:/sources/python/shamba/shamba") 
+# BASE_PATH = os.path.expanduser("W:/ShambaDev/shamba_git_repositories/shamba_v1.1/shamba/shamba_stable_1.1/shamba") 
+# BASE_PATH = os.path.expanduser("c:/sources/python/shamba/shamba") 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+BASE_PATH = os.path.join(script_dir, "..") 
 PROJ_DIR = os.path.join(BASE_PATH, 'shamba_projects')
 # no need to specify SAV, INP, OUT directories if specified in cl file
 SAV_DIR = os.path.join(PROJ_DIR, 'default') # overwrite this later
