@@ -12,7 +12,7 @@ from PyQt5 import QtCore, QtGui
 
 import shutil
 
-from shamba.model import cfg, io_
+from shamba.model import configuration, io_
 from shamba.model.climate import Climate
 
 
@@ -30,7 +30,7 @@ class GeneralModel(object):
         self.ui = ui
 
         # metadata
-        cfg.PROJ_NAME = str(self.ui.projectName.text())
+        configuration.PROJ_NAME = str(self.ui.projectName.text())
         
         # for use in the xml file for oe descriptive data
         self.farmer_name = str(self.ui.farmerName.text())
@@ -43,7 +43,7 @@ class GeneralModel(object):
             self.isOneField = True
 
         # climate and location
-        self.location, cfg.N_YEARS, cfg.N_ACCT = self.get_params()
+        self.location, configuration.N_YEARS, configuration.N_ACCT = self.get_params()
         self.climate = self.get_climate()
         
         self.save_description()
@@ -112,7 +112,7 @@ class GeneralModel(object):
             sys.exit(2)
 
         # Save climate to csv in INP_DIR then init climate object from that
-        filepath = os.path.join(cfg.INP_DIR, 'climate.csv')
+        filepath = os.path.join(configuration.INP_DIR, 'climate.csv')
         io_.print_csv(
                 filepath,
                  np.transpose(clim),
@@ -128,14 +128,14 @@ class GeneralModel(object):
         self.climate.save_()
         
         # general info
-        filename = os.path.join(cfg.OUT_DIR, 'general_info.txt')
+        filename = os.path.join(configuration.OUT_DIR, 'general_info.txt')
         with open(filename, 'w+') as fout:
             fout.write(self.description)
 
         # climate input file, if it exists
         try:
             dest_file = os.path.basename(self.climateFilename)
-            dest_file = os.path.join(cfg.INP_DIR, dest_file)
+            dest_file = os.path.join(configuration.INP_DIR, dest_file)
             shutil.copyfile(self.climateFilename, dest_file)
         except AttributeError:  # no climate input file
             pass
@@ -149,7 +149,7 @@ class GeneralModel(object):
         print ("GENERAL PROJECT INFORMATION")
 
         print ("\nOVERVIEW")
-        print("Project name:\n\t%s" % cfg.PROJ_NAME)
+        print("Project name:\n\t%s" % configuration.PROJ_NAME)
         print(("Level of assessment:\n\t%s" % str(
                 self.ui.projectType.currentText())))
         if self.ui.projectType.currentIndex() != 0:
@@ -160,7 +160,7 @@ class GeneralModel(object):
         print ("\nLocation and Project Periods")
         print(("Project location:\n\t(lat,long) = (%f, %f)" % (
                 self.location[0], self.location[1])))
-        print("Quantification period:\n\t%d years" % cfg.N_ACCT)
+        print("Quantification period:\n\t%d years" % configuration.N_ACCT)
 
         print ("\nCLIMATE")
         print ("Climate data loaded from:")

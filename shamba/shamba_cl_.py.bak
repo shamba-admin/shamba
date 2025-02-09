@@ -78,11 +78,11 @@ def main(n):
     """
    
     # Initial stuff
-    cfg.args = io_.get_cl_args()
+    cfg.arguments = io_.get_cl_args()
     
     """
     ## STEP 2 ##
-    Within the 'shamba/shamba_projects' folder, set up a project folder with a 
+    Within the 'shamba/projects' folder, set up a project folder with a 
     unique project name (e.g. UG_TS_2016). Within this folder, set up a folder
     titled 'input'. Within this 'input' folder directory add copies of the
     following four .csv files (you can copy from other existing'input' folder 
@@ -90,7 +90,7 @@ def main(n):
     1. crop_ipcc_baseline.csv
     2. crop_ipcc.csv
     3. climate.csv
-    4. soilInfo.csv
+    4. soil-info.csv
     The above .csv files can be updated with new input parmeteres if desired,
     but it may not be necesarry.
     """
@@ -98,7 +98,7 @@ def main(n):
     """
     ## STEP 3 ##
     Specify below the unique name of the new project folder in the 
-    shamba/shamba_projects folder
+    shamba/projects folder
     """
     project_name = 'UG_TS_2016'
     cfg.SAV_DIR = os.path.join(cfg.PROJ_DIR, project_name)
@@ -122,7 +122,7 @@ def main(n):
     
     ## STEP 5 ###
     To run the model for a particular intervention, save the relevant 
-    '_input.csv' file into the new shamba/shamba_projects/"project"/input
+    '_input.csv' file into the new shamba/projects/"project"/input
     folder and specifiy the .csv name below    
     """
     input_csv = 'WL_input.csv'
@@ -737,7 +737,7 @@ if __name__ == '__main__':
     After you have completed all of the above steps, run the code.
     
     Results for each line of the _input.csv file will (i.e. each model run) 
-    will appear in a subfolder in the shamba/shamba_projects/"project"/output_/. 
+    will appear in a subfolder in the shamba/projects/"project"/output_/. 
     
     All results are in tCO2e.
     

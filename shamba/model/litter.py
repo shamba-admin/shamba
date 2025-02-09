@@ -6,7 +6,7 @@
 import logging as log
 import numpy as np
 
-from . import cfg, io_
+from . import configuration, io_
 
 
 class LitterModel(object):
@@ -126,12 +126,12 @@ class LitterModel(object):
         
         if litterVector is None:
             # Construct vectors for DM, C, N
-            Cinput = np.zeros(cfg.N_YEARS)
-            Ninput = np.zeros(cfg.N_YEARS)
-            DMinput = np.zeros(cfg.N_YEARS)
+            Cinput = np.zeros(configuration.N_YEARS)
+            Ninput = np.zeros(configuration.N_YEARS)
+            DMinput = np.zeros(configuration.N_YEARS)
             
             # loop through years when litter is added
-            years = list(range(-1,cfg.N_YEARS,litterFreq))
+            years = list(range(-1,configuration.N_YEARS,litterFreq))
             years = years[1:]
             DMinput[years] = litterQty
             Cinput[years] = litterQty * self.carbon

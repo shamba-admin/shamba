@@ -4,7 +4,7 @@
 
 
 import os
-from shamba.model import cfg
+from shamba.model import configuration
 
 from PyQt5 import QtCore, QtGui
 from shamba.gui.translate_ import translate_ as _

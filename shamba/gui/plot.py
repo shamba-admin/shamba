@@ -8,7 +8,7 @@ from matplotlib.lines import Line2D
 
 from PyQt5 import QtCore,QtGui,QtWidgets
 
-from shamba.model import cfg
+from shamba.model import configuration
 
 COLOURS = 'brkwyc'
 SUB_2 = '\u2082'
@@ -98,7 +98,7 @@ class PlotWidget(FigureCanvas):
         ms = sorted(models.keys())
         
         years =  self.axes.dataLim.get_points()[1,0]
-        outstr = "Total Emissions/Removals\nover %d years " % cfg.N_ACCT
+        outstr = "Total Emissions/Removals\nover %d years " % configuration.N_ACCT
         outstr += "(t CO"+SUB_2+"e / ha):\n"
         for m in ms:
             outstr += '%s: %.1f\n' % (m, models[m][0])

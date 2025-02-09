@@ -7,10 +7,10 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from shamba.model import cfg, io_
+from shamba.model import configuration, io_
 
 # Fire vector - can redefine from elsewhere if there are fires
-FIRE = np.zeros(cfg.N_YEARS)
+FIRE = np.zeros(configuration.N_YEARS)
 
 # Emissions stuff
 # From table 2.5 IPCC 2006 GHG Inventory
@@ -53,12 +53,12 @@ def reduceFromFire(crop=[], tree=[], litter=[], outputType='carbon'):
     """
     # Add up all inputs
     crop_inputs = {
-            'above': np.zeros(cfg.N_YEARS), 
-            'below': np.zeros(cfg.N_YEARS)
+            'above': np.zeros(configuration.N_YEARS), 
+            'below': np.zeros(configuration.N_YEARS)
     }
     tree_inputs = {
-            'above': np.zeros(cfg.N_YEARS), 
-            'below': np.zeros(cfg.N_YEARS)
+            'above': np.zeros(configuration.N_YEARS), 
+            'below': np.zeros(configuration.N_YEARS)
     }
     for s in ['above', 'below']:
         try:
@@ -116,11 +116,11 @@ class Emission(object):
         """
         
         # Calculate total emission (for types that aren't None or empty)
-        self.emissions = np.zeros(cfg.N_YEARS)
+        self.emissions = np.zeros(configuration.N_YEARS)
         # += the sources (nitrogen, fire, fertiliser)
         # and -= the sinks (biomass, soil)
         
-        self.emissions = np.zeros(cfg.N_YEARS)
+        self.emissions = np.zeros(configuration.N_YEARS)
 
         # soil
         if forRothC is not None:
@@ -144,7 +144,7 @@ class Emission(object):
             self.emissions += self.emissions_fert
 
         # We only care about portion in the project accounting period
-        self.emissions = self.emissions[0:cfg.N_ACCT]
+        self.emissions = self.emissions[0:configuration.N_ACCT]
     
     def plot_(self, legendStr, saveName=None):
         """Plot total carbon vs year for emissions.
@@ -169,7 +169,7 @@ class Emission(object):
         ax.legend(loc='best')
         
         if saveName is not None:
-            plt.savefig(os.path.join(cfg.OUT_DIR, saveName))
+            plt.savefig(os.path.join(configuration.OUT_DIR, saveName))
     
     @staticmethod 
     def save_(
@@ -214,9 +214,9 @@ class Emission(object):
 
         # IMPORTANT: make sure soc is of length N_YEARS+1
         # (N years, inclusive of beginning and end = N+1 array entries)
-        deltaSOC = np.zeros(cfg.N_YEARS)
+        deltaSOC = np.zeros(configuration.N_YEARS)
        
-        for i in range(cfg.N_YEARS):
+        for i in range(configuration.N_YEARS):
             deltaSOC[i] = (soc[i+1] - soc[i]) * conversionFactor
         
         return deltaSOC
@@ -230,12 +230,12 @@ class Emission(object):
         """
         conversionFactor = 44.0/12
 
-        biomass = np.zeros(cfg.N_YEARS+1)
+        biomass = np.zeros(configuration.N_YEARS+1)
         for t in tree:
             biomass += np.sum(t.woodyBiom, axis=1)
         
-        delta = np.zeros(cfg.N_YEARS)
-        for i in range(cfg.N_YEARS):
+        delta = np.zeros(configuration.N_YEARS)
+        for i in range(configuration.N_YEARS):
             delta[i] = (biomass[i+1] - biomass[i]) * conversionFactor
 
         return delta
@@ -266,11 +266,11 @@ class Emission(object):
                       e.g. [True, False] -> burn crop1 off-res but not crop2
         """        
            
-        emit = np.zeros(cfg.N_YEARS)
+        emit = np.zeros(configuration.N_YEARS)
         # sum up the above-ground mass on-farm eligible to be burned
         # off-farm is summed up if any of the crops has burn=True
-        crop_inputs_on = np.zeros(cfg.N_YEARS)
-        tree_inputs_on = np.zeros(cfg.N_YEARS)
+        crop_inputs_on = np.zeros(configuration.N_YEARS)
+        tree_inputs_on = np.zeros(configuration.N_YEARS)
         for c in crop:
             crop_inputs_on += c.output['above']['DMon']
         for t in tree:
@@ -295,7 +295,7 @@ class Emission(object):
             burn_off_lst = burn_off
 
         if any(burn_off_lst):
-            crop_inputs_off = np.zeros(cfg.N_YEARS)
+            crop_inputs_off = np.zeros(configuration.N_YEARS)
             for i,c in enumerate(crop):
                 if burn_off_lst[i]:
                     crop_inputs_off += c.output['above']['DMoff']
@@ -320,7 +320,7 @@ class Emission(object):
         volatile_frac_org = 0.2
     
         # calculate emissions
-        emit = np.zeros(cfg.N_YEARS)
+        emit = np.zeros(configuration.N_YEARS)
         # still need to add fertiliser ************
         for li in litter:
             emit += li.output['above']['nitrogen'] * (

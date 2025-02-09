@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-from shamba.model import cfg, io_
+from shamba.model import configuration, io_
 from shamba.rasters import climate as climate_raster
 
 

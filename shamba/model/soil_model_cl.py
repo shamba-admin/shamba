@@ -18,7 +18,7 @@ import numpy as np
 from scipy import optimize, integrate
 import matplotlib.pyplot as plt
 
-from . import cfg, emit_cl, io_
+from . import configuration, emit_cl, io_
 
     
 class RothC(object):
@@ -372,9 +372,9 @@ class ForwardRothC(RothC):
         # Calculate yearly values of x based dpm:rpm ratio for each year
         x = self.get_partitions(inputs)
         t = np.arange(0, 1, 0.001)
-        C = np.zeros((cfg.N_YEARS+1, 4))
+        C = np.zeros((configuration.N_YEARS+1, 4))
         C[0] = Ci
-        Ctot = np.zeros(cfg.N_YEARS+1)
+        Ctot = np.zeros(configuration.N_YEARS+1)
         
         # keep track of when target year reached
         year_target_reached = 0
@@ -384,7 +384,7 @@ class ForwardRothC(RothC):
             prevDiff_inner = 1000.0
         
 
-        for i in range(1,cfg.N_YEARS+1):
+        for i in range(1,configuration.N_YEARS+1):
             # Careful with indices - using 1-based for arrays here
             # since, e.g., C[2] should correspond to carbon after 2 years
 
@@ -450,7 +450,7 @@ class ForwardRothC(RothC):
         
         # Normalize
         i = 0
-        normInput = np.zeros((cfg.N_YEARS,2))
+        normInput = np.zeros((configuration.N_YEARS,2))
         for row in inputs:
             if math.fabs(float(row.sum())) < 0.00000001:
                 normInput[i] = 0
@@ -465,8 +465,8 @@ class ForwardRothC(RothC):
         # make arrays (p1 already array)
         x = np.column_stack(
                 (p1, 1-p1, 
-                 np.array(cfg.N_YEARS * [p3*(1-p2)]), 
-                 np.array(cfg.N_YEARS * [(1-p2)*(1-p3)]))
+                 np.array(configuration.N_YEARS * [p3*(1-p2)]), 
+                 np.array(configuration.N_YEARS * [(1-p2)*(1-p3)]))
         )
 
         return x
@@ -492,7 +492,7 @@ class ForwardRothC(RothC):
             ax.set_title("Total soil carbon vs time")
     
         tot_soc = np.sum(self.SOC, axis=1)
-        if len(tot_soc) == cfg.N_YEARS+1:
+        if len(tot_soc) == configuration.N_YEARS+1:
             # baseline or project
             x = list(range(len(tot_soc)))
         else:
@@ -506,18 +506,18 @@ class ForwardRothC(RothC):
         ax.legend(loc='best')
         
         if saveName is not None:
-            plt.savefig(os.path.join(cfg.OUT_DIR, saveName))
+            plt.savefig(os.path.join(configuration.OUT_DIR, saveName))
 
     def print_(self, solveToValue=False):
         """Print data from forward RothC run to stdout."""
         print ("\n\nFORWARD CALCULATIONS")
         print ("====================\n")
-        print("Length: ", cfg.N_YEARS, "years")
+        print("Length: ", configuration.N_YEARS, "years")
         print ("year carbon  crop_in  tree_in")
         tot_soc = np.sum(self.SOC, axis=1)
-        if len(tot_soc) == cfg.N_YEARS+1:
+        if len(tot_soc) == configuration.N_YEARS+1:
             for i in range(len(tot_soc)):
-                if i == cfg.N_YEARS:
+                if i == configuration.N_YEARS:
                     print(i, "  ",)
                     print(tot_soc[i] + self.soil.iom)
                 else:
@@ -553,7 +553,7 @@ class ForwardRothC(RothC):
                 'soc', 'dpm', 'rpm', 'bio', 'hum', 
                 'iom', 'crop_in', 'tree_in'
         ]
-        if len(tot_soc) != cfg.N_YEARS+1:   # solve to value
+        if len(tot_soc) != configuration.N_YEARS+1:   # solve to value
             cols.insert(0, 'year')
             x = np.array(list(range(-len(tot_soc)+2,2)))
             x = x - self.Cy0Year

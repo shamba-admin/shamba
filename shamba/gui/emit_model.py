@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from xml.etree import ElementTree as ET
 from xml.dom import minidom
 
-from shamba.model import io_, cfg
+from shamba.model import configuration, io_
 from shamba.model.soil_model import InverseRothC, ForwardRothC
 from shamba.model import emit
 
@@ -129,9 +129,9 @@ class Emissions(object):
 
     def save_data(self):
         base_dir = os.path.join(
-                cfg.OUT_DIR, 'baselines', self.baseline.name)
+                configuration.OUT_DIR, 'baselines', self.baseline.name)
         inter_dir = os.path.join(
-                cfg.OUT_DIR, 'interventions', self.intervention.name)
+                configuration.OUT_DIR, 'interventions', self.intervention.name)
          
         self.eqRoth.save_(
                 os.path.join(base_dir, 'soil_model_inverse.csv'))
@@ -155,7 +155,7 @@ class Emissions(object):
         try:
             # read existing file
             with open(
-                    os.path.join(cfg.OUT_DIR, 'emissions_total.csv'), 'r'
+                    os.path.join(configuration.OUT_DIR, 'emissions_total.csv'), 'r'
                     ) as f:
                 col_names = f.readline()
                 col_names = col_names[:-1]   # remove newline char
@@ -182,7 +182,7 @@ class Emissions(object):
             values = values[1:]
 
         with open(
-                os.path.join(cfg.OUT_DIR, 'emissions_total.csv'), 'w'
+                os.path.join(configuration.OUT_DIR, 'emissions_total.csv'), 'w'
                 ) as f:
             f.write(col_names + "\n" + values + "\n")
 

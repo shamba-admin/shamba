@@ -12,13 +12,15 @@ pipenv install
 ```
 
 ### Docker Installation
+
+
 # [OLD] Small-Holder Agriculture Mitigation Benefit Assessment (SHAMBA) project. version 1.1
 
 The shamba tool [user guide](docs/user-guide.md) has detailed instructions on how to install and use the SHAMBA tool.
 
 The model_documentation folder contains the detailed scientific description of the model, as well documentation on how to implement the Plan Vivo Approved Approach for using SHAMBA.
 
-View the `shamba_cl.py` file in a Python IDE for details on how to run SHAMBA with the excel_data_input_templates. The script is already set up to run with the example with the è `example_SHAMBA_input_output_uganda_tech_spec.xlsx` file.
+View the `shamba_cl.py` file in a Python IDE for details on how to run SHAMBA with the data-input-templates. The script is already set up to run with the example with the è `example_SHAMBA_input_output_uganda_tech_spec.xlsx` file.
 
 ## Community
 

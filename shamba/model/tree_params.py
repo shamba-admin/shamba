@@ -5,7 +5,7 @@ import os
 import sys
 
 import numpy as np
-from shamba.model import io_, cfg
+from shamba.model import configuration, io_
 
 
 # ----------------------------------

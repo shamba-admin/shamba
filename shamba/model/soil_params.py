@@ -9,7 +9,7 @@ import sys
 import numpy as np
 from osgeo import gdal, gdalconst
 
-from shamba.model import io_, cfg
+from shamba.model import configuration, io_
 from shamba.rasters import soil as soil_raster
 
 
@@ -211,7 +211,7 @@ class SoilParams(object):
 if __name__ == '__main__':
     data = io_.read_csv(
             os.path.join(
-                cfg.SHAMBA_DIR,'rasters','soil','muGlobalTestValues.csv')
+                configuration.SHAMBA_DIR,'rasters','soil','muGlobalTestValues.csv')
     )
     long = data[:,1]
     lat = data[:,2]

@@ -146,7 +146,7 @@ class build(_build):
 sif = 'sample_input_files/'
 data_files.append(
         ('sample_input_files', 
-        [sif+'climate.csv', sif+'input/growth.csv', sif+'input/soilInfo.csv'])
+        [sif+'climate.csv', sif+'input/growth.csv', sif+'input/soil-info.csv'])
 )
 
 

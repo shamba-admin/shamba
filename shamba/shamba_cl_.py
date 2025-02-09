@@ -66,7 +66,7 @@ from shamba.model.tree_model_cl import TreeModel
 
 from shamba.model.litter_cl import LitterModel
 from shamba.model.soil_model_cl import InverseRothC, ForwardRothC
-from shamba.model import cfg, emit_cl, io_
+from shamba.model import configuration, emit_cl, io_
 
 def main(n):
 
@@ -78,11 +78,11 @@ def main(n):
     """
    
     # Initial stuff
-    cfg.args = io_.get_cl_args()
+    configuration.arguments = io_.get_cl_args()
     
     """
     ## STEP 2 ##
-    Within the 'shamba/shamba_projects' folder, set up a project folder with a 
+    Within the 'shamba/projects' folder, set up a project folder with a 
     unique project name (e.g. UG_TS_2016). Within this folder, set up a folder
     titled 'input'. Within this 'input' folder directory add copies of the
     following four .csv files (you can copy from other existing'input' folder 
@@ -90,7 +90,7 @@ def main(n):
     1. crop_ipcc_baseline.csv
     2. crop_ipcc.csv
     3. climate.csv
-    4. soilInfo.csv
+    4. soil-info.csv
     The above .csv files can be updated with new input parmeteres if desired,
     but it may not be necesarry.
     """
@@ -98,14 +98,14 @@ def main(n):
     """
     ## STEP 3 ##
     Specify below the unique name of the new project folder in the 
-    shamba/shamba_projects folder
+    shamba/projects folder
     """
     project_name = 'UG_TS_2025'
-    cfg.SAV_DIR = os.path.join(cfg.PROJ_DIR, project_name)
+    configuration.SAV_DIR = os.path.join(configuration.PROJ_DIR, project_name)
     
     # specifiying input and output files
-    cfg.INP_DIR = os.path.join(cfg.SAV_DIR, 'input')
-    cfg.OUT_DIR = os.path.join(cfg.SAV_DIR, 'output')    
+    configuration.INP_DIR = os.path.join(configuration.SAV_DIR, 'input')
+    configuration.OUT_DIR = os.path.join(configuration.SAV_DIR, 'output')    
     
     """
     ## STEP 4 ##
@@ -122,7 +122,7 @@ def main(n):
     
     ## STEP 5 ###
     To run the model for a particular intervention, save the relevant 
-    '_input.csv' file into the new shamba/shamba_projects/"project"/input
+    '_input.csv' file into the new shamba/projects/"project"/input
     folder and specifiy the .csv name below    
     """
     input_csv = 'WL_input.csv'
@@ -132,7 +132,7 @@ def main(n):
     # ----------
     
     ## creating dictionary of input data from input.csv
-    data = list(csv.reader(open(cfg.INP_DIR + "/" + input_csv)))
+    data = list(csv.reader(open(configuration.INP_DIR + "/" + input_csv)))
     keys = data[0]
     values = data[n+1]    
     val = (dict(list(zip(keys,values))))
@@ -155,8 +155,8 @@ def main(n):
     # project length
     # ----------
     # YEARS = length of tree data. ACCT = years in accounting period      
-    cfg.N_YEARS = (int(val['yrs_proj']))
-    cfg.N_ACCT = (int(val['yrs_acct']))
+    configuration.N_YEARS = (int(val['yrs_proj']))
+    configuration.N_ACCT = (int(val['yrs_acct']))
 
     # ----------
     # soil equilibrium solve
@@ -219,13 +219,13 @@ def main(n):
     # specify thinning regime and fraction left in field (lif)    
     # baseline thinning regime
     # (add line of thinning[yr] = % thinned for each event)
-    thinning_base = np.zeros(cfg.N_YEARS+1)
+    thinning_base = np.zeros(configuration.N_YEARS+1)
     thinning_base[int(val['thin_base_yr1'])] = float(val['thin_base_pc1'])
     thinning_base[int(val['thin_base_yr2'])] = float(val['thin_base_pc2'])
     
     # project thinning regime
     # (add need line of thinning[yr] = % thinned for each event)
-    thinning_proj = np.zeros(cfg.N_YEARS+1)
+    thinning_proj = np.zeros(configuration.N_YEARS+1)
     thinning_proj[int(val['thin_proj_yr1'])] = float(val['thin_proj_pc1'])
     thinning_proj[int(val['thin_proj_yr2'])] = float(val['thin_proj_pc2'])
     thinning_proj[int(val['thin_proj_yr3'])] = float(val['thin_proj_pc3'])            
@@ -247,10 +247,10 @@ def main(n):
     # specify mortality regime and fraction left in field (lif)
     
     # baseline yearly mortality 
-    mort_base = np.array((cfg.N_YEARS+1) * [float(val['base_mort'])])
+    mort_base = np.array((configuration.N_YEARS+1) * [float(val['base_mort'])])
     
     # project yearly mortality 
-    mort_proj = np.array((cfg.N_YEARS+1) * [float(val['proj_mort'])])
+    mort_proj = np.array((configuration.N_YEARS+1) * [float(val['proj_mort'])])
 
     # baseline fraction of dead biomass left in the field
     # specify vector = array[(leaf,branch,stem,course root,fine root)].
@@ -298,16 +298,16 @@ def main(n):
     #return interval of fire, [::2] = 1 is return interval of two years
     base_fire_interval = int(val['fire_int_base'])   
     if base_fire_interval == 0:
-        fire_base = np.zeros(cfg.N_YEARS)
+        fire_base = np.zeros(configuration.N_YEARS)
     else:
-        fire_base = np.zeros(cfg.N_YEARS)
+        fire_base = np.zeros(configuration.N_YEARS)
         fire_base[::base_fire_interval] = int(val['fire_pres_base'])
 
     proj_fire_interval = int(val['fire_int_proj'])   
     if proj_fire_interval == 0:
-        fire_proj = np.zeros(cfg.N_YEARS)
+        fire_proj = np.zeros(configuration.N_YEARS)
     else:
-        fire_proj = np.zeros(cfg.N_YEARS)
+        fire_proj = np.zeros(configuration.N_YEARS)
         fire_proj[::proj_fire_interval] = int(val['fire_pres_proj'])
 
     # ----------
@@ -340,7 +340,7 @@ def main(n):
     crop_par_base = []
 
     spp = int(val['crop_base_spp1'])
-    harvYield = np.zeros(cfg.N_YEARS)
+    harvYield = np.zeros(configuration.N_YEARS)
     harvYield[int(val['crop_base_start1']):
         int(val['crop_base_end1'])] = float(val['crop_base_yd1'])
     harvFrac = float(val['crop_base_left1'])  
@@ -352,7 +352,7 @@ def main(n):
     crop_par_base.append(ci)
 
     spp = int(val['crop_base_spp2'])
-    harvYield = np.zeros(cfg.N_YEARS)
+    harvYield = np.zeros(configuration.N_YEARS)
     harvYield[int(val['crop_base_start2']):
         int(val['crop_base_end2'])] = float(val['crop_base_yd2'])
     harvFrac = float(val['crop_base_left2'])  
@@ -363,7 +363,7 @@ def main(n):
     crop_par_base.append(ci)
 
     spp = int(val['crop_base_spp3'])
-    harvYield = np.zeros(cfg.N_YEARS)
+    harvYield = np.zeros(configuration.N_YEARS)
     harvYield[int(val['crop_base_start3']):
         int(val['crop_base_end3'])] = float(val['crop_base_yd3'])
     harvFrac = float(val['crop_base_left3'])  
@@ -380,7 +380,7 @@ def main(n):
     crop_par_proj = []
     
     spp = int(val['crop_proj_spp1'])
-    harvYield = np.zeros(cfg.N_YEARS)
+    harvYield = np.zeros(configuration.N_YEARS)
     harvYield[int(val['crop_proj_start1']):
         int(val['crop_proj_end1'])] = float(val['crop_proj_yd1'])
     harvFrac = float(val['crop_proj_left1'])  
@@ -391,7 +391,7 @@ def main(n):
     crop_par_proj.append(ci)
 
     spp = int(val['crop_proj_spp2'])
-    harvYield = np.zeros(cfg.N_YEARS)
+    harvYield = np.zeros(configuration.N_YEARS)
     harvYield[int(val['crop_proj_start2']):
         int(val['crop_proj_end2'])] = float(val['crop_proj_yd2'])
     harvFrac = float(val['crop_proj_left2'])  
@@ -402,7 +402,7 @@ def main(n):
     crop_par_proj.append(ci)
 
     spp = int(val['crop_proj_spp3'])
-    harvYield = np.zeros(cfg.N_YEARS)
+    harvYield = np.zeros(configuration.N_YEARS)
     harvYield[int(val['crop_proj_start3']):
         int(val['crop_proj_end3'])] = float(val['crop_proj_yd3'])
     harvFrac = float(val['crop_proj_left3'])  
@@ -601,7 +601,7 @@ def main(n):
     # starting plot output number    
     st = 1
     
-    dir = cfg.OUT_DIR+"_"+mod_run+"\plot_"+str(n+st)
+    dir = configuration.OUT_DIR+"_"+mod_run+"\plot_"+str(n+st)
 
     if os.path.exists(dir):
         shutil.rmtree(dir)
@@ -636,7 +636,7 @@ def main(n):
     roth_proj.save_(plot_name+"_soil_model_proj.csv")
     emit_proj.save_(emit_base, emit_proj, plot_name+"_emit_proj.csv")
     
-    with open(cfg.OUT_DIR+"_"+mod_run+"\plot_"+str(n+st)+"\plot_"+str(n+st)+"_emissions_all_pools_per_year.csv",'w+') as csvfile:
+    with open(configuration.OUT_DIR+"_"+mod_run+"\plot_"+str(n+st)+"\plot_"+str(n+st)+"_emissions_all_pools_per_year.csv",'w+') as csvfile:
         writer = csv.writer(csvfile,delimiter=',')
         writer.writerow(["emit_base", "emit_proj", "emit_diff", 
                          "soil_base", "soil_proj", "soil_diff",
@@ -692,7 +692,7 @@ def main(n):
     
     emit_cl.Emission.ax.legend(loc='best')
     
-    plt.savefig(os.path.join(cfg.OUT_DIR, plot_name+"_emissions.png"))
+    plt.savefig(os.path.join(configuration.OUT_DIR, plot_name+"_emissions.png"))
     plt.close()        
     
     emit_proj.save_(emit_base, emit_proj=emit_proj, file = plot_name+"_emissions.csv")
@@ -737,7 +737,7 @@ if __name__ == '__main__':
     After you have completed all of the above steps, run the code.
     
     Results for each line of the _input.csv file will (i.e. each model run) 
-    will appear in a subfolder in the shamba/shamba_projects/"project"/output_/. 
+    will appear in a subfolder in the shamba/projects/"project"/output_/. 
     
     All results are in tCO2e.
     

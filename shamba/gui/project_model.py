@@ -14,7 +14,7 @@ import numpy as np
 
 from PyQt5 import QtGui, QtCore
 
-from shamba.model import cfg, io_
+from shamba.model import configuration, io_
 from shamba.model.soil_params import SoilParams
 from shamba.model.crop_params import CropParams
 from shamba.model.crop_model import CropModel
@@ -75,20 +75,20 @@ class ProjectModel(object):
         # make directory 
         if self.isBaseline:
             proj_dir = os.path.join(
-                    cfg.OUT_DIR, 'baselines', self.name)
+                    configuration.OUT_DIR, 'baselines', self.name)
         else:
             proj_dir = os.path.join(
-                    cfg.OUT_DIR, 'interventions', self.name)
+                    configuration.OUT_DIR, 'interventions', self.name)
         if not os.path.exists(proj_dir):
             os.makedirs(proj_dir)
 
         # general description (what's printed out in the box of the gui)
         if self.isBaseline:
-            filename = os.path.join(cfg.OUT_DIR, 'baselines',
+            filename = os.path.join(configuration.OUT_DIR, 'baselines',
                                     self.name, 'baseline_info.txt'
             )
         else:
-            filename = os.path.join(cfg.OUT_DIR, 'interventions',
+            filename = os.path.join(configuration.OUT_DIR, 'interventions',
                                     self.name, 'intervention_info.txt'
             )
         with open(filename, 'w+') as fout:
@@ -101,7 +101,7 @@ class ProjectModel(object):
             dest_file = \
                     os.path.basename(self.soil.soilFilename).split(".csv")[0]
             dest_file += "_" + self.name + ".csv"
-            dest_file = os.path.join(cfg.INP_DIR, dest_file)
+            dest_file = os.path.join(configuration.INP_DIR, dest_file)
             shutil.copyfile(self.soil.soilFilename, dest_file)
         except AttributeError:  # no soil input file
             pass
@@ -143,7 +143,7 @@ class ProjectModel(object):
                     dest_file += "_" + self.name + ".csv"    
                 else:
                     dest_file += "_" + self.name + "_" + str(i+1) + ".csv"
-                dest_file = os.path.join(cfg.INP_DIR, dest_file)
+                dest_file = os.path.join(configuration.INP_DIR, dest_file)
                 shutil.copyfile(tree.growthFilename, dest_file)
             except AttributeError: # no growth file
                 print ("attribute errr")
@@ -344,7 +344,7 @@ class Soil(object):
         clay = self.ui.clayInput.value()
         data = np.array([Cy0, clay])
 
-        filepath = os.path.join(cfg.INP_DIR, 'soil.csv')
+        filepath = os.path.join(configuration.INP_DIR, 'soil.csv')
         io_.print_csv(filepath, data, col_names=['Cy0', 'clay'])
 
         return filepath    
@@ -353,17 +353,17 @@ class Soil(object):
         """Read soil cover and fire info."""
         cover = self._get_cover_from_ui()
     
-        fire = np.zeros(cfg.N_YEARS)   # N_YEARS now defined
+        fire = np.zeros(configuration.N_YEARS)   # N_YEARS now defined
         if self.ui.fireNever.isChecked():
             pass     # already 0
         elif self.ui.fireInterval.isChecked():
-            years = list(range(0, cfg.N_YEARS, self.ui.fireFreq.value()))
+            years = list(range(0, configuration.N_YEARS, self.ui.fireFreq.value()))
             years = years[1:]
             fire[years] = 1  # shift
         elif self.ui.fireCustom.isChecked():
             years = parse_regex(str(self.ui.fireCustomLine.text()))
             years = years[years>0]  # cut off any <=0 in the input
-            years = years[years<=cfg.N_YEARS]  # cut off > cfg.N_YEARS
+            years = years[years<=configuration.N_YEARS]  # cut off > cfg.N_YEARS
             fire[years-1] = 1
 
         return cover, fire
@@ -479,7 +479,7 @@ class Tree(object):
             thin = None
             thin_frac = None
         else:
-            thin = np.zeros(cfg.N_YEARS+1)
+            thin = np.zeros(configuration.N_YEARS+1)
             thin_amt = self.ui.thin_amount[self.tree_num].value() * 0.01
             thin_frac = np.array([
                     1,
@@ -492,7 +492,7 @@ class Tree(object):
             if self.ui.thin_intervalbut[self.tree_num].isChecked():
                 yp = self.ui.tree_yearplanted[self.tree_num].value()
                 freq = self.ui.thin_freq[self.tree_num].value()
-                years = list(range(yp-1, cfg.N_YEARS+1, freq))
+                years = list(range(yp-1, configuration.N_YEARS+1, freq))
                 years = years[1:]
                 thin[years] = thin_amt
             elif self.ui.thin_custombut[self.tree_num].isChecked():
@@ -500,7 +500,7 @@ class Tree(object):
                         str(self.ui.thin_customline[self.tree_num].text())
                 )
                 years = years[years>0] # cut off <=0
-                years = years[years<=cfg.N_YEARS+1] # cut off > cfg.N_YEAR+1
+                years = years[years<=configuration.N_YEARS+1] # cut off > cfg.N_YEAR+1
                 thin[years-1] = thin_amt
         
         return thin, thin_frac
@@ -513,7 +513,7 @@ class Tree(object):
         else:
 
             mort_amt = self.ui.mort_amount[self.tree_num].value() * 0.01
-            mort = np.array((cfg.N_YEARS+1) * [mort_amt])
+            mort = np.array((configuration.N_YEARS+1) * [mort_amt])
             
             mort_frac = np.array([
                     1,
@@ -582,8 +582,8 @@ class Litter(object):
                     str(self.ui.litter_customline[self.litter_num].text())
             )
             years = years[years>0] # cut off <=0
-            years = years[years<=cfg.N_YEARS] # cut off > N_YEARS
-            litter = np.zeros(cfg.N_YEARS)
+            years = years[years<=configuration.N_YEARS] # cut off > N_YEARS
+            litter = np.zeros(configuration.N_YEARS)
             litter[years-1] = qty   # convert to 0-indexing
             model = LitterModel.from_defaults(0,0,litterVector=litter)
             
@@ -619,8 +619,8 @@ class Fertiliser(object):
                     str(self.ui.fert_customline[self.fert_num].text())
             )
             years =  years[years>0]
-            years = years[years<=cfg.N_YEARS]
-            fertVec = np.zeros(cfg.N_YEARS)
+            years = years[years<=configuration.N_YEARS]
+            fertVec = np.zeros(configuration.N_YEARS)
             fertVec[years-1] = mass
             model = LitterModel.synthetic_fert(0,0,nitrogen,vector=fertVec)
         

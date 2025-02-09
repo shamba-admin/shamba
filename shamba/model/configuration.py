@@ -1,7 +1,7 @@
 #!/usr/bin/py
 
 """Module for global variables for all of SHAMBA."""
-
+from typing import List, Any
 import os
 from time import gmtime,strftime
 import uuid
@@ -13,14 +13,14 @@ import uuid
 # BASE_PATH = os.path.expanduser("c:/sources/python/shamba/shamba") 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 BASE_PATH = os.path.join(script_dir, "..") 
-PROJ_DIR = os.path.join(BASE_PATH, 'shamba_projects')
+PROJ_DIR = os.path.join(BASE_PATH, 'projects')
 # no need to specify SAV, INP, OUT directories if specified in cl file
 SAV_DIR = os.path.join(PROJ_DIR, 'default') # overwrite this later
 INP_DIR = os.path.join(SAV_DIR, 'input')
 OUT_DIR = os.path.join(SAV_DIR, 'output')
 
 # For holding command-line arguments
-args = []
+arguments: List[Any] = []
 
 # Number of years for model to run and accounting period
 # NOTE: change this in main after tree max age data is read

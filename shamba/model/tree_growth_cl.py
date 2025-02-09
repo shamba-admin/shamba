@@ -19,7 +19,7 @@ from scipy import optimize
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from . import io_, cfg
+from . import configuration, io_
 
 from .tree_params import TreeParams
 
@@ -123,7 +123,7 @@ class TreeGrowth(object):
 
         """  
 
-        data = pd.read_csv(cfg.INP_DIR + "/" + filename, 
+        data = pd.read_csv(configuration.INP_DIR + "/" + filename, 
                            sep = ',')
         reader = data.loc[n]
         dictionary = reader.to_dict()
@@ -180,7 +180,7 @@ class TreeGrowth(object):
 
         """          
         
-        data = pd.read_csv(cfg.INP_DIR + "/" + filename, 
+        data = pd.read_csv(configuration.INP_DIR + "/" + filename, 
                            sep = ',')
         reader = data.loc[n]
         dictionary = reader.to_dict()
@@ -236,7 +236,7 @@ class TreeGrowth(object):
 
         """          
         
-        data = pd.read_csv(cfg.INP_DIR + "/" + filename, 
+        data = pd.read_csv(configuration.INP_DIR + "/" + filename, 
                            sep = ',')
         reader = data.loc[n]
         dictionary = reader.to_dict()
@@ -465,7 +465,7 @@ class TreeGrowth(object):
         ax.set_xlim(xmin, xmax)
 
         if saveName is not None:
-            plt.savefig(os.path.join(cfg.OUT_DIR, saveName))
+            plt.savefig(os.path.join(configuration.OUT_DIR, saveName))
 
     def print_(self, fit=None, params=None, mse=None):
         """Print data and fits for tree growth data to stdout."""

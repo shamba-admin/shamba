@@ -9,7 +9,7 @@ import argparse
 import csv
 
 import numpy as np
-from shamba.model import cfg
+from shamba.model import configuration
 from shamba import default_input
 
 class FileOpenError(Exception):
@@ -54,7 +54,7 @@ def print_csv(fileOut, array, col_names=[],
     
     # See if existing path was given, put file in OUT_DIR if not
     if not os.path.isdir(os.path.dirname(fileOut)):
-        fileOut = os.path.join(cfg.OUT_DIR, fileOut)
+        fileOut = os.path.join(configuration.OUT_DIR, fileOut)
         
     
     # See if the array given is actually a list (because it has strings)
@@ -122,8 +122,8 @@ def read_csv(fileIn, cols=None):
     default_path = os.path.dirname(os.path.abspath(default_input.__file__))
 
     if not os.path.isfile(fileIn):
-        if os.path.isfile(os.path.join(cfg.INP_DIR, fileIn)):
-            fileIn = os.path.join(cfg.INP_DIR, fileIn)
+        if os.path.isfile(os.path.join(configuration.INP_DIR, fileIn)):
+            fileIn = os.path.join(configuration.INP_DIR, fileIn)
         elif os.path.isfile(os.path.join(default_path, fileIn)):
             fileIn = os.path.join(default_path, fileIn)
         else:
@@ -161,10 +161,10 @@ def read_mixed_csv(fileIn, cols=None, types=None):
 
     try:
         if not os.path.isfile(fileIn):
-            if os.path.isfile(os.path.join(cfg.INP_DIR, fileIn)):
-                fileIn = os.path.join(cfg.INP_DIR, fileIn)
-            elif os.path.isfile(os.path.join(cfg.DEF_DIR, fileIn)):
-                fileIn = os.path.join(cfg.DEF_DIR, fileIn)
+            if os.path.isfile(os.path.join(configuration.INP_DIR, fileIn)):
+                fileIn = os.path.join(configuration.INP_DIR, fileIn)
+            elif os.path.isfile(os.path.join(configuration.DEF_DIR, fileIn)):
+                fileIn = os.path.join(configuration.DEF_DIR, fileIn)
             else:
                 # not in either folder, and not in full path
                 raise IOError 
@@ -185,7 +185,7 @@ def get_cl_args():
     """
     Parse the command line arguments for graph and report generation 
     (-g, -r) and verbosity of output (-v=info,-vv=debug). 
-    Return args.
+    Return arguments.
     """
 
     parser = argparse.ArgumentParser()
@@ -205,17 +205,17 @@ def get_cl_args():
             default=False, help="Show plots"
     )
 
-    args = parser.parse_args()
+    arguments = parser.parse_args()
 
     # Set up logging level based on v arguments
-    if args.verbose == 2:
+    if arguments.verbose == 2:
         log.basicConfig(format="%(levelname)s: %(message)s", level=log.DEBUG)
-    elif args.verbose == 1:
+    elif arguments.verbose == 1:
         log.basicConfig(format="%(levelname)s: %(message)s", level=log.INFO)
-    elif args.verbose == 0:
+    elif arguments.verbose == 0:
         log.basicConfig(format="%(levelname)s: %(message)s")
 
-    return args
+    return arguments
 
 def print_metadata():
     """
@@ -223,7 +223,7 @@ def print_metadata():
     calculated in the cfg module.
     
     """
-    filepath = os.path.join(cfg.SAV_DIR, '.info')
+    filepath = os.path.join(configuration.SAV_DIR, '.info')
     with open(filepath, 'w') as f:
-        f.write(cfg.ID+"\n"+cfg.TIME+"\n"+cfg.PROJ_NAME+"\n\n")
+        f.write(configuration.ID+"\n"+configuration.TIME+"\n"+configuration.PROJ_NAME+"\n\n")
 

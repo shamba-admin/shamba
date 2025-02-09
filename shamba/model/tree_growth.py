@@ -16,7 +16,7 @@ import math
 from scipy import optimize
 import matplotlib.pyplot as plt
 
-from . import io_, cfg
+from . import configuration, io_
 
 
 class TreeGrowth(object):
@@ -321,7 +321,7 @@ class TreeGrowth(object):
         ax.set_xlim(xmin, xmax)
 
         if saveName is not None:
-            plt.savefig(os.path.join(cfg.OUT_DIR, saveName))
+            plt.savefig(os.path.join(configuration.OUT_DIR, saveName))
 
     def print_(self, fit=None, params=None, mse=None):
         """Print data and fits for tree growth data to stdout."""

@@ -10,7 +10,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-from . import cfg, io_
+from . import configuration, io_
 from .tree_params import TreeParams
 
 
@@ -61,11 +61,11 @@ class TreeModel(object):
             self.thinFrac = pool_params['thinFrac']
             self.mortFrac = pool_params['mortFrac']
             if thin is None:
-                self.thin = np.zeros(cfg.N_YEARS+1)
+                self.thin = np.zeros(configuration.N_YEARS+1)
             else:
                 self.thin = thin 
             if mort is None:
-                self.mort = np.zeros(cfg.N_YEARS+1)
+                self.mort = np.zeros(configuration.N_YEARS+1)
             else:
                 self.mort = mort
             
@@ -85,7 +85,7 @@ class TreeModel(object):
             thin=None, thinFrac=None,
             mort=None, mortFrac=None):
         """Use defaults for pool params.
-        Can override defaults for thinFrac and mortFrac by providing args.
+        Can override defaults for thinFrac and mortFrac by providing arguments.
         
         """
 
@@ -100,11 +100,11 @@ class TreeModel(object):
 
         # thinning and mortality
         if thin is None:
-            thin = np.zeros(cfg.N_YEARS+1)
+            thin = np.zeros(configuration.N_YEARS+1)
         if thinFrac is None:
             thinFrac = thinFrac_temp
         if mort is None:
-            mort = np.zeros(cfg.N_YEARS+1)
+            mort = np.zeros(configuration.N_YEARS+1)
         if mortFrac is None:
             mortFrac = mortFrac_temp
         
@@ -146,14 +146,14 @@ class TreeModel(object):
         print (yp)
         print (initialStandDens )
         
-        standDens = np.zeros(cfg.N_YEARS+1) 
+        standDens = np.zeros(configuration.N_YEARS+1) 
         standDens[yp] = initialStandDens
         print ('standDens:')
         print (standDens)
 
         inputParams = {
                 'live': np.array(
-                                (cfg.N_YEARS+1) * [self.turnover]),
+                                (configuration.N_YEARS+1) * [self.turnover]),
                 'thin': self.thin,
                 'dead': self.mort
         }
@@ -164,21 +164,21 @@ class TreeModel(object):
         }
         
         # initialise stuff
-        pools = np.zeros((cfg.N_YEARS+1,5))
-        woodyBiom = np.zeros((cfg.N_YEARS+1,5))
-        tNPP = np.zeros(cfg.N_YEARS+1)
+        pools = np.zeros((configuration.N_YEARS+1,5))
+        woodyBiom = np.zeros((configuration.N_YEARS+1,5))
+        tNPP = np.zeros(configuration.N_YEARS+1)
 
         flux = {}
         inputs = {}
         exports = {}
         for s in ['live', 'dead', 'thin']:
-            flux[s] = np.zeros((cfg.N_YEARS+1,5))
-            inputs[s] = np.zeros((cfg.N_YEARS+1,5))
-            exports[s] = np.zeros((cfg.N_YEARS+1,5))
+            flux[s] = np.zeros((configuration.N_YEARS+1,5))
+            inputs[s] = np.zeros((configuration.N_YEARS+1,5))
+            exports[s] = np.zeros((configuration.N_YEARS+1,5))
         
-        inputC = np.zeros((cfg.N_YEARS+1,5))
-        exportC = np.zeros((cfg.N_YEARS+1,5))
-        biomGrowth = np.zeros((cfg.N_YEARS+1,5))
+        inputC = np.zeros((configuration.N_YEARS+1,5))
+        exportC = np.zeros((configuration.N_YEARS+1,5))
+        biomGrowth = np.zeros((configuration.N_YEARS+1,5))
         
         # set woodyBiom[0] to initial (allocated appropriately)
         pools[yp] = initialBiomass * self.alloc
@@ -186,12 +186,12 @@ class TreeModel(object):
         for s in inputs:
             flux[s][yp] = woodyBiom[yp] * inputParams[s][yp]    
 
-        in_ = np.zeros(cfg.N_YEARS+1)
-        acc = np.zeros(cfg.N_YEARS+1)
-        bal = np.zeros(cfg.N_YEARS+1)
-        out = np.zeros(cfg.N_YEARS+1)
+        in_ = np.zeros(configuration.N_YEARS+1)
+        acc = np.zeros(configuration.N_YEARS+1)
+        bal = np.zeros(configuration.N_YEARS+1)
+        out = np.zeros(configuration.N_YEARS+1)
        
-        for i in range(1+yearPlanted,cfg.N_YEARS+1):
+        for i in range(1+yearPlanted,configuration.N_YEARS+1):
             # Careful with indices - using 1-based here
             #   since, e.g., woodyBiom[2] should correspond to 
             #   biomass after 2 years
@@ -243,11 +243,11 @@ class TreeModel(object):
                 'bal': bal * 0.001
         }
         woodyBiom *= 0.001  # convert to tonnes for emissions calc.
-        C = inputC[0:cfg.N_YEARS]
+        C = inputC[0:configuration.N_YEARS]
         DM = C / self.tree_params.carbon
-        N = np.zeros((cfg.N_YEARS,5))
-        for i in range(cfg.N_YEARS):
-            N[i] = self.tree_params.nitrogen[0:cfg.N_YEARS] * DM[i]
+        N = np.zeros((configuration.N_YEARS,5))
+        for i in range(configuration.N_YEARS):
+            N[i] = self.tree_params.nitrogen[0:configuration.N_YEARS] * DM[i]
         
         output = {}
         output['above'] = {
@@ -281,7 +281,7 @@ class TreeModel(object):
         ax.set_title('Biomass pools vs time')
         
         if saveName is not None:
-            plt.savefig(os.path.join(cfg.OUT_DIR, saveName))
+            plt.savefig(os.path.join(configuration.OUT_DIR, saveName))
 
     def plot_balance(self, saveName=None):
         """Plot the mass balance data."""
@@ -299,7 +299,7 @@ class TreeModel(object):
         ax.set_title('Mass balance vs time')
         
         if saveName is not None:
-            plt.savefig(os.path.join(cfg.OUT_DIR, saveName))
+            plt.savefig(os.path.join(configuration.OUT_DIR, saveName))
 
     def print_biomass(self):
         print ("\n\nBIOMASS MODEL")

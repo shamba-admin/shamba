@@ -6,7 +6,7 @@ import logging as log
 import sys
 import numpy as np
 
-from . import cfg, io_
+from . import configuration, io_
 from .crop_params import CropParams
 
 
@@ -55,7 +55,7 @@ class CropModel(object):
 
         # residues
         res = cropYield*self.crop_params.slope + self.crop_params.intercept
-        res *= np.ones(cfg.N_YEARS)  # convert to array 
+        res *= np.ones(configuration.N_YEARS)  # convert to array 
         resAG = res*leftInField
         resBG = cropYield + res
         resBG *= self.crop_params.rootToShoot * CropParams.ROOT_IN_TOP_30

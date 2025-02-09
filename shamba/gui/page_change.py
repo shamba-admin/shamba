@@ -192,7 +192,7 @@ class PageComplete(QtWidgets.QWidget):
         # Store what signal and slot to use for particular type
 
         def signal(widget, type):
-            # Returns the signal name (callable) and the args to emit
+            # Returns the signal name (callable) and the arguments to emit
             if type == QtWidgets.QLineEdit:
                 sig = widget.textChanged
                 emit = widget.text()

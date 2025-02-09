@@ -5,7 +5,7 @@
 
 
 import os
-from shamba.model import cfg
+from shamba.model import configuration
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from shamba.gui.translate_ import translate_ as _
@@ -160,7 +160,7 @@ class ProjectDialog(GenericDialog, Ui_project):
                 "available from a local survey."
                 "\n\nIf you choose to load soil data, the file must be in "
                 ".csv format and match the format of the sample soil file "
-                "(found in shamba/sample_input_files/soilInfo.csv). "
+                "(found in shamba/sample_input_files/soil-info.csv). "
                 "\n\nIf you choose to directly enter data, enter the carbon "
                 "and clay content of the soil in the boxes that appear. "
         ))
