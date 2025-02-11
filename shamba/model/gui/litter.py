@@ -6,7 +6,9 @@
 import logging as log
 import numpy as np
 
-from . import configuration, io_
+from .common import csv_handler
+
+from . import configuration
 
 
 class LitterModel(object):
@@ -68,7 +70,7 @@ class LitterModel(object):
 
         """
 
-        data = io_.read_csv(filename)
+        data = csv_handler.read_csv(filename)
         data = np.atleast_2d(data)
         try:
             params = {
@@ -173,4 +175,4 @@ class LitterModel(object):
                 cols.append(s2+"_"+s1)
                 data.append(self.output[s1][s2])
         data = np.column_stack(tuple(data))
-        io_.print_csv(file, data, col_names=cols)
+        csv_handler.print_csv(file, data, col_names=cols)

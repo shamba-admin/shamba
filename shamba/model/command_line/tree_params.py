@@ -6,7 +6,8 @@ import sys
 import pdb
 
 import numpy as np
-from shamba.model import configuration, io_
+from shamba.model import configuration
+from shamba.model.common import csv_handler
 
 
 # ----------------------------------
@@ -19,7 +20,7 @@ SPP_LIST = [
 ]
 
 TREE_SPP = {}
-_data = io_.read_csv('tree_defaults_cl.csv',cols=(2,3,4,5,6,7,8,9))
+_data = csv_handler.read_csv('tree_defaults_cl.csv',cols=(2,3,4,5,6,7,8,9))
 _data = np.atleast_2d(_data)
 _nitrogen = np.zeros((len(SPP_LIST),5))
 for _i in range(len(SPP_LIST)):
@@ -151,7 +152,7 @@ class TreeParams(object):
         """
 
         
-        data = io_.read_csv(filename, cols=(2,3,4,5,6,7,8,9))
+        data = csv_handler.read_csv(filename, cols=(2,3,4,5,6,7,8,9))
         data = np.atleast_2d(data)  # to account for if there's only one row
 
         try:
@@ -196,5 +197,5 @@ class TreeParams(object):
         ]
         cols = ['Sc', 'Name', 'N_leaf', 'N_branch', 'N_stem', 'N_croot',
                 'N_froot', 'C', 'rw', 'dens']
-        io_.print_csv(file, data, col_names=cols)
+        csv_handler.print_csv(file, data, col_names=cols)
 

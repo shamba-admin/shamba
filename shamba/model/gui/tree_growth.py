@@ -10,18 +10,16 @@ def ryan      allometric function based on C. Ryan biotropica paper (2010)
 import sys
 import os
 import logging as log
-import pdb
-import csv
 
 import numpy as np
 import math
 from scipy import optimize
 import matplotlib.pyplot as plt
-import pandas as pd
 
-from . import configuration, io_
+from .common import csv_handler
 
-from .tree_params import TreeParams
+from . import configuration
+
 
 class TreeGrowth(object):
 
@@ -43,7 +41,7 @@ class TreeGrowth(object):
 
     """
     
-    def __init__(self, tree_params, growth_params, allom='chave dry'):
+    def __init__(self, tree_params, growth_params, allom='Ryan'):
         """Initialise tree growth data.
         
         Args: 
@@ -100,16 +98,11 @@ class TreeGrowth(object):
         self.fitParams = self.allFitParams[self.best]
         self.fitMse = self.allMse[self.best]
     
-        
-    
     @classmethod
-    def from_csv1(
-            cls, tree_params, n, filename='growth_measurements.csv', 
-            isBiomass=False, allom='chave dry'):
+    def from_csv(
+            cls, tree_params, filename='growth_measurements.csv', 
+            isBiomass=False, allom='Ryan'):
         """Construct Growth object using data in a csv file.
-        
-        When using intpu_csv from command line, constructing dictionary of 
-        np.arrays for each new cohort
         
         Args:
             tree: Tree object with tree information
@@ -121,35 +114,13 @@ class TreeGrowth(object):
         Raises:
             IndexError: if file isn't the right format
 
-        """  
-
-        data = pd.read_csv(configuration.INP_DIR + "/" + filename, 
-                           sep = ',')
-        reader = data.loc[n]
-        dictionary = reader.to_dict()
-        
-        age_input = ['age1','age2','age3','age4','age5','age6']
-        age = {key: dictionary[key] for key in age_input}
-        age = np.array(list(age.values())).astype(float) #https://stackoverflow.com/questions/45957968/float-arguments-and-dict-values-with-numpy
-        age = np.array(sorted(age, key=int))
-                
-        diam_input = ['diam1','diam2','diam3','diam4','diam5','diam6']
-        diam = {key: dictionary[key] for key in diam_input}
-        diam = np.array(list(diam.values())).astype(float)
-                
-        params = {
-        'age': age,
-        'diam': diam,             
-        }        
-
-
+        """
+        data = csv_handler.read_csv(filename)
         try:
             params = {
-                        'age': age,
-                        'diam': diam,             
-                }
-
-
+                    'age': data[:,0],
+                    'diam': data[:,1]
+            }
             growth = cls(tree_params, params, allom)
 
         except IndexError:
@@ -157,123 +128,10 @@ class TreeGrowth(object):
             sys.exit(1)
 
         return growth
-                
-
-    @classmethod
-    def from_csv2(
-            cls, tree_params, n, filename='growth_measurements.csv', 
-            isBiomass=False, allom='chave dry'):
-        """Construct Growth object using data in a csv file.
-        
-        When using intpu_csv from command line, constructing dictionary of 
-        np.arrays for each new cohort        
-        
-        Args:
-            tree: Tree object with tree information
-            filename: csv to read data from with columns age,diam
-            True if data in column 2 is biomass (not dbh)
-            allom: which allometric to use
-        Returns:
-            Growth object
-        Raises:
-            IndexError: if file isn't the right format
-
-        """          
-        
-        data = pd.read_csv(configuration.INP_DIR + "/" + filename, 
-                           sep = ',')
-        reader = data.loc[n]
-        dictionary = reader.to_dict()
-        
-        age_input = ['sp2_age1','sp2_age2','sp2_age3','sp2_age4','sp2_age5','sp2_age6']
-        age = {key: dictionary[key] for key in age_input}
-        age = np.array(list(age.values())).astype(float) 
-        age = np.array(sorted(age, key=int))
-                
-        diam_input = ['sp2_diam1','sp2_diam2','sp2_diam3','sp2_diam4','sp2_diam5','sp2_diam6']
-        diam = {key: dictionary[key] for key in diam_input}
-        diam = np.array(list(diam.values())).astype(float)
-                
-        params = {
-        'age': age,
-        'diam': diam,             
-        } 
-
-
-        try:
-            params = {
-                        'age': age,
-                        'diam': diam,             
-                }
-
-
-            growth = cls(tree_params, params, allom)
-
-        except IndexError:
-            log.exception("Can't read growth data from %s " % filename)
-            sys.exit(1)
-
-        return growth
-
-    @classmethod
-    def from_csv3(
-            cls, tree_params, n, filename='growth_measurements.csv', 
-            isBiomass=False, allom='chave dry'):
-        """Construct Growth object using data in a csv file.
-        
-        When using intpu_csv from command line, constructing dictionary of 
-        np.arrays for each new cohort        
-        
-        Args:
-            tree: Tree object with tree information
-            filename: csv to read data from with columns age,diam
-            True if data in column 2 is biomass (not dbh)
-            allom: which allometric to use
-        Returns:
-            Growth object
-        Raises:
-            IndexError: if file isn't the right format
-
-        """          
-        
-        data = pd.read_csv(configuration.INP_DIR + "/" + filename, 
-                           sep = ',')
-        reader = data.loc[n]
-        dictionary = reader.to_dict()
-        
-        age_input = ['sp3_age1','sp3_age2','sp3_age3','sp3_age4','sp3_age5','sp3_age6']
-        age = {key: dictionary[key] for key in age_input}
-        age = np.array(list(age.values())).astype(float) 
-        age = np.array(sorted(age, key=int))
-                
-        diam_input = ['sp3_diam1','sp3_diam2','sp3_diam3','sp3_diam4','sp3_diam5','sp3_diam6']
-        diam = {key: dictionary[key] for key in diam_input}
-        diam = np.array(list(diam.values())).astype(float)
-                
-        params = {
-        'age': age,
-        'diam': diam,             
-        } 
-
-
-        try:
-            params = {
-                        'age': age,
-                        'diam': diam,             
-                }
-
-
-            growth = cls(tree_params, params, allom)
-
-        except IndexError:
-            log.exception("Can't read growth data from %s " % filename)
-            sys.exit(1)
-
-        return growth        
    
     @classmethod
     def from_arrays(
-            cls, tree, age, data, isBiomass=False, allom='chave dry'):
+            cls, tree, age, data, isBiomass=False, allom='Ryan'):
         """Construct Growth object using data from numpy arrays."""
         pass
 
@@ -453,7 +311,7 @@ class TreeGrowth(object):
 
         ax.set_title('Tree biomass vs. Age')
         ax.set_xlabel('Age (years)')
-        ax.set_ylabel('Biomass (kg C /ha) ')
+        ax.set_ylabel('Biomass (kg /ha ')
 
         # Shift ticks so points not cut off
         xticks = ax.get_xticks()
@@ -492,8 +350,8 @@ class TreeGrowth(object):
                         self.allFitData['exp'][i],
                         self.allFitData['hyp'][i],
                         self.allFitData['lin'][i], 
-                        self.allFitData['log'][i]
-                )))
+                        self.allFitData['log'][i])
+                ))
         if params and mse:
             print(("\nMSE      %6.2f   %6.2f   %6.2f   %6.2f" % (
                     self.allMse['exp'], 
@@ -524,7 +382,7 @@ class TreeGrowth(object):
 
         """
         # growth data
-        io_.print_csv(
+        csv_handler.print_csv(
                 file, np.column_stack((self.age, self.diam, self.biomass)),
                 col_names=['age','diam','biomass',"allom="+self.allom]
         )
@@ -537,7 +395,7 @@ class TreeGrowth(object):
                  self.allFitData['log'])
         )
         cols = ['data', 'exp', 'hyp', 'lin', 'log']
-        io_.print_csv(fit_file, data, col_names=cols)
+        csv_handler.print_csv(fit_file, data, col_names=cols)
         
         # fit parameters
         param_file = file.split(".csv")[0] + "_fit_params.csv"
@@ -560,7 +418,7 @@ class TreeGrowth(object):
         
         data = [row1, row2, row3, row4]
         cols = ['exp', 'hyp', 'lin', 'log']
-        io_.print_csv(param_file, data, col_names=cols)
+        csv_handler.print_csv(param_file, data, col_names=cols)
 
         # biomass, and four fits
         # params for each fit

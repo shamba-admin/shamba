@@ -14,7 +14,7 @@ sys.path.append(_dir)
 sys.path.append(os.path.dirname(_dir))
 
 
-from shamba.model import cfg, io_
+from shamba.model import configuration, io, io_handler
 
 from PyQt5 import QtGui, QtCore, QtWidgets
 
@@ -171,7 +171,7 @@ class MainInterface(QtWidgets.QMainWindow, Ui_SHAMBA):
             try:
                 self.model.general = GeneralModel(generalUi)
                 self.model._update_save_status(False)
-            except io_.FileOpenError:
+            except io.FileOpenError:
                 self.climateOpenError.showMessage(_(
                         "Could not open climate file. " + 
                         "Please try completing this form again."))
@@ -420,7 +420,7 @@ class Model(object):
         
         filename = QtWidgets.QFileDialog.getSaveFileName(
                 self.ui, _('Save file'),
-                os.path.abspath(cfg.PROJ_DIR),
+                os.path.abspath(configuration.PROJ_DIR),
                 _("SHAMBA project files (*.shamba)")
         )
             
@@ -436,7 +436,7 @@ class Model(object):
     def save_(self):
         """Slot to save the model information from this model run.
         Saves to existing save name if it exits"""
-        if cfg.PROJ_NAME is None:
+        if configuration.PROJ_NAME is None:
             # no general info yet
             self.ui.noGeneralInfoError.showMessage(_(
                     "Nothing to save."))
@@ -458,7 +458,7 @@ class Model(object):
     #@QtCore.pyqtSlot()
     def save_as(self):
         """Like save_ method, but always save to a new name."""
-        if cfg.PROJ_NAME is None:
+        if configuration.PROJ_NAME is None:
             # no general info yet
             self.ui.noGeneralInfoError.showMessage(_(
                     "Nothing to save."))
@@ -485,9 +485,9 @@ class Model(object):
         if not filename_ret:
             return False # not saved
         
-        cfg.SAV_DIR = str(self.save_filename).split(".shamba")[0]
+        configuration.SAV_DIR = str(self.save_filename).split(".shamba")[0]
         try:       
-            os.makedirs(cfg.SAV_DIR)
+            os.makedirs(configuration.SAV_DIR)
         except OSError:
             popup = QtWidgets.QMessageBox(self.ui)
             popup.setWindowTitle(_("Overwrite?"))
@@ -499,15 +499,15 @@ class Model(object):
             if popup_ret == QtWidgets.QMessageBox.No:
                 return self._create_save_dirs() # get new filename
             else: # remove existing dir then make new one
-                shutil.rmtree(cfg.SAV_DIR)
-                os.makedirs(cfg.SAV_DIR)
+                shutil.rmtree(configuration.SAV_DIR)
+                os.makedirs(configuration.SAV_DIR)
         
         # make the rest of the dirs
-        cfg.INP_DIR = os.path.join(cfg.SAV_DIR, 'input')
-        cfg.OUT_DIR = os.path.join(cfg.SAV_DIR, 'output')
-        os.makedirs(cfg.INP_DIR)
-        os.makedirs(os.path.join(cfg.OUT_DIR, 'baselines'))
-        os.makedirs(os.path.join(cfg.OUT_DIR, 'interventions'))
+        configuration.INP_DIR = os.path.join(configuration.SAV_DIR, 'input')
+        configuration.OUT_DIR = os.path.join(configuration.SAV_DIR, 'output')
+        os.makedirs(configuration.INP_DIR)
+        os.makedirs(os.path.join(configuration.OUT_DIR, 'baselines'))
+        os.makedirs(os.path.join(configuration.OUT_DIR, 'interventions'))
         return True
 
     def _save_files(self):
@@ -521,7 +521,7 @@ class Model(object):
             e.save_data()
         
         # save metadata and oe data
-        io_.print_metadata()
+        io_handler.print_metadata()
         self.save_oe_info()
         for b in self.baselines:
             for i in self.interventions:
@@ -532,7 +532,7 @@ class Model(object):
         """Save the data from the tool to xml for OE."""
         project = ET.Element("project")
         name = ET.SubElement(project, "name")
-        name.text = cfg.PROJ_NAME
+        name.text = configuration.PROJ_NAME
         if self.general.isOneField:
             farmer = ET.SubElement(project, "farmer")
             farmer.text = self.general.farmer_name
@@ -544,7 +544,7 @@ class Model(object):
             region = ET.SubElement(project, "region")
             region.text = self.general.farmer_name
         acct = ET.SubElement(project, "accounting period")
-        acct.text = str(cfg.N_ACCT) + " years"
+        acct.text = str(configuration.N_ACCT) + " years"
 
         # baseline and intervention info
         for b in self.baselines:
@@ -564,7 +564,7 @@ class Model(object):
         
         self._prettify_elem(project)
         ET.ElementTree(project).write(
-                os.path.join(cfg.OUT_DIR, 'oe_info.xml'), 
+                os.path.join(configuration.OUT_DIR, 'oe_info.xml'), 
                 encoding='utf-8')
     
     def save_oe_data(self, baseline, intervention):
@@ -574,7 +574,7 @@ class Model(object):
         
         # print data for oe
         oe_fname = os.path.join(
-                cfg.OUT_DIR, "oe_data_"+base_name+"_"+inter_name+".csv")
+                configuration.OUT_DIR, "oe_data_"+base_name+"_"+inter_name+".csv")
         oe_data = "lat,long,%s,%s,net\n" % (base_name, inter_name)
         oe_data += "%.6f,%.6f,%.1f,%.1f,%.1f\n" % (
                 self.general.location[0], self.general.location[1],
@@ -590,7 +590,7 @@ class Model(object):
         inter_name = str(self.ui.interventionSelectorPlot.currentText())
 
         graph_fname = os.path.join(
-                    cfg.OUT_DIR, "emissions_"+base_name+"_"+inter_name+".png")
+                    configuration.OUT_DIR, "emissions_"+base_name+"_"+inter_name+".png")
         self.ui.plotWidget.saveFigure(graph_fname) 
         
         _show_normal_cursor()

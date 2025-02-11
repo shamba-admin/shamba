@@ -6,7 +6,9 @@ import logging as log
 import sys
 import numpy as np
 
-from . import configuration, io_
+from .common import csv_handler
+
+from . import configuration
 from .crop_params import CropParams
 
 
@@ -93,5 +95,5 @@ class CropModel(object):
                 cols.append(s2+"_"+s1)
                 data.append(self.output[s1][s2])
         data = np.column_stack(tuple(data))
-        io_.print_csv(file, data, col_names=cols)
+        csv_handler.print_csv(file, data, col_names=cols)
 

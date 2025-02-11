@@ -9,8 +9,6 @@ import uuid
 
 # input and output files for specific project
 # change this for specific projects
-# BASE_PATH = os.path.expanduser("W:/ShambaDev/shamba_git_repositories/shamba_v1.1/shamba/shamba_stable_1.1/shamba") 
-# BASE_PATH = os.path.expanduser("c:/sources/python/shamba/shamba") 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 BASE_PATH = os.path.join(script_dir, "..") 
 PROJ_DIR = os.path.join(BASE_PATH, 'projects')
@@ -18,9 +16,6 @@ PROJ_DIR = os.path.join(BASE_PATH, 'projects')
 SAV_DIR = os.path.join(PROJ_DIR, 'default') # overwrite this later
 INP_DIR = os.path.join(SAV_DIR, 'input')
 OUT_DIR = os.path.join(SAV_DIR, 'output')
-
-# For holding command-line arguments
-arguments: List[Any] = []
 
 # Number of years for model to run and accounting period
 # NOTE: change this in main after tree max age data is read

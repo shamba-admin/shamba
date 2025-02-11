@@ -18,7 +18,10 @@ import numpy as np
 from scipy import optimize, integrate
 import matplotlib.pyplot as plt
 
-from . import configuration, emit_cl, io_
+from ..common import csv_handler
+
+from .. import configuration
+from ..command_line import emit
 
     
 class RothC(object):
@@ -115,6 +118,7 @@ class RothC(object):
     # Find first month where deficit > 0
     def _get_first_pos_def(self, deficit):
         isSane = False
+        m = 0
         for i in np.where(deficit > 0):
             if any(i):   # could be empty list
                 isSane = True
@@ -241,7 +245,8 @@ class InverseRothC(RothC):
         # Loop through range of inputs
         for input in np.arange(0.01, 10, 0.001):
             C = optimize.fsolve(self.dC_dt, C0, args=(t, x, self.k, input))
-            Ctot = C.sum() + self.soil.iom
+            # TODO: Is this correct
+            Ctot = np.sum(np.array(C)) + self.soil.iom
             currDiff = math.fabs(Ctot - self.soil.Ceq)
 
             if currDiff < prevDiff:
@@ -305,7 +310,7 @@ class InverseRothC(RothC):
                 self.eqC.sum()+self.soil.iom, self.eqC[0], self.eqC[1], 
                 self.eqC[2], self.eqC[3], self.soil.iom, self.inputC])
         cols = ['Ceq', 'dpm', 'rpm', 'bio', 'hum', 'iom', 'inputs']
-        io_.print_csv(file, data, col_names=cols)
+        csv_handler.print_csv(file, data, col_names=cols)
 
 
 class ForwardRothC(RothC):
@@ -364,7 +369,7 @@ class ForwardRothC(RothC):
         """
         
         # Reduce inputs due to fire
-        soilIn_crop,soilIn_tree = emit_cl.reduceFromFire(crop, tree, litter, fire)
+        soilIn_crop,soilIn_tree = emit.reduceFromFire(crop, tree, litter, fire)
         
         # make input into array with 2 columns (soilIn_crop,soilIn_tree)
         inputs = np.column_stack((soilIn_crop, soilIn_tree))
@@ -484,7 +489,7 @@ class ForwardRothC(RothC):
         except AttributeError:
             # first time this has been called
             fig = plt.figure()
-            fig.canvas.manager.set_window_title("Soil Carbon")
+            fig.suptitle("Soil Carbon")  # Replace set_window_title with suptitle
             ForwardRothC.ax = fig.add_subplot(1,1,1)
             ax = ForwardRothC.ax
             ax.set_xlabel("Time (years)")
@@ -559,8 +564,8 @@ class ForwardRothC(RothC):
             x = x - self.Cy0Year
             x[-1] = 0
             data = np.column_stack((x,data))
-            io_.print_csv(file, data, col_names=cols)
+            csv_handler.print_csv(file, data, col_names=cols)
         else:
-            io_.print_csv(file, data, col_names=cols, print_years=True)
+            csv_handler.print_csv(file, data, col_names=cols, print_years=True)
 
 

@@ -7,10 +7,11 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from shamba.model import configuration, io_
+from shamba.model import configuration
+from shamba.model.common import csv_handler
 
 # Fire vector - can redefine from elsewhere if there are fires
-fire = np.zeros(configuration.N_YEARS)
+FIRE = np.zeros(configuration.N_YEARS)
 
 # Emissions stuff
 # From table 2.5 IPCC 2006 GHG Inventory
@@ -35,7 +36,7 @@ cf = {
 
 
 # Reduce crop/tree/litter outputs due to fire
-def reduceFromFire(crop=[], tree=[], litter=[], fire=[], outputType='carbon'):
+def reduceFromFire(crop=[], tree=[], litter=[], outputType='carbon'):
     """
     Calculate the crop and tree outputs
     of specified type (e.g. 'carbon', 'nitrogen', 'DMon', DMoff')
@@ -72,7 +73,7 @@ def reduceFromFire(crop=[], tree=[], litter=[], fire=[], outputType='carbon'):
             log.exception("Invalude outputType parameter in reduceFromFire")
 
     # Reduce above-ground inputs from fire
-    for i in np.where(fire == 1):
+    for i in np.where(FIRE == 1):
         crop_inputs['above'][i] *= (1 - cf['crop'])
         tree_inputs['above'][i] *= (1 - cf['crop'])
 
@@ -95,7 +96,7 @@ class Emission(object):
 
     def __init__(
             self, forRothC=None, crop=[], 
-            tree=[], litter=[], fert=[], fire =[], burnOff=True
+            tree=[], litter=[], fert=[], burnOff=True
     ):
             
         """ Initialise object. 
@@ -136,7 +137,7 @@ class Emission(object):
             self.emissions += self.emissions_nitro
             
             self.emissions_fire = self._fire_emit(
-                    crop, tree, litter, fire, burn_off=burnOff)
+                    crop, tree, litter, burn_off=burnOff)
             self.emissions += self.emissions_fire
         # fertiliser emissions
         if fert or litter:
@@ -158,7 +159,7 @@ class Emission(object):
             ax = Emission.ax
         except AttributeError:
             fig = plt.figure()
-            fig.canvas.manager.set_window_title("Emissions")
+            fig.canvas.set_window_title("Emissions")
             Emission.ax = fig.add_subplot(1,1,1)
             ax = Emission.ax
             ax.set_title("Emissions vs time")
@@ -195,9 +196,9 @@ class Emission(object):
                 (emit_base.emissions, emit_proj.emissions,
                  emit_proj.emissions - emit_base.emissions)
             )
-            cols = ['baseline', 'project', 'difference']
+            cols = ['difference', 'baseline', 'project']
 
-        io_.print_csv(file, data, col_names=cols, print_column=True)
+        csv_handler.print_csv(file, data, col_names=cols, print_column=True)
 
     def _soc_sink(self, forRothC):
         """
@@ -256,7 +257,7 @@ class Emission(object):
 
         return toEmit * ef * mw * gwp['N2O']
 
-    def _fire_emit(self, crop, tree, litter, fire, burn_off=True):
+    def _fire_emit(self, crop, tree, litter, burn_off=True):
         """Calculate and return emissions due to fire.
         crop: list of crop models
         tree: list of tree models
@@ -265,7 +266,7 @@ class Emission(object):
                     Can also be a list corresponding to each crop
                       e.g. [True, False] -> burn crop1 off-res but not crop2
         """        
-
+           
         emit = np.zeros(configuration.N_YEARS)
         # sum up the above-ground mass on-farm eligible to be burned
         # off-farm is summed up if any of the crops has burn=True
@@ -281,10 +282,10 @@ class Emission(object):
         cropTemp = ef['crop_CH4']*gwp['CH4'] + ef['crop_N2O']*gwp['N2O']
         treeTemp = ef['tree_CH4']*gwp['CH4'] + ef['tree_N2O']*gwp['N2O']
         
-        # Burned when fire == 1
-        emit += crop_inputs_on * fire * cf['crop'] * cropTemp
-        emit += tree_inputs_on * fire * cf['tree'] * treeTemp
-
+        # Burned when FIRE == 1
+        emit += crop_inputs_on * FIRE * cf['crop'] * cropTemp
+        emit += tree_inputs_on * FIRE * cf['tree'] * treeTemp
+        
         # whether to burn off-farm crop residues every year
         # construct a list if only one bool is given
         if burn_off is True:

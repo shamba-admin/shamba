@@ -6,7 +6,9 @@
 import logging as log
 import numpy as np
 
-from . import configuration, io_
+from ..common import csv_handler
+
+from .. import configuration
 
 
 class LitterModel(object):
@@ -45,13 +47,13 @@ class LitterModel(object):
             self.nitrogen = litter_params['nitrogen']
         except KeyError:
             log.exception("Litter parameters not provided.")
-            sys.exit(1)
+            raise
         
         self.output = self.get_inputs(litterFreq, litterQty, litterVector)
 
     @classmethod
     def from_csv(
-            self, litterFreq, litterQty, 
+            cls, litterFreq, litterQty, 
             filename='litter.csv', row=0,
             litterVector=None):
         """Read litter params from a csv file.
@@ -68,7 +70,7 @@ class LitterModel(object):
 
         """
 
-        data = io_.read_csv(filename)
+        data = csv_handler.read_csv(filename)
         data = np.atleast_2d(data)
         try:
             params = {
@@ -78,7 +80,7 @@ class LitterModel(object):
             litter = cls(params, litterFreq, litterQty, litterVector)
         except IndexError:
             log.exception("Can't find row %d in %s" % (row, filename))
-            sys.exit(1)
+            raise
 
         return litter
 
@@ -176,4 +178,4 @@ class LitterModel(object):
                 cols.append(s2+"_"+s1)
                 data.append(self.output[s1][s2])
         data = np.column_stack(tuple(data))
-        io_.print_csv(file, data, col_names=cols)
+        csv_handler.print_csv(file, data, col_names=cols)

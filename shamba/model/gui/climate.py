@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-from shamba.model import configuration, io_
+from shamba.model import configuration
+from shamba.model.common import csv_handler
 from shamba.rasters import climate as climate_raster
 
 
@@ -62,7 +63,7 @@ class Climate(object):
         Returns:
             Climate object
         Raises:
-            io_.FileOpenError if raster file(s) can't be opened/read
+            io.FileOpenError if raster file(s) can't be opened/read
 
         """
         # Location stuff
@@ -70,7 +71,6 @@ class Climate(object):
         long = location[1]
         # Indices for picking out clim data from rasters
         x = math.ceil(180 - 2*lat)
-        # TODO: Is this a bug. Is mulitplying by `int` with no arguments always returns 0?
         y = math.ceil(360 + 2)
 
         # Read data from rasters
@@ -89,7 +89,7 @@ class Climate(object):
                     clim[k,i-1] = np.loadtxt(
                         filename, usecols=[int(y-1)], skiprows=6+int(x-1))[0]
                 except IOError:
-                    raise io_.FileOpenError(filename)
+                    raise csv_handler.FileOpenError(filename)
 
         # Account for scaling factor in CRU-TS dataset
         clim *= 0.1
@@ -124,7 +124,7 @@ class Climate(object):
                         in some order
             
         """
-        data = io_.read_csv(filename)
+        data = csv_handler.read_csv(filename)
         
         try:
             # Create clim array with the correct rows
@@ -191,7 +191,7 @@ class Climate(object):
                       'MAY','JUN','JUL','AUG',
                       'SEP','OCT','NOV','DEC']
 
-        print ("\nCLIMATE 2 DATA")
+        print ("\nCLIMATE DATA")
         print ("============\n")
         print ("Month   Temp.    Rain     Evap.")
         print ("        (*C)     (mm)     (mm) ")
@@ -211,7 +211,7 @@ class Climate(object):
                   is put in cfg.INP_DIR.
 
         """
-        io_.print_csv(
+        csv_handler.print_csv(
                 file, np.transpose(self.clim),      
                 col_names=['temp', 'rain', 'evap']
         )

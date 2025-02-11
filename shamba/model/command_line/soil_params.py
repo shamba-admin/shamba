@@ -7,9 +7,10 @@ import os
 import sys
 
 import numpy as np
-from osgeo import gdal, gdalconst
+from osgeo import gdal
 
-from shamba.model import configuration, io_
+from shamba.model import configuration
+from shamba.model.common import csv_handler
 from shamba.rasters import soil as soil_raster
 
 
@@ -57,7 +58,7 @@ class SoilParams(object):
     @classmethod
     def from_csv(cls, filename='soil.csv'):
         """Construct Soil object from csv data."""
-        data = io_.read_csv(filename)
+        data = csv_handler.read_csv(filename)
 
         params = {
                 'Cy0': data[0],
@@ -77,7 +78,13 @@ class SoilParams(object):
         """      
         
         mu_global = cls._get_identifier(location)
-        Cy0, clay = cls._get_data_from_identifier(mu_global)
+        result = cls._get_data_from_identifier(mu_global)
+
+        if result is None:
+            log.error("COULD NOT FIND %d IN HWSD_DATA.csv", mu_global)
+            raise
+
+        Cy0, clay = result
         params = {
                 'Cy0': Cy0,
                 'clay': clay
@@ -124,7 +131,7 @@ class SoilParams(object):
         data = np.array(
                 [self.Cy0, self.clay, self.Ceq, self.iom, self.depth])
         cols = ['Cy0', 'clay', 'Ceq', 'iom', 'depth']
-        io_.print_csv(file, data, col_names=cols)
+        csv_handler.print_csv(file, data, col_names=cols)
 
     @staticmethod
     def _get_identifier(location):
@@ -147,7 +154,7 @@ class SoilParams(object):
             )
             ds = gdal.Open(filename)
         except RuntimeError:
-            raise io_.FileOpenError(filename)
+            raise csv_handler.FileOpenError('hwsd.bil')
 
         cols = ds.RasterXSize
         rows = ds.RasterYSize
@@ -180,7 +187,7 @@ class SoilParams(object):
                 'HWSD_data.csv'
         )
 
-        soilTable = io_.read_mixed_csv(
+        soilTable = csv_handler.read_mixed_csv(
                 filename,
                 cols=(0,1,2,3,4,5,6,7,8,9,10,11,12),
                 types=(int, int, float, int, "|S25", float, float,
@@ -210,7 +217,7 @@ class SoilParams(object):
    
 
 if __name__ == '__main__':
-    data = io_.read_csv(
+    data = csv_handler.read_csv(
             os.path.join(
                 configuration.SHAMBA_DIR,'rasters','soil','muGlobalTestValues.csv')
     )

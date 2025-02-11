@@ -10,7 +10,9 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-from . import configuration, io_
+from .common import csv_handler
+
+from . import configuration
 from .tree_params import TreeParams
 
 
@@ -32,7 +34,7 @@ class TreeModel(object):
 
     def __init__(
             self, tree_params, tree_growth, pool_params, 
-            yearPlanted=0, initialStandDens=0, 
+            yearPlanted=0, initialStandDens=200, 
             thin=None, mort=None):
         """Intialise TreeModel object (run biomass model, essentially).
         
@@ -81,7 +83,7 @@ class TreeModel(object):
     @classmethod
     def from_defaults(
             cls, tree_params, tree_growth, 
-            yearPlanted=0, standDens=100, 
+            yearPlanted=0, standDens=200, 
             thin=None, thinFrac=None,
             mort=None, mortFrac=None):
         """Use defaults for pool params.
@@ -89,7 +91,7 @@ class TreeModel(object):
         
         """
 
-        data = io_.read_csv('biomass_pool_params.csv', cols=(3,4,5,6))
+        data = csv_handler.read_csv('biomass_pool_params.csv', cols=(3,4,5,6))
         turnover = data[:,0]
         alloc = data[:,1]
         thinFrac_temp = data[:,2]
@@ -138,18 +140,10 @@ class TreeModel(object):
         #   -> woodyBiom and output get converted at end before returning
 
         # First get params from bpFile and ppFile
-        print ('new tree cohort running...')
-        print(initialBiomass, yearPlanted, initialStandDens   )
-        
         yp = yearPlanted
-        print ('yp,  then initialSD')
-        print (yp)
-        print (initialStandDens )
         
         standDens = np.zeros(configuration.N_YEARS+1) 
         standDens[yp] = initialStandDens
-        print ('standDens:')
-        print (standDens)
 
         inputParams = {
                 'live': np.array(
@@ -220,9 +214,6 @@ class TreeModel(object):
             standDens[i] *= 1 - (
                     inputParams['dead'][i] + inputParams['thin'][i]
             )
-            if standDens[i]<1:
-                print ('SD [i] is less than 1, end of this tree cohort...')
-                break
             pools[i] = woodyBiom[i] / standDens[i]
 
             # Balance stuff
@@ -330,12 +321,12 @@ class TreeModel(object):
                 cols.append(s2+"_"+s1)
                 data.append(self.output[s1][s2])
         data = np.column_stack(tuple(data))
-        io_.print_csv(file, data, col_names=cols)
+        csv_handler.print_csv(file, data, col_names=cols)
         
         # biomass
         biomass_file = file.split(".csv")[0] + "_biomass.csv"
         cols = ['leaf', 'branch', 'stem', 'croot', 'froot']
-        io_.print_csv(
+        csv_handler.print_csv(
                 biomass_file, self.woodyBiom, 
                 col_names=cols, print_total=True, print_years=True)
 

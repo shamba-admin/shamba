@@ -37,7 +37,6 @@ and send the script with a short explanation to shamba.model@gmail.com
 """
 
 # initial stuff
-import logging as log
 import os
 import sys
 
@@ -46,39 +45,34 @@ import sys
 
 import csv
 import shutil
-import pdb
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+from shamba.model.common import csv_handler, io_handler
+
 _dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(_dir))
 
-from shamba.model.climate_cl import Climate
-from shamba.model.soil_params_cl import SoilParams
+from shamba.model.command_line.climate import Climate
+from shamba.model.command_line.soil_params import SoilParams
 
-from shamba.model.crop_params_cl import CropParams
-from shamba.model.crop_model_cl import CropModel
+from shamba.model.command_line.crop_params import CropParams
+from shamba.model.command_line.crop_model import CropModel
 
-from shamba.model.tree_params_cl import TreeParams
-from shamba.model.tree_growth_cl import TreeGrowth
-from shamba.model.tree_model_cl import TreeModel
+from shamba.model.command_line.tree_params import TreeParams
+from shamba.model.command_line.tree_growth import TreeGrowth
+from shamba.model.command_line.tree_model import TreeModel
 
-from shamba.model.litter_cl import LitterModel
-from shamba.model.soil_model_cl import InverseRothC, ForwardRothC
-from shamba.model import configuration, emit_cl, io_
+from shamba.model.command_line.litter import LitterModel
+from shamba.model.command_line.soil_model import InverseRothC, ForwardRothC
+from shamba.model import configuration
+from shamba.model.command_line import emit
 
 def main(n):
-
-    """
-    ## STEP 1 ## 
-    Point SHAMBA towards location of the 'shamba' folder 
-    on your computer by specifying the BASE_PATH in the 'cfg.py' script 
-    (the script can be found in the 'shamba/shamba/model' folder).
-    """
-   
-    # Initial stuff
-    configuration.arguments = io_.get_cl_args()
+    # Unsure if returned arguments are used anywhere?
+    # However, the logger is configured in `get_command_line_arguments`
+    io_handler.get_command_line_arguments()
     
     """
     ## STEP 2 ##
@@ -334,7 +328,7 @@ def main(n):
     # Crop model
     # ----------
     # Baseline specify crop, yield, and % left in field in csv file
-    cropPar = io_.read_csv(input_csv)
+    cropPar = csv_handler.read_csv(input_csv)
     cropPar = np.atleast_2d(cropPar)
     crop_base = []   # list for crop objects
     crop_par_base = []
@@ -374,7 +368,7 @@ def main(n):
     crop_par_base.append(ci)
 
     # Project specify crop, yield, and % left in field in csv file
-    cropPar = io_.read_csv(input_csv)
+    cropPar = csv_handler.read_csv(input_csv)
     cropPar = np.atleast_2d(cropPar)
     crop_proj = []
     crop_par_proj = []
@@ -439,11 +433,11 @@ def main(n):
             fire = fire_proj)
 
     # Emissions stuff
-    emit_base = emit_cl.Emission(
+    emit_base = emit.Emission(
             forRothC=roth_base,
             crop=crop_base, tree=[tree_base], litter=[l_base], fert=[sf_base], 
             fire = fire_base)
-    emit_proj = emit_cl.Emission(
+    emit_proj = emit.Emission(
             forRothC=roth_proj,
             crop=crop_proj,
             tree=[tree_proj1, tree_proj2, tree_proj3], litter=[l_proj], fert=[sf_proj], 
@@ -475,8 +469,8 @@ def main(n):
     print("=================\n")
     print("baseline    project")
     
-    crop_base_emit = emit_cl.Emission(crop=crop_base,  fire = fire_base)
-    crop_proj_emit = emit_cl.Emission(crop=crop_proj,  fire = fire_proj)     
+    crop_base_emit = emit.Emission(crop=crop_base,  fire = fire_base)
+    crop_proj_emit = emit.Emission(crop=crop_proj,  fire = fire_proj)     
     
     crop_diff = crop_proj_emit.emissions - crop_base_emit.emissions
     for i in range(len(crop_base_emit.emissions)):
@@ -491,8 +485,8 @@ def main(n):
     print("=================\n")
     print("baseline    project")
     
-    fert_base_emit = emit_cl.Emission(fert=[sf_base])
-    fert_proj_emit = emit_cl.Emission(fert=[sf_proj])     
+    fert_base_emit = emit.Emission(fert=[sf_base])
+    fert_proj_emit = emit.Emission(fert=[sf_proj])     
     
     fert_diff = fert_proj_emit.emissions - fert_base_emit.emissions
     for i in range(len(fert_base_emit.emissions)):
@@ -507,8 +501,8 @@ def main(n):
     print("=================\n")
     print("baseline    project")
     
-    lit_base_emit = emit_cl.Emission(litter=[l_base], fire = fire_base)
-    lit_proj_emit = emit_cl.Emission(litter=[l_proj], fire = fire_proj)     
+    lit_base_emit = emit.Emission(litter=[l_base], fire = fire_base)
+    lit_proj_emit = emit.Emission(litter=[l_proj], fire = fire_proj)     
     
     lit_diff = lit_proj_emit.emissions - lit_base_emit.emissions
     for i in range(len(lit_base_emit.emissions)):
@@ -523,8 +517,8 @@ def main(n):
     print("=================\n")
     print("baseline    project")
     
-    fire_base_emit = emit_cl.Emission(fire = fire_base)
-    fire_proj_emit = emit_cl.Emission(fire = fire_proj)     
+    fire_base_emit = emit.Emission(fire = fire_base)
+    fire_proj_emit = emit.Emission(fire = fire_proj)     
     
     fire_diff = fire_proj_emit.emissions - fire_base_emit.emissions
     for i in range(len(fire_base_emit.emissions)):
@@ -539,8 +533,8 @@ def main(n):
     print("=================\n")
     print("baseline    project")
     
-    tree_base_emit = emit_cl.Emission(tree=[tree_base], fire = fire_base)
-    tree_proj_emit = emit_cl.Emission(tree=[tree_proj1, tree_proj2, tree_proj3], fire = fire_proj)     
+    tree_base_emit = emit.Emission(tree=[tree_base], fire = fire_base)
+    tree_proj_emit = emit.Emission(tree=[tree_proj1, tree_proj2, tree_proj3], fire = fire_proj)     
     
     tree_diff = tree_proj_emit.emissions - tree_base_emit.emissions
     for i in range(len(tree_base_emit.emissions)):
@@ -688,9 +682,9 @@ def main(n):
     
     emit_proj.plot_(legendStr='project')
     
-    emit_cl.Emission.ax.plot(emit_diff, label='difference')
+    emit.Emission.ax.plot(emit_diff, label='difference')
     
-    emit_cl.Emission.ax.legend(loc='best')
+    emit.Emission.ax.legend(loc='best')
     
     plt.savefig(os.path.join(configuration.OUT_DIR, plot_name+"_emissions.png"))
     plt.close()        

@@ -4,6 +4,8 @@
 
 import os
 import sys
+
+from shamba.model.common import csv_handler
 try:
     from io import StringIO ## for Python 2
 except ImportError:
@@ -14,7 +16,7 @@ import numpy as np
 
 from PyQt5 import QtGui, QtCore
 
-from shamba.model import configuration, io_
+from shamba.model import configuration
 from shamba.model.soil_params import SoilParams
 from shamba.model.crop_params import CropParams
 from shamba.model.crop_model import CropModel
@@ -345,7 +347,7 @@ class Soil(object):
         data = np.array([Cy0, clay])
 
         filepath = os.path.join(configuration.INP_DIR, 'soil.csv')
-        io_.print_csv(filepath, data, col_names=['Cy0', 'clay'])
+        csv_handler.print_csv(filepath, data, col_names=['Cy0', 'clay'])
 
         return filepath    
 

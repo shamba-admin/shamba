@@ -18,7 +18,9 @@ import numpy as np
 from scipy import optimize, integrate
 import matplotlib.pyplot as plt
 
-from . import configuration, emit, io_
+from .common import csv_handler
+
+from . import configuration, emit
 
     
 class RothC(object):
@@ -240,7 +242,7 @@ class InverseRothC(RothC):
 
         # Loop through range of inputs
         for input in np.arange(0.01, 10, 0.001):
-            C = optimize.fsolve(self.dC_dt, C0, arguments=(t, x, self.k, input))
+            C = optimize.fsolve(self.dC_dt, C0, args=(t, x, self.k, input))
             Ctot = C.sum() + self.soil.iom
             currDiff = math.fabs(Ctot - self.soil.Ceq)
 
@@ -305,7 +307,7 @@ class InverseRothC(RothC):
                 self.eqC.sum()+self.soil.iom, self.eqC[0], self.eqC[1], 
                 self.eqC[2], self.eqC[3], self.soil.iom, self.inputC])
         cols = ['Ceq', 'dpm', 'rpm', 'bio', 'hum', 'iom', 'inputs']
-        io_.print_csv(file, data, col_names=cols)
+        csv_handler.print_csv(file, data, col_names=cols)
 
 
 class ForwardRothC(RothC):
@@ -392,7 +394,7 @@ class ForwardRothC(RothC):
             # Solve the diffEQs to get pools for year i
             Ctemp = integrate.odeint(
                     self.dC_dt, C[i-1], t,
-                    arguments=(x[i-1], self.k, inputs[i-1].sum())
+                    args=(x[i-1], self.k, inputs[i-1].sum())
             )
             C[i] = Ctemp[-1]    # carbon pools at end of year
         
@@ -559,8 +561,8 @@ class ForwardRothC(RothC):
             x = x - self.Cy0Year
             x[-1] = 0
             data = np.column_stack((x,data))
-            io_.print_csv(file, data, col_names=cols)
+            csv_handler.print_csv(file, data, col_names=cols)
         else:
-            io_.print_csv(file, data, col_names=cols, print_years=True)
+            csv_handler.print_csv(file, data, col_names=cols, print_years=True)
 
 

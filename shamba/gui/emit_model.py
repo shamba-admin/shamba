@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 from xml.etree import ElementTree as ET
 from xml.dom import minidom
 
-from shamba.model import configuration, io_
+from shamba.model import configuration
+from shamba.model.common import csv_handler
 from shamba.model.soil_model import InverseRothC, ForwardRothC
 from shamba.model import emit
 

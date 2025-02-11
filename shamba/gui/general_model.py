@@ -2,6 +2,8 @@
 
 import os
 import sys
+
+from shamba.model.common import csv_handler
 try:
     from io import StringIO ## for Python 2
 except ImportError:
@@ -12,7 +14,7 @@ from PyQt5 import QtCore, QtGui
 
 import shutil
 
-from shamba.model import configuration, io_
+from shamba.model import configuration
 from shamba.model.climate import Climate
 
 
@@ -113,7 +115,7 @@ class GeneralModel(object):
 
         # Save climate to csv in INP_DIR then init climate object from that
         filepath = os.path.join(configuration.INP_DIR, 'climate.csv')
-        io_.print_csv(
+        csv_handler.print_csv(
                 filepath,
                  np.transpose(clim),
                 col_names=['temp', 'rain', 'evap'],

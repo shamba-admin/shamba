@@ -5,7 +5,8 @@ import os
 import sys
 import logging as log
 import numpy as np
-from shamba.model import configuration, io_
+from shamba.model import configuration
+from shamba.model.common import csv_handler
 
 
 # --------------------------
@@ -41,7 +42,7 @@ SPP_LIST = [
 
 # Read csv file with default crop data
 CROP_SPP = {}
-_data = io_.read_csv('crop_ipcc_defaults.csv', cols=(2,3,4,5,6,7,8))
+_data = csv_handler.read_csv('crop_ipcc_defaults.csv', cols=(2,3,4,5,6,7,8))
 _data = np.atleast_2d(_data)
 
 _slope = _data[:,0]
@@ -179,7 +180,7 @@ class CropParams(object):
 
         """
 
-        data = io_.read_csv(filename, cols=(2,3,4,5,6,7,8))
+        data = csv_handler.read_csv(filename, cols=(2,3,4,5,6,7,8))
         data = np.atleast_2d(data) # account for when only one row in file
 
         try:
@@ -223,5 +224,5 @@ class CropParams(object):
                 'Sc','Name','a', 'b', 'crop_bgn', 'crop_agn',
                 'crop_bgc', 'crop_agc', 'crop_rs'
         ]
-        io_.print_csv(file, data, col_names=cols)
+        csv_handler.print_csv(file, data, col_names=cols)
 
