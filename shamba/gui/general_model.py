@@ -3,7 +3,7 @@
 import os
 import sys
 
-from shamba.model.common import csv_handler
+from model.common import csv_handler
 try:
     from io import StringIO ## for Python 2
 except ImportError:
@@ -14,8 +14,8 @@ from PyQt5 import QtCore, QtGui
 
 import shutil
 
-from shamba.model import configuration
-from shamba.model.climate import Climate
+from model import configuration
+from model.climate import Climate
 
 
 class GeneralModel(object):
@@ -113,8 +113,8 @@ class GeneralModel(object):
             log.error("ONE OF EVAP/PET not selected")
             sys.exit(2)
 
-        # Save climate to csv in INP_DIR then init climate object from that
-        filepath = os.path.join(configuration.INP_DIR, 'climate.csv')
+        # Save climate to csv in INPUT_DIR then init climate object from that
+        filepath = os.path.join(configuration.INPUT_DIR, 'climate.csv')
         csv_handler.print_csv(
                 filepath,
                  np.transpose(clim),
@@ -130,14 +130,14 @@ class GeneralModel(object):
         self.climate.save_()
         
         # general info
-        filename = os.path.join(configuration.OUT_DIR, 'general_info.txt')
+        filename = os.path.join(configuration.OUTPUT_DIR, 'general_info.txt')
         with open(filename, 'w+') as fout:
             fout.write(self.description)
 
         # climate input file, if it exists
         try:
             dest_file = os.path.basename(self.climateFilename)
-            dest_file = os.path.join(configuration.INP_DIR, dest_file)
+            dest_file = os.path.join(configuration.INPUT_DIR, dest_file)
             shutil.copyfile(self.climateFilename, dest_file)
         except AttributeError:  # no climate input file
             pass

@@ -9,9 +9,9 @@ import sys
 import numpy as np
 from osgeo import gdal, gdalconst
 
-from shamba.model import configuration
-from shamba.model.common import csv_handler
-from shamba.rasters import soil as soil_raster
+from model import configuration
+from model.common import csv_handler
+from rasters import soil as soil_raster
 
 
 class SoilParams(object):
@@ -113,12 +113,12 @@ class SoilParams(object):
         print ("")
 
     def save_(self, file='soil_params.csv'):
-        """Save soil params to a csv file. Default path is in OUT_DIR
+        """Save soil params to a csv file. Default path is in OUTPUT_DIR
         with filename soil_params.csv
 
         Args:
             file: name or path to csv file. If path is not given
-                  (only name), put in OUT_DIR for this program run.
+                  (only name), put in OUTPUT_DIR for this program run.
 
         """
         data = np.array(

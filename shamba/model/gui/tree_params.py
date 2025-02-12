@@ -5,8 +5,8 @@ import os
 import sys
 
 import numpy as np
-from shamba.model import configuration
-from shamba.model.common import csv_handler
+from model import configuration
+from model.common import csv_handler
 
 
 # ----------------------------------
@@ -172,7 +172,7 @@ class TreeParams(object):
 
     def save_(self, file='tree_params.csv'):
         """Save tree params to a csv. 
-        Default path is in OUT_DIR with filename 'tree_params.csv'
+        Default path is in OUTPUT_DIR with filename 'tree_params.csv'
 
         Args:
             file: name or path to csv file

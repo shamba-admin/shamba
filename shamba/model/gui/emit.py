@@ -7,8 +7,8 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from shamba.model import configuration
-from shamba.model.common import csv_handler
+from model import configuration
+from model.common import csv_handler
 
 # Fire vector - can redefine from elsewhere if there are fires
 FIRE = np.zeros(configuration.N_YEARS)
@@ -170,12 +170,12 @@ class Emission(object):
         ax.legend(loc='best')
         
         if saveName is not None:
-            plt.savefig(os.path.join(configuration.OUT_DIR, saveName))
+            plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
     
     @staticmethod 
     def save_(
             emit_base, emit_proj=None, file='emissions.csv'):
-        """Save emission data to csv file. Default path is OUT_DIR.
+        """Save emission data to csv file. Default path is OUTPUT_DIR.
 
         Args:
             emit_base: Emission object to print.

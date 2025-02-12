@@ -18,9 +18,9 @@ import numpy as np
 from scipy import optimize, integrate
 import matplotlib.pyplot as plt
 
-from .common import csv_handler
+from ..common import csv_handler
 
-from . import configuration, emit
+from .. import configuration, emit
 
     
 class RothC(object):
@@ -301,7 +301,7 @@ class InverseRothC(RothC):
         print ("")
 
     def save_(self, file='soil_model_inverse.csv'):
-        """Save data to csv. Default path is OUT_DIR."""
+        """Save data to csv. Default path is OUTPUT_DIR."""
         
         data = np.array([
                 self.eqC.sum()+self.soil.iom, self.eqC[0], self.eqC[1], 
@@ -508,7 +508,7 @@ class ForwardRothC(RothC):
         ax.legend(loc='best')
         
         if saveName is not None:
-            plt.savefig(os.path.join(configuration.OUT_DIR, saveName))
+            plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
     def print_(self, solveToValue=False):
         """Print data from forward RothC run to stdout."""
@@ -541,7 +541,7 @@ class ForwardRothC(RothC):
 
     def save_(self, file='soil_model_forward.csv'):
         """Save data from forward RothC run to a csv.
-        Default path is OUT_DIR.
+        Default path is OUTPUT_DIR.
 
         """
         tot_soc = np.sum(self.SOC, axis=1)

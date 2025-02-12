@@ -5,8 +5,8 @@
 import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from shamba.gui.translate_ import translate_ as _
-from shamba.model import configuration
+from gui.translate_ import translate_ as _
+from model import configuration
 from .page_change import PageComplete, NextBackButtons
 
 class GenericDialog(QtWidgets.QDialog):
@@ -53,7 +53,7 @@ class GenericDialog(QtWidgets.QDialog):
         """Open a QFileDialog and show the chosen path in lineEdit."""
         filename = QtWidgets.QFileDialog.getOpenFileName(
                 self, _('Open File'), 
-                os.path.abspath(configuration.PROJ_DIR),
+                os.path.abspath(configuration.PROJECT_DIR),
                 _("CSV files (*.csv)")
         )
         if filename:    # not cancelled
@@ -65,7 +65,7 @@ class GenericDialog(QtWidgets.QDialog):
         """
         dirname = QtWidgets.QFileDialog.getExistingDirectory(
                 self, _('Select Folder'),
-                os.path.abspath(configuration.PROJ_DIR),
+                os.path.abspath(configuration.PROJECT_DIR),
         )
         if dirname:     # not cancelled
             lineEdit.setText(dirname)

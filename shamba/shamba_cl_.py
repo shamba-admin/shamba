@@ -36,12 +36,8 @@ If you have feedback on the model code, please feel free to change the code
 and send the script with a short explanation to shamba.model@gmail.com
 """
 
-# initial stuff
 import os
 import sys
-
-#reload(sys)
-#sys.setdefaultencoding('cp1252')
 
 import csv
 import shutil
@@ -49,84 +45,89 @@ import shutil
 import matplotlib.pyplot as plt
 import numpy as np
 
-from shamba.model.common import csv_handler, io_handler
+from model.common import csv_handler, io_handler
 
 _dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(_dir))
 
-from shamba.model.command_line.climate import Climate
-from shamba.model.command_line.soil_params import SoilParams
+from model.command_line.climate import Climate
+from model.command_line.soil_params import SoilParams
 
-from shamba.model.command_line.crop_params import CropParams
-from shamba.model.command_line.crop_model import CropModel
+from model.command_line.crop_params import CropParams
+from model.command_line.crop_model import CropModel
 
-from shamba.model.command_line.tree_params import TreeParams
-from shamba.model.command_line.tree_growth import TreeGrowth
-from shamba.model.command_line.tree_model import TreeModel
+from model.command_line.tree_params import TreeParams
+from model.command_line.tree_growth import TreeGrowth
+from model.command_line.tree_model import TreeModel
 
-from shamba.model.command_line.litter import LitterModel
-from shamba.model.command_line.soil_model import InverseRothC, ForwardRothC
-from shamba.model import configuration
-from shamba.model.command_line import emit
+from model.command_line.litter import LitterModel
+from model.command_line.soil_model import InverseRothC, ForwardRothC
+from model import configuration
+from model.command_line import emit
 
-def main(n):
-    # Unsure if returned arguments are used anywhere?
-    # However, the logger is configured in `get_command_line_arguments`
-    io_handler.get_command_line_arguments()
+def setup_project_directory(project_name):
+    """
+    Set up a new project directory with the required input files.
     
+    Args:
+    project_name (str): The name of the new project directory.
+    
+    Returns:
+    str: Path to the newly created project directory.
     """
-    ## STEP 2 ##
-    Within the 'shamba/projects' folder, set up a project folder with a 
-    unique project name (e.g. UG_TS_2016). Within this folder, set up a folder
-    titled 'input'. Within this 'input' folder directory add copies of the
-    following four .csv files (you can copy from other existing'input' folder 
-    directories e.g. 'UG_TS_2016'):
-    1. crop_ipcc_baseline.csv
-    2. crop_ipcc.csv
-    3. climate.csv
-    4. soil-info.csv
-    The above .csv files can be updated with new input parmeteres if desired,
-    but it may not be necesarry.
-    """
+    
+    # New project directory
+    project_dir = os.path.join(configuration.PROJECT_DIR, project_name)
+    
+    # Input directory within the project directory
+    input_dir = os.path.join(project_dir, 'input')
+    
+    # Create the project and input directories
+    os.makedirs(input_dir, exist_ok=True)
+    
+    # List of files to copy
+    files_to_copy = [
+        'crop_ipcc_baseline.csv',
+        'crop_ipcc.csv',
+        'climate.csv',
+        'soil-info.csv',
+        'WL_input.csv'
+    ]
+    
+    # Source directory (using an existing project as an example)
+    source_dir = os.path.join(configuration.PROJECT_DIR, 'examples', 'UG_TS_2016', 'input')
+    
+    # Copy each file
+    for file in files_to_copy:
+        source_file = os.path.join(source_dir, file)
+        dest_file = os.path.join(input_dir, file)
+        shutil.copy2(source_file, dest_file)
+        print(f"Copied {file} to {dest_file}")
+    
+    print(f"Project setup complete. New project directory: {project_dir}")
+    return project_dir
 
-    """
-    ## STEP 3 ##
-    Specify below the unique name of the new project folder in the 
-    shamba/projects folder
-    """
-    project_name = 'UG_TS_2025'
-    configuration.SAV_DIR = os.path.join(configuration.PROJ_DIR, project_name)
+def main(n, arguments):
+    project_name = arguments['project-name']
+
+    # Create a new project directory
+    setup_project_directory(project_name)
+    
+    # Setup the project directory constants
+    configuration.SAVE_DIR = os.path.join(configuration.PROJECT_DIR, project_name)
     
     # specifiying input and output files
-    configuration.INP_DIR = os.path.join(configuration.SAV_DIR, 'input')
-    configuration.OUT_DIR = os.path.join(configuration.SAV_DIR, 'output')    
+    configuration.INPUT_DIR = os.path.join(configuration.SAVE_DIR, 'input')
+    configuration.OUTPUT_DIR = os.path.join(configuration.SAVE_DIR, 'output')    
     
-    """
-    ## STEP 4 ##
-    Complete in full the Excel worksheet 'SHAMBA input output template v1',
-    (located in the 'plan_vivo_approach_excel_templates' folder)    
-    including all references for information. The reviewer will reject the
-    modelling unless it is fully referenced. See the instructions in the Excel
-    worksheet.
-    
-    On the '_questionnaire' worksheet, you must enter a value in each of the
-    blue cells in  the 'Input data' column (column N) in response to each 
-    'data collection question'. Otherwise the model will not run properly. 
-    If the question is not relevent to the land use you are modelling, enter zero.
-    
-    ## STEP 5 ###
-    To run the model for a particular intervention, save the relevant 
-    '_input.csv' file into the new shamba/projects/"project"/input
-    folder and specifiy the .csv name below    
-    """
-    input_csv = 'WL_input.csv'
+    input_csv = arguments['input-file-name']
 
     # ----------
     # getting input data
     # ----------
     
     ## creating dictionary of input data from input.csv
-    data = list(csv.reader(open(configuration.INP_DIR + "/" + input_csv)))
+    data = list(csv.reader(open(configuration.INPUT_DIR + "/" + input_csv)))
     keys = data[0]
     values = data[n+1]    
     val = (dict(list(zip(keys,values))))
@@ -163,7 +164,6 @@ def main(n):
     # ----------
 
     """
-    ## STEP 6 ##
     If nitrogen allocations, carbon, root/shoot and/or wood density attributes
     differ between tree cohorts, add a new row specifying these tree parametres
     to the the tree_defaults.csv at shamba/default_input folder and make sure the 
@@ -595,7 +595,7 @@ def main(n):
     # starting plot output number    
     st = 1
     
-    dir = configuration.OUT_DIR+"_"+mod_run+"\plot_"+str(n+st)
+    dir = configuration.OUTPUT_DIR+"_"+mod_run+"\plot_"+str(n+st)
 
     if os.path.exists(dir):
         shutil.rmtree(dir)
@@ -630,7 +630,7 @@ def main(n):
     roth_proj.save_(plot_name+"_soil_model_proj.csv")
     emit_proj.save_(emit_base, emit_proj, plot_name+"_emit_proj.csv")
     
-    with open(configuration.OUT_DIR+"_"+mod_run+"\plot_"+str(n+st)+"\plot_"+str(n+st)+"_emissions_all_pools_per_year.csv",'w+') as csvfile:
+    with open(configuration.OUTPUT_DIR+"_"+mod_run+"\plot_"+str(n+st)+"\plot_"+str(n+st)+"_emissions_all_pools_per_year.csv",'w+') as csvfile:
         writer = csv.writer(csvfile,delimiter=',')
         writer.writerow(["emit_base", "emit_proj", "emit_diff", 
                          "soil_base", "soil_proj", "soil_diff",
@@ -686,7 +686,7 @@ def main(n):
     
     emit.Emission.ax.legend(loc='best')
     
-    plt.savefig(os.path.join(configuration.OUT_DIR, plot_name+"_emissions.png"))
+    plt.savefig(os.path.join(configuration.OUTPUT_DIR, plot_name+"_emissions.png"))
     plt.close()        
     
     emit_proj.save_(emit_base, emit_proj=emit_proj, file = plot_name+"_emissions.csv")
@@ -702,17 +702,16 @@ def main(n):
     )
 
 if __name__ == '__main__':
-
-    ###CODE TO LOOP CSV###    
-
     """
-    ## STEP 7 ## (OPTIONAL)
+    ## STEP ## (OPTIONAL)
     If you only want to run a selection of rows (i.e. scenarios) from the '_input.csv'
     file, specify the number_of_rows value here. If you want to run all rows place a # in front
     of the line of code below to deactivate them.
     """
     
     number_of_rows = 1
+    # Get command line arguments
+    arguments = io_handler.get_arguments_interactively()
 
 
     """
@@ -720,11 +719,11 @@ if __name__ == '__main__':
     Specify in the code below the title that will be attached to all of your
     output folders and files
     """
-    mod_run = 'WL'       
+    mod_run = arguments['output-title']
    
     emit_output_data = []    
     for n in range(number_of_rows):
-        emit_output_data.append(main(n))
+        emit_output_data.append(main(n, arguments))
         
     """
     ## STEP 9 ##

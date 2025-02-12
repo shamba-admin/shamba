@@ -1,8 +1,8 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from shamba.gui.translate_ import translate_ as _
-from shamba.gui.designer.name_dialog_ui import Ui_name
+from gui.translate_ import translate_ as _
+from gui.designer.name_dialog_ui import Ui_name
 
 
 class NameDialog(Ui_name, QtWidgets.QDialog):

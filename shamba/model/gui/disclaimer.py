@@ -1,8 +1,8 @@
 from PyQt5 import QtCore, QtGui
 
-from shamba.gui.translate_ import translate_ as _
-from shamba.gui import designer
-from shamba.gui.designer.disclaimer_ui import Ui_Disclaimer
+from gui.translate_ import translate_ as _
+from gui import designer
+from gui.designer.disclaimer_ui import Ui_Disclaimer
 import sys
 import os
 

@@ -8,7 +8,7 @@ from matplotlib.lines import Line2D
 
 from PyQt5 import QtCore,QtGui,QtWidgets
 
-from shamba.model import configuration
+from model import configuration
 
 COLOURS = 'brkwyc'
 SUB_2 = '\u2082'

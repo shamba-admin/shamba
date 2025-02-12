@@ -10,9 +10,9 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-from .common import csv_handler
+from ..common import csv_handler
 
-from . import configuration
+from .. import configuration
 from .tree_params import TreeParams
 
 
@@ -272,7 +272,7 @@ class TreeModel(object):
         ax.set_title('Biomass pools vs time')
         
         if saveName is not None:
-            plt.savefig(os.path.join(configuration.OUT_DIR, saveName))
+            plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
     def plot_balance(self, saveName=None):
         """Plot the mass balance data."""
@@ -290,7 +290,7 @@ class TreeModel(object):
         ax.set_title('Mass balance vs time')
         
         if saveName is not None:
-            plt.savefig(os.path.join(configuration.OUT_DIR, saveName))
+            plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
     def print_biomass(self):
         print ("\n\nBIOMASS MODEL")
@@ -307,7 +307,7 @@ class TreeModel(object):
 
     def save_(self, file='tree_model.csv'):
         """Save output and biomass to a csv file.
-        Default path is in OUT_DIR.
+        Default path is in OUTPUT_DIR.
 
         Args:
             file: name or path to csv

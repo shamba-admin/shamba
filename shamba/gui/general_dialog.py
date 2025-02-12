@@ -4,13 +4,13 @@
 
 
 import os
-from shamba.model import configuration
+from model import configuration
 
 from PyQt5 import QtCore, QtGui
-from shamba.gui.translate_ import translate_ as _
-from shamba.gui.designer.general_dialog_ui import Ui_general
-from shamba.gui.page_change import NextBackButtons
-from shamba.gui.dialog_setup import GenericDialog, GenericPage
+from gui.translate_ import translate_ as _
+from gui.designer.general_dialog_ui import Ui_general
+from gui.page_change import NextBackButtons
+from gui.dialog_setup import GenericDialog, GenericPage
 
 
 class GeneralDialog(GenericDialog, Ui_general):

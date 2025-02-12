@@ -5,7 +5,7 @@
 import os
 import sys
 
-from shamba.model.common import csv_handler
+from model.common import csv_handler
 try:
     from io import StringIO ## for Python 2
 except ImportError:
@@ -16,15 +16,15 @@ import numpy as np
 
 from PyQt5 import QtGui, QtCore
 
-from shamba.model import configuration
-from shamba.model.soil_params import SoilParams
-from shamba.model.crop_params import CropParams
-from shamba.model.crop_model import CropModel
-from shamba.model.tree_params import TreeParams
-from shamba.model.tree_growth import TreeGrowth
-from shamba.model.tree_model import TreeModel
-from shamba.model.litter import LitterModel
-from shamba.model import emit
+from model import configuration
+from model.soil_params import SoilParams
+from model.crop_params import CropParams
+from model.crop_model import CropModel
+from model.tree_params import TreeParams
+from model.tree_growth import TreeGrowth
+from model.tree_model import TreeModel
+from model.litter import LitterModel
+from model import emit
 
 
 class ProjectModel(object):
@@ -77,20 +77,20 @@ class ProjectModel(object):
         # make directory 
         if self.isBaseline:
             proj_dir = os.path.join(
-                    configuration.OUT_DIR, 'baselines', self.name)
+                    configuration.OUTPUT_DIR, 'baselines', self.name)
         else:
             proj_dir = os.path.join(
-                    configuration.OUT_DIR, 'interventions', self.name)
+                    configuration.OUTPUT_DIR, 'interventions', self.name)
         if not os.path.exists(proj_dir):
             os.makedirs(proj_dir)
 
         # general description (what's printed out in the box of the gui)
         if self.isBaseline:
-            filename = os.path.join(configuration.OUT_DIR, 'baselines',
+            filename = os.path.join(configuration.OUTPUT_DIR, 'baselines',
                                     self.name, 'baseline_info.txt'
             )
         else:
-            filename = os.path.join(configuration.OUT_DIR, 'interventions',
+            filename = os.path.join(configuration.OUTPUT_DIR, 'interventions',
                                     self.name, 'intervention_info.txt'
             )
         with open(filename, 'w+') as fout:
@@ -103,7 +103,7 @@ class ProjectModel(object):
             dest_file = \
                     os.path.basename(self.soil.soilFilename).split(".csv")[0]
             dest_file += "_" + self.name + ".csv"
-            dest_file = os.path.join(configuration.INP_DIR, dest_file)
+            dest_file = os.path.join(configuration.INPUT_DIR, dest_file)
             shutil.copyfile(self.soil.soilFilename, dest_file)
         except AttributeError:  # no soil input file
             pass
@@ -145,7 +145,7 @@ class ProjectModel(object):
                     dest_file += "_" + self.name + ".csv"    
                 else:
                     dest_file += "_" + self.name + "_" + str(i+1) + ".csv"
-                dest_file = os.path.join(configuration.INP_DIR, dest_file)
+                dest_file = os.path.join(configuration.INPUT_DIR, dest_file)
                 shutil.copyfile(tree.growthFilename, dest_file)
             except AttributeError: # no growth file
                 print ("attribute errr")
@@ -346,7 +346,7 @@ class Soil(object):
         clay = self.ui.clayInput.value()
         data = np.array([Cy0, clay])
 
-        filepath = os.path.join(configuration.INP_DIR, 'soil.csv')
+        filepath = os.path.join(configuration.INPUT_DIR, 'soil.csv')
         csv_handler.print_csv(filepath, data, col_names=['Cy0', 'clay'])
 
         return filepath    

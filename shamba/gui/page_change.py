@@ -3,7 +3,7 @@
 
 import math
 from PyQt5 import QtGui,QtCore, QtWidgets
-from shamba.gui.translate_ import translate_ as _
+from gui.translate_ import translate_ as _
 from functools import partial
 
 class NextBackButtons(QtCore.QObject):

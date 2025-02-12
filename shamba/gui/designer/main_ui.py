@@ -346,7 +346,7 @@ class Ui_SHAMBA(object):
         self.actionSave.setShortcut(QtWidgets.QApplication.translate("SHAMBA", "Ctrl+S", None))
         self.actionSave_As.setText(QtWidgets.QApplication.translate("SHAMBA", "Save As...", None))
 
-from shamba.gui.plot import PlotWidget
+from gui.plot import PlotWidget
 
 if __name__ == "__main__":
     import sys

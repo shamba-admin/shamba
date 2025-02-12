@@ -2,15 +2,12 @@
 
 """Module for io related functions in the SHAMBA program."""
 
-import sys
 import os
 import logging as log
-import argparse
 import csv
 
 import numpy as np
-from shamba.model import configuration
-from shamba import default_input
+from model import configuration
 
 class FileOpenError(Exception):
     
@@ -52,9 +49,9 @@ def print_csv(fileOut, array, col_names=[],
             pass
         return x
     
-    # See if existing path was given, put file in OUT_DIR if not
+    # See if existing path was given, put file in OUTPUT_DIR if not
     if not os.path.isdir(os.path.dirname(fileOut)):
-        fileOut = os.path.join(configuration.OUT_DIR, fileOut)
+        fileOut = os.path.join(configuration.OUTPUT_DIR, fileOut)
         
     
     # See if the array given is actually a list (because it has strings)
@@ -119,11 +116,11 @@ def read_csv(fileIn, cols=None):
         
     # if full path not specified, search through the files in the 
     # project data folder /input, then in the 'defaults' folder
-    default_path = os.path.dirname(os.path.abspath(default_input.__file__))
+    default_path = os.path.join(configuration.BASE_PATH, 'default_input')
 
     if not os.path.isfile(fileIn):
-        if os.path.isfile(os.path.join(configuration.INP_DIR, fileIn)):
-            fileIn = os.path.join(configuration.INP_DIR, fileIn)
+        if os.path.isfile(os.path.join(configuration.INPUT_DIR, fileIn)):
+            fileIn = os.path.join(configuration.INPUT_DIR, fileIn)
         elif os.path.isfile(os.path.join(default_path, fileIn)):
             fileIn = os.path.join(default_path, fileIn)
         else:
@@ -161,8 +158,8 @@ def read_mixed_csv(fileIn, cols=None, types=None):
 
     try:
         if not os.path.isfile(fileIn):
-            if os.path.isfile(os.path.join(configuration.INP_DIR, fileIn)):
-                fileIn = os.path.join(configuration.INP_DIR, fileIn)
+            if os.path.isfile(os.path.join(configuration.INPUT_DIR, fileIn)):
+                fileIn = os.path.join(configuration.INPUT_DIR, fileIn)
             elif os.path.isfile(os.path.join(configuration.DEF_DIR, fileIn)):
                 fileIn = os.path.join(configuration.DEF_DIR, fileIn)
             else:

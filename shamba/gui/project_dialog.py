@@ -5,13 +5,13 @@
 
 
 import os
-from shamba.model import configuration
+from model import configuration
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from shamba.gui.translate_ import translate_ as _
-from shamba.gui.designer.project_dialog_ui import Ui_project
-from shamba.gui.page_change import NextBackButtons
-from shamba.gui.dialog_setup import GenericDialog, GenericPage
+from gui.translate_ import translate_ as _
+from gui.designer.project_dialog_ui import Ui_project
+from gui.page_change import NextBackButtons
+from gui.dialog_setup import GenericDialog, GenericPage
 
 
 # Rich-text for the title page - set to baseline text by default, but set

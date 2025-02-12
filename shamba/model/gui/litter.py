@@ -6,9 +6,9 @@
 import logging as log
 import numpy as np
 
-from .common import csv_handler
+from ..common import csv_handler
 
-from . import configuration
+from .. import configuration
 
 
 class LitterModel(object):
@@ -162,7 +162,7 @@ class LitterModel(object):
         return output
     
     def save_(self, file='litter_model.csv'):
-        """Save output to a csv. Default path is OUT_DIR
+        """Save output to a csv. Default path is OUTPUT_DIR
 
         Args:
             file: name or path to csv

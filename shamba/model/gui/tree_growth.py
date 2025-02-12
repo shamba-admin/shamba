@@ -16,9 +16,9 @@ import math
 from scipy import optimize
 import matplotlib.pyplot as plt
 
-from .common import csv_handler
+from ..common import csv_handler
 
-from . import configuration
+from .. import configuration
 
 
 class TreeGrowth(object):
@@ -323,7 +323,7 @@ class TreeGrowth(object):
         ax.set_xlim(xmin, xmax)
 
         if saveName is not None:
-            plt.savefig(os.path.join(configuration.OUT_DIR, saveName))
+            plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
     def print_(self, fit=None, params=None, mse=None):
         """Print data and fits for tree growth data to stdout."""
@@ -375,7 +375,7 @@ class TreeGrowth(object):
 
     def save_(self, file='tree_growth.csv'):
         """Save growth stuff to a csv file
-        Default path is in OUT_DIR.
+        Default path is in OUTPUT_DIR.
 
         Args:
             file: name or path to csv file

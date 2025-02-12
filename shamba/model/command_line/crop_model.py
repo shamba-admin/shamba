@@ -79,7 +79,7 @@ class CropModel(object):
 
     def save_(self, file='crop_model.csv'):
         """Save output of crop model to a csv file.
-        Default path is in OUT_DIR.
+        Default path is in OUTPUT_DIR.
 
         Args:
             file: name or path to csv file

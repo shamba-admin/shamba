@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 from xml.etree import ElementTree as ET
 from xml.dom import minidom
 
-from shamba.model import configuration
-from shamba.model.common import csv_handler
-from shamba.model.soil_model import InverseRothC, ForwardRothC
-from shamba.model import emit
+from model import configuration
+from model.common import csv_handler
+from model.soil_model import InverseRothC, ForwardRothC
+from model import emit
 
 class Emissions(object):
 
@@ -130,9 +130,9 @@ class Emissions(object):
 
     def save_data(self):
         base_dir = os.path.join(
-                configuration.OUT_DIR, 'baselines', self.baseline.name)
+                configuration.OUTPUT_DIR, 'baselines', self.baseline.name)
         inter_dir = os.path.join(
-                configuration.OUT_DIR, 'interventions', self.intervention.name)
+                configuration.OUTPUT_DIR, 'interventions', self.intervention.name)
          
         self.eqRoth.save_(
                 os.path.join(base_dir, 'soil_model_inverse.csv'))
@@ -156,7 +156,7 @@ class Emissions(object):
         try:
             # read existing file
             with open(
-                    os.path.join(configuration.OUT_DIR, 'emissions_total.csv'), 'r'
+                    os.path.join(configuration.OUTPUT_DIR, 'emissions_total.csv'), 'r'
                     ) as f:
                 col_names = f.readline()
                 col_names = col_names[:-1]   # remove newline char
@@ -183,7 +183,7 @@ class Emissions(object):
             values = values[1:]
 
         with open(
-                os.path.join(configuration.OUT_DIR, 'emissions_total.csv'), 'w'
+                os.path.join(configuration.OUTPUT_DIR, 'emissions_total.csv'), 'w'
                 ) as f:
             f.write(col_names + "\n" + values + "\n")
 

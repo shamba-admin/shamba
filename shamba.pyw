@@ -420,7 +420,7 @@ class Model(object):
         
         filename = QtWidgets.QFileDialog.getSaveFileName(
                 self.ui, _('Save file'),
-                os.path.abspath(configuration.PROJ_DIR),
+                os.path.abspath(configuration.PROJECT_DIR),
                 _("SHAMBA project files (*.shamba)")
         )
             
@@ -485,9 +485,9 @@ class Model(object):
         if not filename_ret:
             return False # not saved
         
-        configuration.SAV_DIR = str(self.save_filename).split(".shamba")[0]
+        configuration.SAVE_DIR = str(self.save_filename).split(".shamba")[0]
         try:       
-            os.makedirs(configuration.SAV_DIR)
+            os.makedirs(configuration.SAVE_DIR)
         except OSError:
             popup = QtWidgets.QMessageBox(self.ui)
             popup.setWindowTitle(_("Overwrite?"))
@@ -499,15 +499,15 @@ class Model(object):
             if popup_ret == QtWidgets.QMessageBox.No:
                 return self._create_save_dirs() # get new filename
             else: # remove existing dir then make new one
-                shutil.rmtree(configuration.SAV_DIR)
-                os.makedirs(configuration.SAV_DIR)
+                shutil.rmtree(configuration.SAVE_DIR)
+                os.makedirs(configuration.SAVE_DIR)
         
         # make the rest of the dirs
-        configuration.INP_DIR = os.path.join(configuration.SAV_DIR, 'input')
-        configuration.OUT_DIR = os.path.join(configuration.SAV_DIR, 'output')
-        os.makedirs(configuration.INP_DIR)
-        os.makedirs(os.path.join(configuration.OUT_DIR, 'baselines'))
-        os.makedirs(os.path.join(configuration.OUT_DIR, 'interventions'))
+        configuration.INPUT_DIR = os.path.join(configuration.SAVE_DIR, 'input')
+        configuration.OUTPUT_DIR = os.path.join(configuration.SAVE_DIR, 'output')
+        os.makedirs(configuration.INPUT_DIR)
+        os.makedirs(os.path.join(configuration.OUTPUT_DIR, 'baselines'))
+        os.makedirs(os.path.join(configuration.OUTPUT_DIR, 'interventions'))
         return True
 
     def _save_files(self):
@@ -564,7 +564,7 @@ class Model(object):
         
         self._prettify_elem(project)
         ET.ElementTree(project).write(
-                os.path.join(configuration.OUT_DIR, 'oe_info.xml'), 
+                os.path.join(configuration.OUTPUT_DIR, 'oe_info.xml'), 
                 encoding='utf-8')
     
     def save_oe_data(self, baseline, intervention):
@@ -574,7 +574,7 @@ class Model(object):
         
         # print data for oe
         oe_fname = os.path.join(
-                configuration.OUT_DIR, "oe_data_"+base_name+"_"+inter_name+".csv")
+                configuration.OUTPUT_DIR, "oe_data_"+base_name+"_"+inter_name+".csv")
         oe_data = "lat,long,%s,%s,net\n" % (base_name, inter_name)
         oe_data += "%.6f,%.6f,%.1f,%.1f,%.1f\n" % (
                 self.general.location[0], self.general.location[1],
@@ -590,7 +590,7 @@ class Model(object):
         inter_name = str(self.ui.interventionSelectorPlot.currentText())
 
         graph_fname = os.path.join(
-                    configuration.OUT_DIR, "emissions_"+base_name+"_"+inter_name+".png")
+                    configuration.OUTPUT_DIR, "emissions_"+base_name+"_"+inter_name+".png")
         self.ui.plotWidget.saveFigure(graph_fname) 
         
         _show_normal_cursor()

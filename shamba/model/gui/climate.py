@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-from shamba.model import configuration
-from shamba.model.common import csv_handler
-from shamba.rasters import climate as climate_raster
+from model import configuration
+from model.common import csv_handler
+from rasters import climate as climate_raster
 
 
 class Climate(object):
@@ -204,11 +204,11 @@ class Climate(object):
 
     def save_(self, file='climate.csv'):
         """Save climate data to a csv file.
-        Default path is in cfg.OUT_DIR with filename 'climate.csv'.
+        Default path is in cfg.OUTPUT_DIR with filename 'climate.csv'.
         
         Args:
             file: name or path to csv file. If only name is given, file
-                  is put in cfg.INP_DIR.
+                  is put in cfg.INPUT_DIR.
 
         """
         csv_handler.print_csv(

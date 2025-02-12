@@ -133,7 +133,7 @@ class LitterModel(object):
             DMinput = np.zeros(configuration.N_YEARS)
             
             # loop through years when litter is added                   
-            if litterFreq is 0:
+            if litterFreq == 0:
                 years = 0
             else:
                 years = list(range(-1,configuration.N_YEARS,litterFreq))
@@ -165,7 +165,7 @@ class LitterModel(object):
         return output
     
     def save_(self, file='litter_model.csv'):
-        """Save output to a csv. Default path is OUT_DIR
+        """Save output to a csv. Default path is OUTPUT_DIR
 
         Args:
             file: name or path to csv

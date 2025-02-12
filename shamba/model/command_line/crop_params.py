@@ -5,8 +5,8 @@ import os
 import sys
 import logging as log
 import numpy as np
-from shamba.model import configuration
-from shamba.model.common import csv_handler
+from model import configuration
+from model.common import csv_handler
 
 
 # --------------------------
@@ -203,7 +203,7 @@ class CropParams(object):
 
     def save_(self, file='crop_params.csv'):
         """Save crop params in a csv. 
-        Default path is in OUT_DIR with filename 'crop_params.csv'
+        Default path is in OUTPUT_DIR with filename 'crop_params.csv'
 
         Args:
             file: name or path to csv file
