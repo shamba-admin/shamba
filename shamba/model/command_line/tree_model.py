@@ -34,7 +34,7 @@ class TreeModel(object):
 
     def __init__(
             self, tree_params, tree_growth, pool_params, 
-            yearPlanted=0, initialStandDens=0, 
+            yearPlanted=0, initialStandDens=0, # Should initialStandDens be 200?
             thin=None, mort=None):
         """Intialise TreeModel object (run biomass model, essentially).
         
@@ -83,7 +83,7 @@ class TreeModel(object):
     @classmethod
     def from_defaults(
             cls, tree_params, tree_growth, 
-            yearPlanted=0, standDens=100, 
+            yearPlanted=0, standDens=100, # Should standDens be 200?
             thin=None, thinFrac=None,
             mort=None, mortFrac=None):
         """Use defaults for pool params.
@@ -222,7 +222,7 @@ class TreeModel(object):
             standDens[i] *= 1 - (
                     inputParams['dead'][i] + inputParams['thin'][i]
             )
-            if standDens[i]<1:
+            if standDens[i] < 1:
                 print ('SD [i] is less than 1, end of this tree cohort...')
                 break
             pools[i] = woodyBiom[i] / standDens[i]
