@@ -296,7 +296,7 @@ class InverseRothC(RothC):
         pools = ['DPM', 'RPM', 'BIO', 'HUM']
         print ("\nINVERSE CALCULATIONS")
         print ("====================\n")
-        print(("Equilibrium C -",self.eqC.sum() + self.soil.iom))
+        print("Equilibrium C -",self.eqC.sum() + self.soil.iom)
         for i in range(len(self.eqC)):
             print("   ",pools[i],"- - - -",self.eqC[i])
         print("    IOM","- - - -",self.soil.iom)
@@ -534,7 +534,7 @@ class ForwardRothC(RothC):
             x = x - self.Cy0Year
             x[-1] = 0
             for i in range(len(tot_soc)):
-                print(("%6.3f" % (x[i]),))
+                print("%6.3f" % (x[i]),)
                 print("  ",)
                 print(tot_soc[i] + self.soil.iom, "  ",)
                 if i == len(tot_soc)-1:

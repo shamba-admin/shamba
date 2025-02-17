@@ -192,7 +192,7 @@ class ProjectModel(object):
         self.soil.soil_params.print_()
 
         print ("\nSOIL MANAGEMENT")
-        print(("Soil cover (1 covered, 0 bare):\n\t", self.soil.cover ))
+        print("Soil cover (1 covered, 0 bare):\n\t", self.soil.cover )
         print ("Fire:")
         if self.ui.fireNever.isChecked():
             print ("\tNever")

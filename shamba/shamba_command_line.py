@@ -157,7 +157,7 @@ def main(n, arguments):
     # soil equilibrium solve
     # ----------
     soil = SoilParams.from_location(loc)
-    invRoth = InverseRothC(soil,climate)
+    invRoth = InverseRothC(soil, climate)
 
     # ----------
     # tree model
@@ -476,9 +476,9 @@ def main(n, arguments):
     for i in range(len(crop_base_emit.emissions)):
         print(crop_base_emit.emissions[i], crop_proj_emit.emissions[i], crop_diff[i])
     
-    print(("\nTotal crop difference: ", sum(crop_diff), " t CO2 ha^-1"))
+    print("\nTotal crop difference: ", sum(crop_diff), " t CO2 ha^-1")
 
-    print(("Average crop difference: ", np.mean(crop_diff)  ))
+    print("Average crop difference: ", np.mean(crop_diff)  )
     
     # fert emissions print
     print("\n\nFERTILISER EMISSIONS (t CO2)")
@@ -492,7 +492,7 @@ def main(n, arguments):
     for i in range(len(fert_base_emit.emissions)):
         print(fert_base_emit.emissions[i], fert_proj_emit.emissions[i], fert_diff[i])
     
-    print(("\nTotal fertiliser difference: ", sum(fert_diff), " t CO2 ha^-1"))
+    print("\nTotal fertiliser difference: ", sum(fert_diff), " t CO2 ha^-1")
 
     print("Average fertiliser difference: ", np.mean(fert_diff))
 
@@ -508,7 +508,7 @@ def main(n, arguments):
     for i in range(len(lit_base_emit.emissions)):
         print(lit_base_emit.emissions[i], lit_proj_emit.emissions[i], lit_diff[i])
     
-    print(("\nTotal Litter difference: ", sum(lit_diff), " t CO2 ha^-1"))
+    print("\nTotal Litter difference: ", sum(lit_diff), " t CO2 ha^-1")
 
     print("Average Litter difference: ", np.mean(lit_diff))
 
@@ -524,7 +524,7 @@ def main(n, arguments):
     for i in range(len(fire_base_emit.emissions)):
         print(fire_base_emit.emissions[i], fire_proj_emit.emissions[i], fire_diff[i])
     
-    print(("\nTotal Fire difference: ", sum(fire_diff), " t CO2 ha^-1"))
+    print("\nTotal Fire difference: ", sum(fire_diff), " t CO2 ha^-1")
 
     print("Average Fire difference: ", np.mean(fire_diff))
 
@@ -540,7 +540,7 @@ def main(n, arguments):
     for i in range(len(tree_base_emit.emissions)):
         print(tree_base_emit.emissions[i], tree_proj_emit.emissions[i], tree_diff[i])
     
-    print(("\nTotal tree difference: ", sum(tree_diff), " t CO2 ha^-1"))
+    print("\nTotal tree difference: ", sum(tree_diff), " t CO2 ha^-1")
 
     print("Average tree difference: ", np.mean(tree_diff))
     
@@ -558,7 +558,7 @@ def main(n, arguments):
     for i in range(len(emit_base.emissions)):
         print(soil_base_emit[i], soil_proj_emit[i], soil_diff[i])
 
-    print(("\nTotal Soil difference: ", sum(soil_diff), " t CO2 ha^-1"))
+    print("\nTotal Soil difference: ", sum(soil_diff), " t CO2 ha^-1")
 
     print("Average Soil difference: ", np.mean(soil_diff))
 
@@ -571,24 +571,24 @@ def main(n, arguments):
     for i in range(len(emit_base.emissions)):
         print(emit_base.emissions[i],emit_proj.emissions[i],emit_diff[i])
 
-    print(("\nTotal difference: ",sum(emit_diff), " t CO2 ha^-1"))
+    print("\nTotal difference: ",sum(emit_diff), " t CO2 ha^-1")
       
     print("Average difference: ", np.mean(emit_diff))
 
     # summary of GHG pools
     print("\n\nSUMMARY OF EMISSIONS (t CO2)")
-    print(("over "+str(val['yrs_acct'])+" years"))
+    print("over "+str(val['yrs_acct'])+" years")
     print("=================\n")
     print("baseline    project" )
 
-    print(("\nTotal crop difference: ", sum(crop_diff), " t CO2 ha^-1"))
-    print(("\nTotal fertiliser difference: ", sum(fert_diff), " t CO2 ha^-1"))
-    print(("\nTotal litter difference: ", sum(lit_diff), " t CO2 ha^-1"))
-    print(("\nTotal fire difference: ", sum(fire_diff), " t CO2 ha^-1"))
-    print(("\nTotal tree difference: ", sum(tree_diff), " t CO2 ha^-1"))
-    print(("\nTotal Soil difference: ", sum(soil_diff), " t CO2 ha^-1"))
+    print("\nTotal crop difference: ", sum(crop_diff), " t CO2 ha^-1")
+    print("\nTotal fertiliser difference: ", sum(fert_diff), " t CO2 ha^-1")
+    print("\nTotal litter difference: ", sum(lit_diff), " t CO2 ha^-1")
+    print("\nTotal fire difference: ", sum(fire_diff), " t CO2 ha^-1")
+    print("\nTotal tree difference: ", sum(tree_diff), " t CO2 ha^-1")
+    print("\nTotal Soil difference: ", sum(soil_diff), " t CO2 ha^-1")
 
-    print(("\nTotal difference: ",sum(emit_diff), " t CO2 ha^-1"))
+    print("\nTotal difference: ",sum(emit_diff), " t CO2 ha^-1")
 
     # Save stuff
     

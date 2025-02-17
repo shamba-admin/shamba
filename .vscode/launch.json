@@ -4,7 +4,7 @@
             "name": "Python: Shamba CLI",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}\\shamba\\shamba_cl_.py",
+            "program": "${workspaceFolder}\\shamba\\shamba_command_line_.py",
             "console": "integratedTerminal"
         },
         {

@@ -6,4 +6,4 @@ services:
     container_name: shamba
     volumes:
       - ./shamba:/app  # Mount the shamba directory to /app in the container
-    command: python shamba_cl_.py 
+    command: python shamba_command_line.py 

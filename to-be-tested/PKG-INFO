@@ -21,6 +21,6 @@ Description: Small-Holder Agriculture Mitigation Benefit Assessment (SHAMBA) pro
         Command-line version
         --------------------
         
-        To use the SHAMBA model sans GUI, see the shamba_cl.py file in the shamba directory for a sample of how to piece together the various modules (in the shamba.model package) to run the model. See model modules for specific info about each model and docstrings detailing the various alternate constructors (classmethods). 
+        To use the SHAMBA model sans GUI, see the shamba_command_line.py file in the shamba directory for a sample of how to piece together the various modules (in the shamba.model package) to run the model. See model modules for specific info about each model and docstrings detailing the various alternate constructors (classmethods). 
         
 Platform: UNKNOWN

@@ -6,7 +6,7 @@ bug fixes and enhancements
 
 MAJOR ADDITIONS:
 
-1. Expanded command line file shamba_cl.py to run with several tree cohorts and produce summaries of information for typical use of SHAMBA for developing Plan Vivo projects to `shamba_cl.py` file through a dictionary
+1. Expanded command line file shamba_command_line.py to run with several tree cohorts and produce summaries of information for typical use of SHAMBA for developing Plan Vivo projects to `shamba_command_line.py` file through a dictionary
 
 2. Created an Excel based document 'SHAMBA input output template v1.xlsx' to implement Plan Vivo SHAMBA methodlogy. The document is in questionnaire style and accepts all background information, data inputs and references for a Plan Vivo style anlaysis. It generates as csv input file to link to the SHAMBA command line, manually accepts and graphs outputs from SHAMBA. It provides the supporting documentation needed to get a SHAMBA estimate approved by Plan Vivo.
 

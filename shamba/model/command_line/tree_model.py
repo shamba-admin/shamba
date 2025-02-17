@@ -312,9 +312,9 @@ class TreeModel(object):
             print(i, "  ",totalBiomass[i] )
 
     def print_balance(self):
-        print(("\nMass-balance sum (kg C /ha): ", self.balance['bal'].sum()))
+        print("\nMass-balance sum (kg C /ha): ", self.balance['bal'].sum())
         totDiff = self.balance['bal'].sum() / self.woodyBiom[-1].sum()
-        print(("Normalized mass balance (kg C /ha): ",totDiff))
+        print("Normalized mass balance (kg C /ha): ",totDiff)
 
     def save_(self, file='tree_model.csv'):
         """Save output and biomass to a csv file.

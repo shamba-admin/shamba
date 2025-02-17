@@ -172,7 +172,7 @@ setup(name='shamba',
               'shamba.rasters.soil': ['hwsd.blw', 'hwsd.hdr', 
                                       'HWSD_data.csv', 'hwsd.bil'],
               'shamba.default_input': ['*.csv']},
-      scripts=['shamba/shamba_cl.py', 'shamba.pyw'],
+      scripts=['shamba/shamba_command_line.py', 'shamba.pyw'],
       data_files=data_files,
       cmdclass=cmdclass_,
       **extra 

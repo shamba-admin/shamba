@@ -47,7 +47,7 @@ If you have more needs [please refer to Anaconda web site documentation here.](h
 
 ### Shamba Command line application
 
-To start the command line application, run the `python ./shamba/shamba_cl_.py` Python script from Anaconda prompt with the appropriate environment set.
+To start the command line application, run the `python ./shamba/shamba_command_line_.py` Python script from Anaconda prompt with the appropriate environment set.
 
 ### Shamba Graphical User Interface application
 
@@ -75,7 +75,7 @@ Then to enable a smooth debugging experience:
 4- choose the appropriate Python interpreter in vscode (bottom left in the status bar)
 You should choose something like ```Python 3.7.8 64-bit ('myenv':conda)```
 
-5- open the ```shamba/shamba_cl_.py``` file in the editor
+5- open the ```shamba/shamba_command_line_.py``` file in the editor
 
 6- then hit F5 key of your keyboard or go in "Run -> Start Debugging" menu
 
