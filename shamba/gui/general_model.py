@@ -15,7 +15,7 @@ from PyQt5 import QtCore, QtGui
 import shutil
 
 from model import configuration
-from model.climate import Climate
+from model.command_line.climate import Climate
 
 
 class GeneralModel(object):

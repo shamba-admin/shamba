@@ -1,0 +1,30 @@
+[project]
+name = "shamba"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "PlanVivo"}
+]
+license = {text = "UNLICENSED"}
+readme = "README.md"
+requires-python = "==3.10.16"
+dependencies = [
+    "basemap (>=1.4.1,<2.0.0)",
+    "gdal (>=3.10.2,<4.0.0)",
+    "numpy (>=1.21,<1.27)",
+    "scipy (>=1.15.2,<2.0.0)",
+    "matplotlib (>=1.5,<3.9)",
+    "pandas (>=2.2.3,<3.0.0)",
+    "setuptools (>=75.8.0,<76.0.0)",
+    "marshmallow (>=3.26.1,<4.0.0)",
+    "pyqt5 (>=5.15.11,<6.0.0)"
+]
+
+[tool.poetry]
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
