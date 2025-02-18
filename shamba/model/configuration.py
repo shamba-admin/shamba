@@ -2,19 +2,19 @@
 
 """Module for global variables for all of SHAMBA."""
 import os
-from time import gmtime,strftime
+from time import gmtime, strftime
 import uuid
 
 
 # input and output files for specific project
 # change this for specific projects
 script_dir = os.path.dirname(os.path.abspath(__file__))
-BASE_PATH = os.path.join(script_dir, "..") 
-PROJECT_DIR = os.path.join(BASE_PATH, 'projects')
+BASE_PATH = os.path.join(script_dir, "..")
+PROJECT_DIR = os.path.join(BASE_PATH, "projects")
 # no need to specify SAV, INP, OUT directories if specified in cl file
-SAVE_DIR = os.path.join(PROJECT_DIR, 'default') # overwrite this later
-INPUT_DIR = os.path.join(SAVE_DIR, 'input')
-OUTPUT_DIR = os.path.join(SAVE_DIR, 'output')
+SAVE_DIR = os.path.join(PROJECT_DIR, "default")  # overwrite this later
+INPUT_DIR = os.path.join(SAVE_DIR, "input")
+OUTPUT_DIR = os.path.join(SAVE_DIR, "output")
 
 # Number of years for model to run and accounting period
 # NOTE: change this in main after tree max age data is read
@@ -23,7 +23,7 @@ N_YEARS = 30
 N_ACCT = 30
 
 
-# Save the time (that cfg is imported) and generate 
+# Save the time (that cfg is imported) and generate
 # universally unique identifier (uuid) for the project
 
 # convert seconds since the epoch to an ISO-8601 time in UTC

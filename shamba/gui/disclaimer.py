@@ -19,25 +19,29 @@ This software is provided under the University of Edinburgh's Open Technology. B
 
 """
 
+
 class DisclaimerDialog(QtWidgets.QDialog):
 
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = Ui_Disclaimer()
         self.ui.setupUi(self)
-     
+
         designer_dir = os.path.dirname(os.path.abspath(designer.__file__))
-        image_dir = os.path.join(designer_dir, 'splash.jpg')
+        image_dir = os.path.join(designer_dir, "splash.jpg")
         pix = QtGui.QPixmap(image_dir)
-        self.ui.splashImage.setPixmap(pix.scaled(self.ui.splashImage.size(),QtCore.Qt.KeepAspectRatio))
+        self.ui.splashImage.setPixmap(
+            pix.scaled(self.ui.splashImage.size(), QtCore.Qt.KeepAspectRatio)
+        )
         self.ui.disclaimerText.setText(_(DISCLAIMER))
-        
 
     def reject(self):
         sys.exit(0)
 
+
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     myapp = DisclaimerDialog()
     myapp.show()

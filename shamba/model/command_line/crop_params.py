@@ -14,61 +14,60 @@ from model.common import csv_handler
 # --------------------------
 
 SPP_LIST = [
-        'grains',
-        'beans and pulses',
-        'tubers',
-        'root crops',
-        'n-fixing forages',
-        'non-n-fixing forages',
-        'perennial grasses',
-        'grass-clover mixtures',
-        'maize',
-        'wheat',
-        'winter wheat',
-        'spring wheat',
-        'rice',
-        'barley',
-        'oats',
-        'millet',
-        'sorghum',
-        'rye',
-        'soyabean',
-        'dry bean',
-        'potato',
-        'peanut',
-        'alfalfa',
-        'non-legume hay'
+    "grains",
+    "beans and pulses",
+    "tubers",
+    "root crops",
+    "n-fixing forages",
+    "non-n-fixing forages",
+    "perennial grasses",
+    "grass-clover mixtures",
+    "maize",
+    "wheat",
+    "winter wheat",
+    "spring wheat",
+    "rice",
+    "barley",
+    "oats",
+    "millet",
+    "sorghum",
+    "rye",
+    "soyabean",
+    "dry bean",
+    "potato",
+    "peanut",
+    "alfalfa",
+    "non-legume hay",
 ]
 
 # Read csv file with default crop data
 CROP_SPP = {}
-_data = csv_handler.read_csv('crop_ipcc_defaults.csv', cols=(2,3,4,5,6,7,8))
+_data = csv_handler.read_csv("crop_ipcc_defaults.csv", cols=(2, 3, 4, 5, 6, 7, 8))
 _data = np.atleast_2d(_data)
 
-_slope = _data[:,0]
-_intercept = _data[:,1]
-_nitrogenBelow = _data[:,2]
-_nitrogenAbove = _data[:,3]
-_carbonBelow = _data[:,4]
-_carbonAbove = _data[:,5]
-_rootToShoot = _data[:,6]
+_slope = _data[:, 0]
+_intercept = _data[:, 1]
+_nitrogenBelow = _data[:, 2]
+_nitrogenAbove = _data[:, 3]
+_carbonBelow = _data[:, 4]
+_carbonAbove = _data[:, 5]
+_rootToShoot = _data[:, 6]
 
 for _i in range(len(SPP_LIST)):
     _spp = SPP_LIST[_i]
     CROP_SPP[_spp] = {
-            'species': _spp,
-            'slope': _slope[_i],
-            'intercept': _intercept[_i],
-            'nitrogenBelow': _nitrogenBelow[_i],
-            'nitrogenAbove': _nitrogenAbove[_i],
-            'carbonBelow': _carbonBelow[_i],
-            'carbonAbove': _carbonAbove[_i],
-            'rootToShoot': _rootToShoot[_i]
+        "species": _spp,
+        "slope": _slope[_i],
+        "intercept": _intercept[_i],
+        "nitrogenBelow": _nitrogenBelow[_i],
+        "nitrogenAbove": _nitrogenAbove[_i],
+        "carbonBelow": _carbonBelow[_i],
+        "carbonAbove": _carbonAbove[_i],
+        "rootToShoot": _rootToShoot[_i],
     }
 
 
 class CropParams(object):
-   
     """
     Crop object to hold crop params. Can be initialised from species name,
     species index, csv file, or manually (callling __init__ with params
@@ -85,9 +84,10 @@ class CropParams(object):
     carbonAbove     crop above-ground carbon content as a fraction
     rootToShoot     crop root-to-shoot ratio
 
-    """ 
+    """
 
     ROOT_IN_TOP_30 = 0.7
+
     def __init__(self, crop_params):
         """Initialise Crop object which holds crop parameters.
 
@@ -101,14 +101,14 @@ class CropParams(object):
 
         """
         try:
-            self.species = crop_params['species']
-            self.slope = crop_params['slope']
-            self.intercept = crop_params['intercept']
-            self.nitrogenBelow = crop_params['nitrogenBelow']
-            self.nitrogenAbove = crop_params['nitrogenAbove']
-            self.carbonBelow = crop_params['carbonBelow']
-            self.carbonAbove = crop_params['carbonAbove']
-            self.rootToShoot = crop_params['rootToShoot']
+            self.species = crop_params["species"]
+            self.slope = crop_params["slope"]
+            self.intercept = crop_params["intercept"]
+            self.nitrogenBelow = crop_params["nitrogenBelow"]
+            self.nitrogenAbove = crop_params["nitrogenAbove"]
+            self.carbonBelow = crop_params["carbonBelow"]
+            self.carbonAbove = crop_params["carbonAbove"]
+            self.rootToShoot = crop_params["rootToShoot"]
         except KeyError:
             log.exception("CROP PARAMETERS NOT PROVIDED")
             sys.exit(1)
@@ -117,7 +117,7 @@ class CropParams(object):
     def from_species_name(cls, species):
         """Construct Crop object from species default in CROP_SPP.
 
-        Args: 
+        Args:
             species: species name to be read from speciesList
         Returns:
             Crop object
@@ -129,9 +129,7 @@ class CropParams(object):
         try:
             crop = cls(CROP_SPP[species])
         except KeyError:
-            log.exception(
-                "COULD NOT FIND SPECIES DATA IN DEFAULTS FOR %s" % species
-            )
+            log.exception("COULD NOT FIND SPECIES DATA IN DEFAULTS FOR %s" % species)
             sys.exit(1)
 
         return crop
@@ -139,7 +137,7 @@ class CropParams(object):
     @classmethod
     def from_species_index(cls, index):
         """Construct Crop object from index of species in the csv
-        
+
         Args:
             speciesNum: index of the species
                         (1-indexed, so off by one from index in SPP_LIST)
@@ -152,27 +150,27 @@ class CropParams(object):
         try:
             index = int(index)
             # csv list is 1-indexed
-            species = SPP_LIST[index-1]
+            species = SPP_LIST[index - 1]
             crop = cls(CROP_SPP[species])
         except IndexError:
             log.exception(
-                    "COULD NOT FIND SPECIES DATA CORRESPONDING " + \
-                     "TO SPECIES NUMBER %d" % index
+                "COULD NOT FIND SPECIES DATA CORRESPONDING "
+                + "TO SPECIES NUMBER %d" % index
             )
             sys.exit(1)
 
-        return crop 
+        return crop
 
     @classmethod
     def from_csv(cls, speciesName, filename, row=0):
-        """Construct Crop object using data from a csv which 
+        """Construct Crop object using data from a csv which
         is structured like the master csv (crop_ipcc_defaults.csv).
-        
-        Args: 
+
+        Args:
             speciesName: name of species (can be anything)
             filename: filename of csv with species info
             row: row in the csv to be read (0-indexed)
-        Returns:    
+        Returns:
             Crop object
         Raises:
             IndexError: if row > number of rows in csv,
@@ -180,29 +178,29 @@ class CropParams(object):
 
         """
 
-        data = csv_handler.read_csv(filename, cols=(2,3,4,5,6,7,8))
-        data = np.atleast_2d(data) # account for when only one row in file
+        data = csv_handler.read_csv(filename, cols=(2, 3, 4, 5, 6, 7, 8))
+        data = np.atleast_2d(data)  # account for when only one row in file
 
         try:
             params = {
-                    'species': speciesName,
-                    'slope': data[row,0],
-                    'intercept': data[row,1],
-                    'nitrogenBelow': data[row,2],
-                    'nitrogenAbove': data[row,3],
-                    'carbonBelow': data[row,4],
-                    'carbonAbove': data[row,5],
-                    'rootToShoot': data[row,6]
+                "species": speciesName,
+                "slope": data[row, 0],
+                "intercept": data[row, 1],
+                "nitrogenBelow": data[row, 2],
+                "nitrogenAbove": data[row, 3],
+                "carbonBelow": data[row, 4],
+                "carbonAbove": data[row, 5],
+                "rootToShoot": data[row, 6],
             }
             crop = cls(params)
         except IndexError:
-            log.exception("CAN'T FIND ROW %d IN %s" % (row,filename))
+            log.exception("CAN'T FIND ROW %d IN %s" % (row, filename))
             sys.exit(1)
 
         return crop
 
-    def save_(self, file='crop_params.csv'):
-        """Save crop params in a csv. 
+    def save_(self, file="crop_params.csv"):
+        """Save crop params in a csv.
         Default path is in OUTPUT_DIR with filename 'crop_params.csv'
 
         Args:
@@ -216,13 +214,25 @@ class CropParams(object):
             index = 0
 
         data = [
-                index, self.species, self.slope, self.intercept, 
-                self.nitrogenBelow, self.nitrogenAbove, self.carbonBelow, 
-                self.carbonAbove, self.rootToShoot
+            index,
+            self.species,
+            self.slope,
+            self.intercept,
+            self.nitrogenBelow,
+            self.nitrogenAbove,
+            self.carbonBelow,
+            self.carbonAbove,
+            self.rootToShoot,
         ]
         cols = [
-                'Sc','Name','a', 'b', 'crop_bgn', 'crop_agn',
-                'crop_bgc', 'crop_agc', 'crop_rs'
+            "Sc",
+            "Name",
+            "a",
+            "b",
+            "crop_bgn",
+            "crop_agn",
+            "crop_bgc",
+            "crop_agc",
+            "crop_rs",
         ]
         csv_handler.print_csv(file, data, col_names=cols)
-

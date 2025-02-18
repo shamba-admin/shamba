@@ -1,6 +1,5 @@
-
 """
-Module containing translate_ function. 
+Module containing translate_ function.
 Just a shorthand for QGui.QApplication.translate_
 """
 
@@ -13,7 +12,5 @@ def translate_(text):
     Acts as wrapper to QAppplication.translate_ function
     to save space basically
     """
-    
-    return QtWidgets.QApplication.translate(
-            "MainWindow", text, None
-    )
+
+    return QtWidgets.QApplication.translate("MainWindow", text, None)

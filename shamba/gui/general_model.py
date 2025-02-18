@@ -4,10 +4,11 @@ import os
 import sys
 
 from model.common import csv_handler
+
 try:
-    from io import StringIO ## for Python 2
+    from io import StringIO  ## for Python 2
 except ImportError:
-    from io import StringIO ## for Python 3
+    from io import StringIO  ## for Python 3
 import logging as log
 import numpy as np
 from PyQt5 import QtCore, QtGui
@@ -15,12 +16,11 @@ from PyQt5 import QtCore, QtGui
 import shutil
 
 from model import configuration
-from model.command_line.climate import Climate
+import model.command_line.climate as Climate
 
 
 class GeneralModel(object):
-
-    """Run the part of the model that can be 
+    """Run the part of the model that can be
     run with the info from general dialog)."""
 
     def __init__(self, ui):
@@ -33,7 +33,7 @@ class GeneralModel(object):
 
         # metadata
         configuration.PROJ_NAME = str(self.ui.projectName.text())
-        
+
         # for use in the xml file for oe descriptive data
         self.farmer_name = str(self.ui.farmerName.text())
         self.area = self.ui.area.value()
@@ -47,7 +47,7 @@ class GeneralModel(object):
         # climate and location
         self.location, configuration.N_YEARS, configuration.N_ACCT = self.get_params()
         self.climate = self.get_climate()
-        
+
         self.save_description()
 
     def get_params(self):
@@ -93,12 +93,10 @@ class GeneralModel(object):
                 try:
                     item = float(item.text())
                 except AttributeError:  # field is empty
-                    log.warning(
-                            "Empty field in climate table - was set to 0")
+                    log.warning("Empty field in climate table - was set to 0")
                     item = 0
                 except ValueError:  # non-numeric field
-                    log.exception(
-                            "Non-numeric value in climate table - set to nan")
+                    log.exception("Non-numeric value in climate table - set to nan")
                     item = np.nan
 
                 clim[c].append(item)
@@ -108,30 +106,29 @@ class GeneralModel(object):
         if self.ui.openPanEvapCheck.isChecked():
             evap = True
         elif self.ui.evapotransCheck.isChecked():
-            clim[2] /= 0.75     # convert to evap
+            clim[2] /= 0.75  # convert to evap
         else:
             log.error("ONE OF EVAP/PET not selected")
             sys.exit(2)
 
         # Save climate to csv in INPUT_DIR then init climate object from that
-        filepath = os.path.join(configuration.INPUT_DIR, 'climate.csv')
+        filepath = os.path.join(configuration.INPUT_DIR, "climate.csv")
         csv_handler.print_csv(
-                filepath,
-                 np.transpose(clim),
-                col_names=['temp', 'rain', 'evap'],
-
+            filepath,
+            np.transpose(clim),
+            col_names=["temp", "rain", "evap"],
         )
         return filepath
 
     def save_data(self):
         """Save info. Called in shamba.pyw as a slot."""
-        
+
         # climate
         self.climate.save_()
-        
+
         # general info
-        filename = os.path.join(configuration.OUTPUT_DIR, 'general_info.txt')
-        with open(filename, 'w+') as fout:
+        filename = os.path.join(configuration.OUTPUT_DIR, "general_info.txt")
+        with open(filename, "w+") as fout:
             fout.write(self.description)
 
         # climate input file, if it exists
@@ -147,33 +144,36 @@ class GeneralModel(object):
         # redirect stdout to a StringIO object
         old_stdout = sys.stdout
         sys.stdout = mystdout = StringIO()
-        
-        print ("GENERAL PROJECT INFORMATION")
 
-        print ("\nOVERVIEW")
+        print("GENERAL PROJECT INFORMATION")
+
+        print("\nOVERVIEW")
         print("Project name:\n\t%s" % configuration.PROJ_NAME)
-        print(("Level of assessment:\n\t%s" % str(
-                self.ui.projectType.currentText())))
+        print(("Level of assessment:\n\t%s" % str(self.ui.projectType.currentText())))
         if self.ui.projectType.currentIndex() != 0:
             print("Name of farmer:\n\t%s" % str(self.ui.farmerName.text()))
             print("Field number:\n\t%d" % self.ui.fieldNum.value())
             print("Field area:\n\t%d ha" % (self.ui.area.value()))
 
-        print ("\nLocation and Project Periods")
-        print(("Project location:\n\t(lat,long) = (%f, %f)" % (
-                self.location[0], self.location[1])))
+        print("\nLocation and Project Periods")
+        print(
+            (
+                "Project location:\n\t(lat,long) = (%f, %f)"
+                % (self.location[0], self.location[1])
+            )
+        )
         print("Quantification period:\n\t%d years" % configuration.N_ACCT)
 
-        print ("\nCLIMATE")
-        print ("Climate data loaded from:")
+        print("\nCLIMATE")
+        print("Climate data loaded from:")
         if self.ui.climFromCRU.isChecked():
-            print ("\tSHAMBA default data")
+            print("\tSHAMBA default data")
         elif self.ui.climFromCsv.isChecked():
             print("\t%s" % self.climateFilename)
         else:
-            print ("\tcustom data")
+            print("\tcustom data")
         self.climate.print_()
-        
+
         # revert back to old stdout
         sys.stdout = old_stdout
         self.description = mystdout.getvalue()

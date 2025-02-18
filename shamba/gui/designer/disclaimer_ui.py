@@ -9,6 +9,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_Disclaimer(object):
     def setupUi(self, Disclaimer):
         Disclaimer.setObjectName("Disclaimer")
@@ -36,19 +37,24 @@ class Ui_Disclaimer(object):
         self.verticalLayout.addWidget(self.scrollArea)
         self.buttonBox = QtWidgets.QDialogButtonBox(Disclaimer)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok
+        )
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi(Disclaimer)
         self.buttonBox.accepted.connect(Disclaimer.accept)
         self.buttonBox.rejected.connect(Disclaimer.reject)
-        
-        #QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), Disclaimer.accept)
-        #QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), Disclaimer.reject)
+
+        # QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), Disclaimer.accept)
+        # QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), Disclaimer.reject)
         QtCore.QMetaObject.connectSlotsByName(Disclaimer)
 
     def retranslateUi(self, Disclaimer):
-        Disclaimer.setWindowTitle(QtWidgets.QApplication.translate("Disclaimer", "disclaimer", None))
-        self.disclaimerText.setText(QtWidgets.QApplication.translate("Disclaimer", "TextLabel", None))
-
+        Disclaimer.setWindowTitle(
+            QtWidgets.QApplication.translate("Disclaimer", "disclaimer", None)
+        )
+        self.disclaimerText.setText(
+            QtWidgets.QApplication.translate("Disclaimer", "TextLabel", None)
+        )

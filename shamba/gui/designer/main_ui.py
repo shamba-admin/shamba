@@ -9,21 +9,28 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_SHAMBA(object):
     def setupUi(self, SHAMBA):
         SHAMBA.setObjectName("SHAMBA")
         SHAMBA.resize(999, 756)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(SHAMBA.sizePolicy().hasHeightForWidth())
         SHAMBA.setSizePolicy(sizePolicy)
         SHAMBA.setMinimumSize(QtCore.QSize(0, 0))
         self.centralwidget = QtWidgets.QWidget(SHAMBA)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.centralwidget.sizePolicy().hasHeightForWidth()
+        )
         self.centralwidget.setSizePolicy(sizePolicy)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_7 = QtWidgets.QGridLayout(self.centralwidget)
@@ -35,59 +42,86 @@ class Ui_SHAMBA(object):
         self.generalTab.setObjectName("generalTab")
         self.gridLayout_3 = QtWidgets.QGridLayout(self.generalTab)
         self.gridLayout_3.setObjectName("gridLayout_3")
-        spacerItem = QtWidgets.QSpacerItem(647, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        spacerItem = QtWidgets.QSpacerItem(
+            647, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         self.gridLayout_3.addItem(spacerItem, 0, 1, 1, 1)
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        spacerItem1 = QtWidgets.QSpacerItem(231, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(
+            231, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum
+        )
         self.horizontalLayout_4.addItem(spacerItem1)
         self.generalButton = QtWidgets.QPushButton(self.generalTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.generalButton.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.generalButton.sizePolicy().hasHeightForWidth()
+        )
         self.generalButton.setSizePolicy(sizePolicy)
         self.generalButton.setMinimumSize(QtCore.QSize(271, 50))
         self.generalButton.setMaximumSize(QtCore.QSize(271, 16777215))
         self.generalButton.setObjectName("generalButton")
         self.horizontalLayout_4.addWidget(self.generalButton)
-        spacerItem2 = QtWidgets.QSpacerItem(231, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        spacerItem2 = QtWidgets.QSpacerItem(
+            231, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum
+        )
         self.horizontalLayout_4.addItem(spacerItem2)
         self.gridLayout_3.addLayout(self.horizontalLayout_4, 1, 1, 1, 1)
         self.generalOutputBox = QtWidgets.QTextEdit(self.generalTab)
         self.generalOutputBox.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.generalOutputBox.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.generalOutputBox.sizePolicy().hasHeightForWidth()
+        )
         self.generalOutputBox.setSizePolicy(sizePolicy)
         self.generalOutputBox.setMinimumSize(QtCore.QSize(650, 500))
         self.generalOutputBox.setMaximumSize(QtCore.QSize(9999999, 9999999))
         self.generalOutputBox.setReadOnly(True)
         self.generalOutputBox.setObjectName("generalOutputBox")
         self.gridLayout_3.addWidget(self.generalOutputBox, 2, 1, 1, 1)
-        spacerItem3 = QtWidgets.QSpacerItem(100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        spacerItem3 = QtWidgets.QSpacerItem(
+            100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum
+        )
         self.gridLayout_3.addItem(spacerItem3, 2, 0, 1, 1)
-        spacerItem4 = QtWidgets.QSpacerItem(100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        spacerItem4 = QtWidgets.QSpacerItem(
+            100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum
+        )
         self.gridLayout_3.addItem(spacerItem4, 2, 2, 1, 1)
-        spacerItem5 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        spacerItem5 = QtWidgets.QSpacerItem(
+            20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         self.gridLayout_3.addItem(spacerItem5, 3, 1, 1, 1)
         self.tabWidget.addTab(self.generalTab, "")
         self.baselinesTab = QtWidgets.QWidget()
         self.baselinesTab.setObjectName("baselinesTab")
         self.gridLayout_9 = QtWidgets.QGridLayout(self.baselinesTab)
         self.gridLayout_9.setObjectName("gridLayout_9")
-        spacerItem6 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        spacerItem6 = QtWidgets.QSpacerItem(
+            20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         self.gridLayout_9.addItem(spacerItem6, 0, 1, 1, 1)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.baselineSelector = QtWidgets.QComboBox(self.baselinesTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.baselineSelector.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.baselineSelector.sizePolicy().hasHeightForWidth()
+        )
         self.baselineSelector.setSizePolicy(sizePolicy)
         self.baselineSelector.setMinimumSize(QtCore.QSize(271, 30))
         self.baselineSelector.setMaximumSize(QtCore.QSize(271, 30))
@@ -97,7 +131,9 @@ class Ui_SHAMBA(object):
         self.verticalLayout_3.addWidget(self.baselineSelector)
         self.horizontalLayout_3.addLayout(self.verticalLayout_3)
         self.label_3 = QtWidgets.QLabel(self.baselinesTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
@@ -105,28 +141,43 @@ class Ui_SHAMBA(object):
         self.label_3.setObjectName("label_3")
         self.horizontalLayout_3.addWidget(self.label_3)
         self.baselineButton = QtWidgets.QPushButton(self.baselinesTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.baselineButton.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.baselineButton.sizePolicy().hasHeightForWidth()
+        )
         self.baselineButton.setSizePolicy(sizePolicy)
         self.baselineButton.setMinimumSize(QtCore.QSize(271, 50))
         self.baselineButton.setMaximumSize(QtCore.QSize(271, 50))
         self.baselineButton.setObjectName("baselineButton")
         self.horizontalLayout_3.addWidget(self.baselineButton)
         self.gridLayout_9.addLayout(self.horizontalLayout_3, 1, 1, 1, 1)
-        spacerItem7 = QtWidgets.QSpacerItem(100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        spacerItem7 = QtWidgets.QSpacerItem(
+            100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum
+        )
         self.gridLayout_9.addItem(spacerItem7, 2, 0, 1, 1)
-        spacerItem8 = QtWidgets.QSpacerItem(100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        spacerItem8 = QtWidgets.QSpacerItem(
+            100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum
+        )
         self.gridLayout_9.addItem(spacerItem8, 2, 2, 1, 1)
-        spacerItem9 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        spacerItem9 = QtWidgets.QSpacerItem(
+            20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         self.gridLayout_9.addItem(spacerItem9, 3, 1, 1, 1)
         self.baselineOutputBox = QtWidgets.QTextEdit(self.baselinesTab)
         self.baselineOutputBox.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.baselineOutputBox.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.baselineOutputBox.sizePolicy().hasHeightForWidth()
+        )
         self.baselineOutputBox.setSizePolicy(sizePolicy)
         self.baselineOutputBox.setMinimumSize(QtCore.QSize(650, 500))
         self.baselineOutputBox.setMaximumSize(QtCore.QSize(9999999, 9999999))
@@ -138,17 +189,23 @@ class Ui_SHAMBA(object):
         self.interventionsTab.setObjectName("interventionsTab")
         self.gridLayout = QtWidgets.QGridLayout(self.interventionsTab)
         self.gridLayout.setObjectName("gridLayout")
-        spacerItem10 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        spacerItem10 = QtWidgets.QSpacerItem(
+            20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         self.gridLayout.addItem(spacerItem10, 0, 1, 1, 1)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.interventionSelector = QtWidgets.QComboBox(self.interventionsTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.interventionSelector.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.interventionSelector.sizePolicy().hasHeightForWidth()
+        )
         self.interventionSelector.setSizePolicy(sizePolicy)
         self.interventionSelector.setMinimumSize(QtCore.QSize(271, 30))
         self.interventionSelector.setMaximumSize(QtCore.QSize(271, 30))
@@ -158,7 +215,9 @@ class Ui_SHAMBA(object):
         self.verticalLayout.addWidget(self.interventionSelector)
         self.horizontalLayout.addLayout(self.verticalLayout)
         self.label_5 = QtWidgets.QLabel(self.interventionsTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_5.sizePolicy().hasHeightForWidth())
@@ -166,10 +225,14 @@ class Ui_SHAMBA(object):
         self.label_5.setObjectName("label_5")
         self.horizontalLayout.addWidget(self.label_5)
         self.interventionButton = QtWidgets.QPushButton(self.interventionsTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.interventionButton.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.interventionButton.sizePolicy().hasHeightForWidth()
+        )
         self.interventionButton.setSizePolicy(sizePolicy)
         self.interventionButton.setMinimumSize(QtCore.QSize(271, 50))
         self.interventionButton.setMaximumSize(QtCore.QSize(271, 50))
@@ -178,42 +241,64 @@ class Ui_SHAMBA(object):
         self.gridLayout.addLayout(self.horizontalLayout, 1, 1, 1, 1)
         self.interventionOutputBox = QtWidgets.QTextEdit(self.interventionsTab)
         self.interventionOutputBox.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.interventionOutputBox.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.interventionOutputBox.sizePolicy().hasHeightForWidth()
+        )
         self.interventionOutputBox.setSizePolicy(sizePolicy)
         self.interventionOutputBox.setMinimumSize(QtCore.QSize(650, 500))
         self.interventionOutputBox.setMaximumSize(QtCore.QSize(9999999, 9999999))
         self.interventionOutputBox.setReadOnly(True)
         self.interventionOutputBox.setObjectName("interventionOutputBox")
         self.gridLayout.addWidget(self.interventionOutputBox, 2, 1, 2, 1)
-        spacerItem11 = QtWidgets.QSpacerItem(100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        spacerItem11 = QtWidgets.QSpacerItem(
+            100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum
+        )
         self.gridLayout.addItem(spacerItem11, 2, 2, 1, 1)
-        spacerItem12 = QtWidgets.QSpacerItem(100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
+        spacerItem12 = QtWidgets.QSpacerItem(
+            100, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum
+        )
         self.gridLayout.addItem(spacerItem12, 3, 0, 1, 1)
-        spacerItem13 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        spacerItem13 = QtWidgets.QSpacerItem(
+            20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         self.gridLayout.addItem(spacerItem13, 4, 1, 1, 1)
         self.tabWidget.addTab(self.interventionsTab, "")
         self.mitigationTab = QtWidgets.QWidget()
         self.mitigationTab.setObjectName("mitigationTab")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.mitigationTab)
         self.gridLayout_2.setObjectName("gridLayout_2")
-        spacerItem14 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        spacerItem14 = QtWidgets.QSpacerItem(
+            20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         self.gridLayout_2.addItem(spacerItem14, 0, 0, 1, 1)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setSpacing(20)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        spacerItem15 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem15 = QtWidgets.QSpacerItem(
+            20,
+            20,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.Minimum,
+        )
         self.horizontalLayout_2.addItem(spacerItem15)
         self.verticalLayout_4 = QtWidgets.QVBoxLayout()
         self.verticalLayout_4.setSpacing(8)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.baselineSelectorPlot = QtWidgets.QComboBox(self.mitigationTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.baselineSelectorPlot.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.baselineSelectorPlot.sizePolicy().hasHeightForWidth()
+        )
         self.baselineSelectorPlot.setSizePolicy(sizePolicy)
         self.baselineSelectorPlot.setMinimumSize(QtCore.QSize(271, 30))
         self.baselineSelectorPlot.setMaximumSize(QtCore.QSize(271, 30))
@@ -221,10 +306,14 @@ class Ui_SHAMBA(object):
         self.baselineSelectorPlot.addItem("")
         self.verticalLayout_4.addWidget(self.baselineSelectorPlot)
         self.interventionSelectorPlot = QtWidgets.QComboBox(self.mitigationTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.interventionSelectorPlot.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.interventionSelectorPlot.sizePolicy().hasHeightForWidth()
+        )
         self.interventionSelectorPlot.setSizePolicy(sizePolicy)
         self.interventionSelectorPlot.setMinimumSize(QtCore.QSize(271, 30))
         self.interventionSelectorPlot.setMaximumSize(QtCore.QSize(271, 30))
@@ -236,32 +325,52 @@ class Ui_SHAMBA(object):
         self.verticalLayout_2.setSpacing(8)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout_2.addLayout(self.verticalLayout_2)
-        spacerItem16 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem16 = QtWidgets.QSpacerItem(
+            10,
+            20,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.Minimum,
+        )
         self.horizontalLayout_2.addItem(spacerItem16)
         self.mitigationButton = QtWidgets.QPushButton(self.mitigationTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.mitigationButton.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.mitigationButton.sizePolicy().hasHeightForWidth()
+        )
         self.mitigationButton.setSizePolicy(sizePolicy)
         self.mitigationButton.setMinimumSize(QtCore.QSize(231, 50))
         self.mitigationButton.setMaximumSize(QtCore.QSize(231, 50))
         self.mitigationButton.setObjectName("mitigationButton")
         self.horizontalLayout_2.addWidget(self.mitigationButton)
         self.graphSaveButton = QtWidgets.QPushButton(self.mitigationTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.graphSaveButton.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.graphSaveButton.sizePolicy().hasHeightForWidth()
+        )
         self.graphSaveButton.setSizePolicy(sizePolicy)
         self.graphSaveButton.setMinimumSize(QtCore.QSize(231, 50))
         self.graphSaveButton.setObjectName("graphSaveButton")
         self.horizontalLayout_2.addWidget(self.graphSaveButton)
-        spacerItem17 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem17 = QtWidgets.QSpacerItem(
+            10,
+            20,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.Minimum,
+        )
         self.horizontalLayout_2.addItem(spacerItem17)
         self.gridLayout_2.addLayout(self.horizontalLayout_2, 1, 0, 1, 1)
         self.plotWidget = PlotWidget(self.mitigationTab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.plotWidget.sizePolicy().hasHeightForWidth())
@@ -271,7 +380,9 @@ class Ui_SHAMBA(object):
         self.tabWidget.addTab(self.mitigationTab, "")
         self.gridLayout_7.addWidget(self.tabWidget, 0, 0, 1, 1)
         self.helpButton = QtWidgets.QPushButton(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.helpButton.sizePolicy().hasHeightForWidth())
@@ -305,55 +416,138 @@ class Ui_SHAMBA(object):
         QtCore.QMetaObject.connectSlotsByName(SHAMBA)
 
     def retranslateUi(self, SHAMBA):
-        SHAMBA.setWindowTitle(QtWidgets.QApplication.translate("SHAMBA", "SHAMBA", None))
-        self.generalButton.setText(QtWidgets.QApplication.translate("SHAMBA", "Enter general project information", None))
-        self.generalOutputBox.setHtml(QtWidgets.QApplication.translate("SHAMBA", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Sans\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.generalTab), QtWidgets.QApplication.translate("SHAMBA", "General", None))
-        self.baselineSelector.setItemText(0, QtWidgets.QApplication.translate("SHAMBA", "<Select a saved baseline scenario>", None))
+        SHAMBA.setWindowTitle(
+            QtWidgets.QApplication.translate("SHAMBA", "SHAMBA", None)
+        )
+        self.generalButton.setText(
+            QtWidgets.QApplication.translate(
+                "SHAMBA", "Enter general project information", None
+            )
+        )
+        self.generalOutputBox.setHtml(
+            QtWidgets.QApplication.translate(
+                "SHAMBA",
+                '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
+                '<html><head><meta name="qrichtext" content="1" /><style type="text/css">\n'
+                "p, li { white-space: pre-wrap; }\n"
+                "</style></head><body style=\" font-family:'Sans'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+                '<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"></p></body></html>',
+                None,
+            )
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.generalTab),
+            QtWidgets.QApplication.translate("SHAMBA", "General", None),
+        )
+        self.baselineSelector.setItemText(
+            0,
+            QtWidgets.QApplication.translate(
+                "SHAMBA", "<Select a saved baseline scenario>", None
+            ),
+        )
         self.label_3.setText(QtWidgets.QApplication.translate("SHAMBA", "or", None))
-        self.baselineButton.setText(QtWidgets.QApplication.translate("SHAMBA", "Add a new baseline scenario", None))
-        self.baselineOutputBox.setHtml(QtWidgets.QApplication.translate("SHAMBA", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Sans\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.baselinesTab), QtWidgets.QApplication.translate("SHAMBA", "Baseline Scenario", None))
-        self.interventionSelector.setItemText(0, QtWidgets.QApplication.translate("SHAMBA", "<Select a saved intervention>", None))
+        self.baselineButton.setText(
+            QtWidgets.QApplication.translate(
+                "SHAMBA", "Add a new baseline scenario", None
+            )
+        )
+        self.baselineOutputBox.setHtml(
+            QtWidgets.QApplication.translate(
+                "SHAMBA",
+                '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
+                '<html><head><meta name="qrichtext" content="1" /><style type="text/css">\n'
+                "p, li { white-space: pre-wrap; }\n"
+                "</style></head><body style=\" font-family:'Sans'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+                '<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"></p></body></html>',
+                None,
+            )
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.baselinesTab),
+            QtWidgets.QApplication.translate("SHAMBA", "Baseline Scenario", None),
+        )
+        self.interventionSelector.setItemText(
+            0,
+            QtWidgets.QApplication.translate(
+                "SHAMBA", "<Select a saved intervention>", None
+            ),
+        )
         self.label_5.setText(QtWidgets.QApplication.translate("SHAMBA", "or", None))
-        self.interventionButton.setText(QtWidgets.QApplication.translate("SHAMBA", "Add a new intervention", None))
-        self.interventionOutputBox.setHtml(QtWidgets.QApplication.translate("SHAMBA", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Sans\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.interventionsTab), QtWidgets.QApplication.translate("SHAMBA", "Intervention", None))
-        self.baselineSelectorPlot.setItemText(0, QtWidgets.QApplication.translate("SHAMBA", "<Select a saved baseline scenario>", None))
-        self.interventionSelectorPlot.setItemText(0, QtWidgets.QApplication.translate("SHAMBA", "<Select a saved intervention>", None))
-        self.mitigationButton.setText(QtWidgets.QApplication.translate("SHAMBA", "Plot mitigation estimates", None))
-        self.graphSaveButton.setText(QtWidgets.QApplication.translate("SHAMBA", "Save graph", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.mitigationTab), QtWidgets.QApplication.translate("SHAMBA", "Mitigation Estimates", None))
-        self.helpButton.setText(QtWidgets.QApplication.translate("SHAMBA", "Help", None))
+        self.interventionButton.setText(
+            QtWidgets.QApplication.translate("SHAMBA", "Add a new intervention", None)
+        )
+        self.interventionOutputBox.setHtml(
+            QtWidgets.QApplication.translate(
+                "SHAMBA",
+                '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
+                '<html><head><meta name="qrichtext" content="1" /><style type="text/css">\n'
+                "p, li { white-space: pre-wrap; }\n"
+                "</style></head><body style=\" font-family:'Sans'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+                '<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"></p></body></html>',
+                None,
+            )
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.interventionsTab),
+            QtWidgets.QApplication.translate("SHAMBA", "Intervention", None),
+        )
+        self.baselineSelectorPlot.setItemText(
+            0,
+            QtWidgets.QApplication.translate(
+                "SHAMBA", "<Select a saved baseline scenario>", None
+            ),
+        )
+        self.interventionSelectorPlot.setItemText(
+            0,
+            QtWidgets.QApplication.translate(
+                "SHAMBA", "<Select a saved intervention>", None
+            ),
+        )
+        self.mitigationButton.setText(
+            QtWidgets.QApplication.translate(
+                "SHAMBA", "Plot mitigation estimates", None
+            )
+        )
+        self.graphSaveButton.setText(
+            QtWidgets.QApplication.translate("SHAMBA", "Save graph", None)
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.mitigationTab),
+            QtWidgets.QApplication.translate("SHAMBA", "Mitigation Estimates", None),
+        )
+        self.helpButton.setText(
+            QtWidgets.QApplication.translate("SHAMBA", "Help", None)
+        )
         self.fileMenu.setTitle(QtWidgets.QApplication.translate("SHAMBA", "File", None))
-        self.actionOpen.setText(QtWidgets.QApplication.translate("SHAMBA", "Open", None))
-        self.actionOpen.setShortcut(QtWidgets.QApplication.translate("SHAMBA", "Ctrl+O", None))
+        self.actionOpen.setText(
+            QtWidgets.QApplication.translate("SHAMBA", "Open", None)
+        )
+        self.actionOpen.setShortcut(
+            QtWidgets.QApplication.translate("SHAMBA", "Ctrl+O", None)
+        )
         self.actionNew.setText(QtWidgets.QApplication.translate("SHAMBA", "New", None))
-        self.actionNew.setShortcut(QtWidgets.QApplication.translate("SHAMBA", "Ctrl+N", None))
-        self.actionSave.setText(QtWidgets.QApplication.translate("SHAMBA", "Save", None))
-        self.actionSave.setShortcut(QtWidgets.QApplication.translate("SHAMBA", "Ctrl+S", None))
-        self.actionSave_As.setText(QtWidgets.QApplication.translate("SHAMBA", "Save As...", None))
+        self.actionNew.setShortcut(
+            QtWidgets.QApplication.translate("SHAMBA", "Ctrl+N", None)
+        )
+        self.actionSave.setText(
+            QtWidgets.QApplication.translate("SHAMBA", "Save", None)
+        )
+        self.actionSave.setShortcut(
+            QtWidgets.QApplication.translate("SHAMBA", "Ctrl+S", None)
+        )
+        self.actionSave_As.setText(
+            QtWidgets.QApplication.translate("SHAMBA", "Save As...", None)
+        )
+
 
 from gui.plot import PlotWidget
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     SHAMBA = QtWidgets.QMainWindow()
     ui = Ui_SHAMBA()
     ui.setupUi(SHAMBA)
     SHAMBA.show()
     sys.exit(app.exec_())
-

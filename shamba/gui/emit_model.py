@@ -11,36 +11,37 @@ from model.common import csv_handler
 from model.soil_model import InverseRothC, ForwardRothC
 from model import emit
 
+
 class Emissions(object):
 
     def __init__(self, ui, gen_params, baseline, intervention):
         """Initialise the forwardRothC calculations for give baseline
         and interventions. Called when "plot" button pressed.
-        
+
         Args:
             ui: main_ui instance
             gen_params: instance of General class
             baseline: instance of Project class for baseline activities
             interventions: intervention instances of Project
-        
+
         """
         self.ui = ui
         self.gen_params = gen_params
         self.baseline = baseline
         self.intervention = intervention
-        
+
         # Inverse soil model
         self.eqRoth = InverseRothC(
-                self.baseline.soil.soil_params,
-                self.gen_params.climate)
+            self.baseline.soil.soil_params, self.gen_params.climate
+        )
 
         self._make_lists()
-        self.run_soil_model() # forward soil model 
-        self.run_emit_model() # emission model
-        
-        #self.save_data()
+        self.run_soil_model()  # forward soil model
+        self.run_emit_model()  # emission model
 
-    def _make_lists(self): 
+        # self.save_data()
+
+    def _make_lists(self):
         # Lists of crop, tree and models
         self.crop_models_base = []
         self.crop_models_inter = []
@@ -73,56 +74,55 @@ class Emissions(object):
             self.fert_models_inter.append(f.model)
 
         # see if residues are burned off-farm
-        
+
     def run_soil_model(self):
 
         # run baseline to y=0 first
         self.y0roth = ForwardRothC(
-                self.baseline.soil.soil_params,
-                self.gen_params.climate,
-                self.baseline.soil.cover,
-                Ci=self.eqRoth.eqC,
-                crop=self.crop_models_base,
-                tree=self.tree_models_base,
-                litter=self.litter_models_base,
-                solveToValue=True
+            self.baseline.soil.soil_params,
+            self.gen_params.climate,
+            self.baseline.soil.cover,
+            Ci=self.eqRoth.eqC,
+            crop=self.crop_models_base,
+            tree=self.tree_models_base,
+            litter=self.litter_models_base,
+            solveToValue=True,
         )
         self.roth_base = ForwardRothC(
-                self.intervention.soil.soil_params,
-                self.gen_params.climate,
-                self.baseline.soil.cover,
-                Ci=self.y0roth.SOC[-1],
-                crop=self.crop_models_base,
-                tree=self.tree_models_base,
-                litter=self.litter_models_base,
+            self.intervention.soil.soil_params,
+            self.gen_params.climate,
+            self.baseline.soil.cover,
+            Ci=self.y0roth.SOC[-1],
+            crop=self.crop_models_base,
+            tree=self.tree_models_base,
+            litter=self.litter_models_base,
         )
         self.roth_inter = ForwardRothC(
-                self.intervention.soil.soil_params,
-                self.gen_params.climate,
-                self.intervention.soil.cover,
-                Ci=self.y0roth.SOC[-1],
-                crop=self.crop_models_inter,
-                tree=self.tree_models_inter,
-                litter=self.litter_models_inter,
+            self.intervention.soil.soil_params,
+            self.gen_params.climate,
+            self.intervention.soil.cover,
+            Ci=self.y0roth.SOC[-1],
+            crop=self.crop_models_inter,
+            tree=self.tree_models_inter,
+            litter=self.litter_models_inter,
         )
 
     def run_emit_model(self):
         self.emit_base = emit.Emission(
-                forRothC=self.roth_base,
-                crop=self.crop_models_base,
-                tree=self.tree_models_base,
-                litter=self.litter_models_base,
-                fert=self.fert_models_base,
-                burnOff=self.crop_burn_res_base,
-
+            forRothC=self.roth_base,
+            crop=self.crop_models_base,
+            tree=self.tree_models_base,
+            litter=self.litter_models_base,
+            fert=self.fert_models_base,
+            burnOff=self.crop_burn_res_base,
         )
         self.emit_inter = emit.Emission(
-                forRothC=self.roth_inter,
-                crop=self.crop_models_inter,
-                tree=self.tree_models_inter,
-                litter=self.litter_models_inter,
-                fert=self.fert_models_inter,
-                burnOff=self.crop_burn_res_inter,
+            forRothC=self.roth_inter,
+            crop=self.crop_models_inter,
+            tree=self.tree_models_inter,
+            litter=self.litter_models_inter,
+            fert=self.fert_models_inter,
+            burnOff=self.crop_burn_res_inter,
         )
 
         self.baseline.total_emissions = np.sum(self.emit_base.emissions)
@@ -130,25 +130,23 @@ class Emissions(object):
 
     def save_data(self):
         base_dir = os.path.join(
-                configuration.OUTPUT_DIR, 'baselines', self.baseline.name)
+            configuration.OUTPUT_DIR, "baselines", self.baseline.name
+        )
         inter_dir = os.path.join(
-                configuration.OUTPUT_DIR, 'interventions', self.intervention.name)
-         
-        self.eqRoth.save_(
-                os.path.join(base_dir, 'soil_model_inverse.csv'))
-        self.y0roth.save_(
-                os.path.join(base_dir, 'soil_model_to_y0.csv'))
-        self.roth_base.save_(
-                os.path.join(base_dir, 'soil_model.csv'))
-        self.roth_inter.save_(
-                os.path.join(inter_dir, 'soil_model.csv'))
+            configuration.OUTPUT_DIR, "interventions", self.intervention.name
+        )
+
+        self.eqRoth.save_(os.path.join(base_dir, "soil_model_inverse.csv"))
+        self.y0roth.save_(os.path.join(base_dir, "soil_model_to_y0.csv"))
+        self.roth_base.save_(os.path.join(base_dir, "soil_model.csv"))
+        self.roth_inter.save_(os.path.join(inter_dir, "soil_model.csv"))
         self.emit_base.save_(
-                self.emit_base, 
-                file=os.path.join(base_dir, 'emissions.csv'))
+            self.emit_base, file=os.path.join(base_dir, "emissions.csv")
+        )
         self.emit_inter.save_(
-                self.emit_inter,
-                file=os.path.join(inter_dir, 'emissions.csv'))
-    
+            self.emit_inter, file=os.path.join(inter_dir, "emissions.csv")
+        )
+
         self.save_total_emissions()
 
     def save_total_emissions(self):
@@ -156,10 +154,10 @@ class Emissions(object):
         try:
             # read existing file
             with open(
-                    os.path.join(configuration.OUTPUT_DIR, 'emissions_total.csv'), 'r'
-                    ) as f:
+                os.path.join(configuration.OUTPUT_DIR, "emissions_total.csv"), "r"
+            ) as f:
                 col_names = f.readline()
-                col_names = col_names[:-1]   # remove newline char
+                col_names = col_names[:-1]  # remove newline char
                 values = f.readline()
                 values = values[:-1]
         except IOError:
@@ -167,23 +165,22 @@ class Emissions(object):
             col_names = ""
             values = ""
 
-        if self.baseline.name not in col_names.split(','):
+        if self.baseline.name not in col_names.split(","):
             col_names += "," + self.baseline.name
             tot_emit = np.sum(self.emit_base.emissions)
             values += ",%.5f" % tot_emit
-            
-        if self.intervention.name not in col_names.split(','):
+
+        if self.intervention.name not in col_names.split(","):
             col_names += "," + self.intervention.name
             tot_emit = np.sum(self.emit_inter.emissions)
             values += ",%.5f" % tot_emit
-        
+
         if col_names.startswith(","):
             col_names = col_names[1:]
         if values.startswith(","):
             values = values[1:]
 
         with open(
-                os.path.join(configuration.OUTPUT_DIR, 'emissions_total.csv'), 'w'
-                ) as f:
+            os.path.join(configuration.OUTPUT_DIR, "emissions_total.csv"), "w"
+        ) as f:
             f.write(col_names + "\n" + values + "\n")
-
