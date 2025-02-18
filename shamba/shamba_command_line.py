@@ -51,6 +51,8 @@ _dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(_dir))
 
 from model.command_line.climate import Climate
+
+from model.command_line.climate import * as Climate2
 from model.command_line.soil_params import SoilParams
 
 from model.command_line.crop_params import CropParams

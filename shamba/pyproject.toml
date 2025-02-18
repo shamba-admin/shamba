@@ -6,7 +6,7 @@ authors = [
     {name = "PlanVivo"}
 ]
 license = {text = "UNLICENSED"}
-readme = "README.md"
+readme = "../README.md"
 requires-python = "==3.10.16"
 dependencies = [
     "basemap (>=1.4.1,<2.0.0)",
@@ -21,6 +21,7 @@ dependencies = [
 ]
 
 [tool.poetry]
+package-mode = false
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
