@@ -66,7 +66,7 @@ class ClimateDataSchema(Schema):
     )
 
     @post_load
-    def make_climate_data(self, data, **kwargs):
+    def build(self, data, **kwargs):
         return ClimateData(**data)
 
 
