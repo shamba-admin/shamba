@@ -22,19 +22,6 @@ output          output to soil,fire in t C ha^-1
 
 """
 
-def __init__(self, crop_params, cropYield, leftInField):
-    """Initialise crop object.
-
-    Args:
-        crop_params: CropParams object with crop params
-        cropYield: dry matter yield of the crop in t C ha^-1
-        leftInField: fraction of residues left in field post-harvest
-
-    """
-
-    self.crop_params = crop_params
-    self.output = self.get_inputs(cropYield, leftInField)
-
 class ClimateDataOutputFieldSchema(Schema):
     carbon = fields.List(fields.Float, required=True)
     nitrogen = fields.List(fields.Float, required=True)
