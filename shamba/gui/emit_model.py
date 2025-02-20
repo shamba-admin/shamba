@@ -2,14 +2,10 @@
 
 import os
 import numpy as np
-import matplotlib.pyplot as plt
-from xml.etree import ElementTree as ET
-from xml.dom import minidom
 
 from model import configuration
-from model.common import csv_handler
 from model.command_line.soil_model import InverseRothC, ForwardRothC
-from model.command_line import emit
+import model.command_line.emit as Emit
 
 
 class Emissions(object):
@@ -108,7 +104,7 @@ class Emissions(object):
         )
 
     def run_emit_model(self):
-        self.emit_base = emit.Emission(
+        self.emit_base = Emit.create(
             forRothC=self.roth_base,
             crop=self.crop_models_base,
             tree=self.tree_models_base,
@@ -116,7 +112,7 @@ class Emissions(object):
             fert=self.fert_models_base,
             burnOff=self.crop_burn_res_base,
         )
-        self.emit_inter = emit.Emission(
+        self.emit_inter = Emit.create(
             forRothC=self.roth_inter,
             crop=self.crop_models_inter,
             tree=self.tree_models_inter,
@@ -125,8 +121,8 @@ class Emissions(object):
             burnOff=self.crop_burn_res_inter,
         )
 
-        self.baseline.total_emissions = np.sum(self.emit_base.emissions)
-        self.intervention.total_emissions = np.sum(self.emit_inter.emissions)
+        self.baseline.total_emissions = np.sum(self.emit_base)
+        self.intervention.total_emissions = np.sum(self.emit_inter)
 
     def save_data(self):
         base_dir = os.path.join(
@@ -140,12 +136,15 @@ class Emissions(object):
         self.y0roth.save_(os.path.join(base_dir, "soil_model_to_y0.csv"))
         self.roth_base.save_(os.path.join(base_dir, "soil_model.csv"))
         self.roth_inter.save_(os.path.join(inter_dir, "soil_model.csv"))
-        self.emit_base.save_(
-            self.emit_base, file=os.path.join(base_dir, "emissions.csv")
-        )
-        self.emit_inter.save_(
-            self.emit_inter, file=os.path.join(inter_dir, "emissions.csv")
-        )
+        # TODO: is this a bug? Why are we using self.emit_base twice?
+        # self.emit_base.save_(
+        #     self.emit_base, file=os.path.join(base_dir, "emissions.csv")
+        # )
+        # self.emit_inter.save_(
+        #     self.emit_inter, file=os.path.join(inter_dir, "emissions.csv")
+        # )
+        Emit.save(self.emit_base, self.emit_base, file=os.path.join(base_dir, "emissions.csv"))
+        Emit.save(self.emit_inter, self.emit_inter, file=os.path.join(inter_dir, "emissions.csv"))
 
         self.save_total_emissions()
 
@@ -167,12 +166,12 @@ class Emissions(object):
 
         if self.baseline.name not in col_names.split(","):
             col_names += "," + self.baseline.name
-            tot_emit = np.sum(self.emit_base.emissions)
+            tot_emit = np.sum(self.emit_base)
             values += ",%.5f" % tot_emit
 
         if self.intervention.name not in col_names.split(","):
             col_names += "," + self.intervention.name
-            tot_emit = np.sum(self.emit_inter.emissions)
+            tot_emit = np.sum(self.emit_inter)
             values += ",%.5f" % tot_emit
 
         if col_names.startswith(","):
