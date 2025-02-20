@@ -8,8 +8,8 @@ from xml.dom import minidom
 
 from model import configuration
 from model.common import csv_handler
-from model.soil_model import InverseRothC, ForwardRothC
-from model import emit
+from model.command_line.soil_model import InverseRothC, ForwardRothC
+from model.command_line import emit
 
 
 class Emissions(object):

@@ -53,6 +53,7 @@ sys.path.append(os.path.dirname(_dir))
 import model.command_line.climate as Climate
 import model.command_line.crop_params as CropParams
 import model.command_line.crop_model as CropModel
+import model.command_line.emit as Emit
 from model.command_line.soil_params import SoilParams
 
 
@@ -63,7 +64,6 @@ from model.command_line.tree_model import TreeModel
 from model.command_line.litter import LitterModel
 from model.command_line.soil_model import InverseRothC, ForwardRothC
 from model import configuration
-from model.command_line import emit
 
 
 def setup_project_directory(project_name):
@@ -497,7 +497,7 @@ def main(n, arguments):
     )
 
     # Emissions stuff
-    emit_base = emit.Emission(
+    emit_base_emissions = Emit.create(
         forRothC=roth_base,
         crop=crop_base,
         tree=[tree_base],
@@ -505,7 +505,7 @@ def main(n, arguments):
         fert=[sf_base],
         fire=fire_base,
     )
-    emit_proj = emit.Emission(
+    emit_proj_emissions = Emit.create(
         forRothC=roth_proj,
         crop=crop_proj,
         tree=[tree_proj1, tree_proj2, tree_proj3],
@@ -540,12 +540,12 @@ def main(n, arguments):
     print("=================\n")
     print("baseline    project")
 
-    crop_base_emit = emit.Emission(crop=crop_base, fire=fire_base)
-    crop_proj_emit = emit.Emission(crop=crop_proj, fire=fire_proj)
+    crop_base_emissions = Emit.create(crop=crop_base, fire=fire_base)
+    crop_proj_emissions = Emit.create(crop=crop_proj, fire=fire_proj)
 
-    crop_diff = crop_proj_emit.emissions - crop_base_emit.emissions
-    for i in range(len(crop_base_emit.emissions)):
-        print(crop_base_emit.emissions[i], crop_proj_emit.emissions[i], crop_diff[i])
+    crop_diff = crop_proj_emissions - crop_base_emissions
+    for i in range(len(crop_base_emissions)):
+        print(crop_base_emissions[i], crop_proj_emissions[i], crop_diff[i])
 
     print("\nTotal crop difference: ", sum(crop_diff), " t CO2 ha^-1")
 
@@ -556,12 +556,12 @@ def main(n, arguments):
     print("=================\n")
     print("baseline    project")
 
-    fert_base_emit = emit.Emission(fert=[sf_base])
-    fert_proj_emit = emit.Emission(fert=[sf_proj])
+    fert_base_emissions = Emit.create(fert=[sf_base])
+    fert_proj_emissions = Emit.create(fert=[sf_proj])
 
-    fert_diff = fert_proj_emit.emissions - fert_base_emit.emissions
-    for i in range(len(fert_base_emit.emissions)):
-        print(fert_base_emit.emissions[i], fert_proj_emit.emissions[i], fert_diff[i])
+    fert_diff = fert_proj_emissions - fert_base_emissions
+    for i in range(len(fert_base_emissions)):
+        print(fert_base_emissions[i], fert_proj_emissions[i], fert_diff[i])
 
     print("\nTotal fertiliser difference: ", sum(fert_diff), " t CO2 ha^-1")
 
@@ -572,12 +572,12 @@ def main(n, arguments):
     print("=================\n")
     print("baseline    project")
 
-    lit_base_emit = emit.Emission(litter=[l_base], fire=fire_base)
-    lit_proj_emit = emit.Emission(litter=[l_proj], fire=fire_proj)
+    lit_base_emissions = Emit.create(litter=[l_base], fire=fire_base)
+    lit_proj_emissions = Emit.create(litter=[l_proj], fire=fire_proj)
 
-    lit_diff = lit_proj_emit.emissions - lit_base_emit.emissions
-    for i in range(len(lit_base_emit.emissions)):
-        print(lit_base_emit.emissions[i], lit_proj_emit.emissions[i], lit_diff[i])
+    lit_diff = lit_proj_emissions - lit_base_emissions
+    for i in range(len(lit_base_emissions)):
+        print(lit_base_emissions[i], lit_proj_emissions[i], lit_diff[i])
 
     print("\nTotal Litter difference: ", sum(lit_diff), " t CO2 ha^-1")
 
@@ -588,12 +588,12 @@ def main(n, arguments):
     print("=================\n")
     print("baseline    project")
 
-    fire_base_emit = emit.Emission(fire=fire_base)
-    fire_proj_emit = emit.Emission(fire=fire_proj)
+    fire_base_emissions = Emit.create(fire=fire_base)
+    fire_proj_emissions = Emit.create(fire=fire_proj)
 
-    fire_diff = fire_proj_emit.emissions - fire_base_emit.emissions
-    for i in range(len(fire_base_emit.emissions)):
-        print(fire_base_emit.emissions[i], fire_proj_emit.emissions[i], fire_diff[i])
+    fire_diff = fire_proj_emissions - fire_base_emissions
+    for i in range(len(fire_base_emissions)):
+        print(fire_base_emissions[i], fire_proj_emissions[i], fire_diff[i])
 
     print("\nTotal Fire difference: ", sum(fire_diff), " t CO2 ha^-1")
 
@@ -604,14 +604,14 @@ def main(n, arguments):
     print("=================\n")
     print("baseline    project")
 
-    tree_base_emit = emit.Emission(tree=[tree_base], fire=fire_base)
-    tree_proj_emit = emit.Emission(
+    tree_base_emissions = Emit.create(tree=[tree_base], fire=fire_base)
+    tree_proj_emissions = Emit.create(
         tree=[tree_proj1, tree_proj2, tree_proj3], fire=fire_proj
     )
 
-    tree_diff = tree_proj_emit.emissions - tree_base_emit.emissions
-    for i in range(len(tree_base_emit.emissions)):
-        print(tree_base_emit.emissions[i], tree_proj_emit.emissions[i], tree_diff[i])
+    tree_diff = tree_proj_emissions - tree_base_emissions
+    for i in range(len(tree_base_emissions)):
+        print(tree_base_emissions[i], tree_proj_emissions[i], tree_diff[i])
 
     print("\nTotal tree difference: ", sum(tree_diff), " t CO2 ha^-1")
 
@@ -622,23 +622,23 @@ def main(n, arguments):
     print("=================\n")
     print("baseline    project")
 
-    soil_base_emit = emit_base.emissions - (
-        crop_base_emit.emissions
-        + fert_base_emit.emissions
-        + lit_base_emit.emissions
-        + fire_base_emit.emissions
-        + tree_base_emit.emissions
+    soil_base_emit = emit_base_emissions - (
+        crop_base_emissions
+        + fert_base_emissions
+        + lit_base_emissions
+        + fire_base_emissions
+        + tree_base_emissions
     )
-    soil_proj_emit = emit_proj.emissions - (
-        crop_proj_emit.emissions
-        + fert_proj_emit.emissions
-        + lit_proj_emit.emissions
-        + fire_proj_emit.emissions
-        + tree_proj_emit.emissions
+    soil_proj_emit = emit_proj_emissions - (
+        crop_proj_emissions
+        + fert_proj_emissions
+        + lit_proj_emissions
+        + fire_proj_emissions
+        + tree_proj_emissions
     )
 
     soil_diff = soil_proj_emit - soil_base_emit
-    for i in range(len(emit_base.emissions)):
+    for i in range(len(emit_base_emissions)):
         print(soil_base_emit[i], soil_proj_emit[i], soil_diff[i])
 
     print("\nTotal Soil difference: ", sum(soil_diff), " t CO2 ha^-1")
@@ -650,9 +650,9 @@ def main(n, arguments):
     print("=================\n")
     print("baseline    project")
 
-    emit_diff = emit_proj.emissions - emit_base.emissions
-    for i in range(len(emit_base.emissions)):
-        print(emit_base.emissions[i], emit_proj.emissions[i], emit_diff[i])
+    emit_diff = emit_proj_emissions - emit_base_emissions
+    for i in range(len(emit_base_emissions)):
+        print(emit_base_emissions[i], emit_proj_emissions[i], emit_diff[i])
 
     print("\nTotal difference: ", sum(emit_diff), " t CO2 ha^-1")
 
@@ -711,7 +711,7 @@ def main(n, arguments):
 
     roth_base.save_(plot_name + "_soil_model_base.csv")
     roth_proj.save_(plot_name + "_soil_model_proj.csv")
-    emit_proj.save_(emit_base, emit_proj, plot_name + "_emit_proj.csv")
+    Emit.save(emit_base_emissions, emit_proj_emissions, plot_name + "_emit_proj.csv")
 
     with open(
         configuration.OUTPUT_DIR
@@ -727,8 +727,8 @@ def main(n, arguments):
         writer = csv.writer(csvfile, delimiter=",")
         writer.writerow(
             [
-                "emit_base",
-                "emit_proj",
+                "emit_base_emissions",
+                "emit_proj_emissions",
                 "emit_diff",
                 "soil_base",
                 "soil_proj",
@@ -750,29 +750,29 @@ def main(n, arguments):
                 "crop_diff",
             ]
         )
-        for i in range(len(emit_base.emissions)):
+        for i in range(len(emit_base_emissions)):
             writer.writerow(
                 [
-                    emit_base.emissions[i],
-                    emit_proj.emissions[i],
+                    emit_base_emissions[i],
+                    emit_proj_emissions[i],
                     emit_diff[i],
                     soil_base_emit[i],
                     soil_proj_emit[i],
                     soil_diff[i],
-                    tree_base_emit.emissions[i],
-                    tree_proj_emit.emissions[i],
+                    tree_base_emissions[i],
+                    tree_proj_emissions[i],
                     tree_diff[i],
-                    fire_base_emit.emissions[i],
-                    fire_proj_emit.emissions[i],
+                    fire_base_emissions[i],
+                    fire_proj_emissions[i],
                     fire_diff[i],
-                    lit_base_emit.emissions[i],
-                    lit_proj_emit.emissions[i],
+                    lit_base_emissions[i],
+                    lit_proj_emissions[i],
                     lit_diff[i],
-                    fert_base_emit.emissions[i],
-                    fert_proj_emit.emissions[i],
+                    fert_base_emissions[i],
+                    fert_proj_emissions[i],
                     fert_diff[i],
-                    crop_base_emit.emissions[i],
-                    crop_proj_emit.emissions[i],
+                    crop_base_emissions[i],
+                    crop_proj_emissions[i],
                     crop_diff[i],
                 ]
             )
@@ -806,18 +806,19 @@ def main(n, arguments):
     roth_proj.plot_(legendStr="project", saveName=plot_name + "_soilModel.png")
     plt.close()
 
-    emit_base.plot_(legendStr="baseline")
+    Emit.plot(emit_base_emissions, legendStr="baseline")
+    Emit.plot(emit_proj_emissions, legendStr="project")
 
-    emit_proj.plot_(legendStr="project")
-
-    emit.Emission.ax.plot(emit_diff, label="difference")
-
-    emit.Emission.ax.legend(loc="best")
+    # TODO: what is this? How could `ax` be attached to Emission?
+    # Why is it done here instead of in the plot function?
+    # Commenting out for now
+    # emit.Emission.ax.plot(emit_diff, label="difference")
+    # emit.Emission.ax.legend(loc="best")
 
     plt.savefig(os.path.join(configuration.OUTPUT_DIR, plot_name + "_emissions.png"))
     plt.close()
 
-    emit_proj.save_(emit_base, emit_proj=emit_proj, file=plot_name + "_emissions.csv")
+    Emit.save(emit_base_emissions=emit_base_emissions, emit_proj_emissions=emit_proj_emissions, file=plot_name + "_emissions.csv")
 
     return (
         sum(crop_diff),
