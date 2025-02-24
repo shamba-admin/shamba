@@ -86,8 +86,19 @@ rootToShoot     crop root-to-shoot ratio
 
 ROOT_IN_TOP_30 = 0.7
 
+
 class CropParamsData:
-    def __init__(self, species, slope, intercept, nitrogen_below, nitrogen_above, carbon_below, carbon_above, root_to_shoot):
+    def __init__(
+        self,
+        species,
+        slope,
+        intercept,
+        nitrogen_below,
+        nitrogen_above,
+        carbon_below,
+        carbon_above,
+        root_to_shoot,
+    ):
         self.species = species
         self.slope = slope
         self.intercept = intercept
@@ -96,6 +107,7 @@ class CropParamsData:
         self.carbon_below = carbon_below
         self.carbon_above = carbon_above
         self.root_to_shoot = root_to_shoot
+
 
 class CropParamsSchema(Schema):
     species = fields.String(required=True)
@@ -110,6 +122,7 @@ class CropParamsSchema(Schema):
     @post_load
     def build(self, data, **kwargs):
         return CropParamsData(**data)
+
 
 def from_species_name(species):
     """Construct Crop object from species default in CROP_SPP.
@@ -141,6 +154,7 @@ def from_species_name(species):
     print(f"Errors in crop params: {errors}")
 
     return schema.load(params)
+
 
 def from_species_index(index):
     """Construct Crop object from index of species in the csv
@@ -180,6 +194,7 @@ def from_species_index(index):
 
     return schema.load(params)
 
+
 def from_csv(speciesName, filename, row=0):
     """Construct Crop object using data from a csv which
     is structured like the master csv (crop_ipcc_defaults.csv).
@@ -215,6 +230,7 @@ def from_csv(speciesName, filename, row=0):
     print(f"Errors in crop params: {errors}")
 
     return schema.load(params)
+
 
 def save(crop_params, file="crop_params.csv"):
     """Save crop params in a csv.

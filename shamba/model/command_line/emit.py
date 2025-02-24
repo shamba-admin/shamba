@@ -71,6 +71,7 @@ def reduceFromFire(crop=[], tree=[], litter=[], fire=[], outputType="carbon"):
 
     return reduced
 
+
 """
 Emission class for calculating total GHG emissions
 from soil, fire, fertiliser, and/or nitrogen.
@@ -81,9 +82,8 @@ emissions   vector of yearly GHG emissions in t CO2e/ha
 
 """
 
-def create(
-    forRothC=None, crop=[], tree=[], litter=[], fert=[], fire=[], burnOff=True
-):
+
+def create(forRothC=None, crop=[], tree=[], litter=[], fert=[], fire=[], burnOff=True):
     """Initialise object.
     Optional arguments gives flexibility about what/what kind of
     emissions to calculate
@@ -108,21 +108,28 @@ def create(
 
     emissions_soc = -soc_sink(forRothC) if forRothC is not None else 0
     emissions_tree = -tree_sink(tree) if tree else 0
-    emissions_nitro = nitrogen_emit(crop, tree, litter) if (crop or tree or litter) else 0
-    emissions_fire = fire_emit(crop, tree, litter, fire, burn_off=burnOff) if (crop or tree or litter) else 0
+    emissions_nitro = (
+        nitrogen_emit(crop, tree, litter) if (crop or tree or litter) else 0
+    )
+    emissions_fire = (
+        fire_emit(crop, tree, litter, fire, burn_off=burnOff)
+        if (crop or tree or litter)
+        else 0
+    )
     emissions_fert = fert_emit(litter, fert) if (fert or litter) else 0
 
     total_emissions = (
-        emissions +
-        emissions_soc +
-        emissions_tree +
-        emissions_nitro +
-        emissions_fire +
-        emissions_fert
+        emissions
+        + emissions_soc
+        + emissions_tree
+        + emissions_nitro
+        + emissions_fire
+        + emissions_fert
     )
 
     # We only care about portion in the project accounting period
     return total_emissions[0 : configuration.N_ACCT]
+
 
 def plot(emissions, legendStr, saveName=None):
     """Plot total carbon vs year for emissions.
@@ -143,6 +150,7 @@ def plot(emissions, legendStr, saveName=None):
 
     if saveName is not None:
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
+
 
 def save(emit_base_emissions, emit_proj_emissions=None, file="emissions.csv"):
     """Save emission data to csv file. Default path is OUTPUT_DIR.
@@ -173,6 +181,7 @@ def save(emit_base_emissions, emit_proj_emissions=None, file="emissions.csv"):
 
     csv_handler.print_csv(file, data, col_names=cols, print_column=True)
 
+
 def soc_sink(forRothC):
     """
     Calculate SOC differences from year to year (carbon sink)
@@ -195,6 +204,7 @@ def soc_sink(forRothC):
 
     return deltaSOC
 
+
 def tree_sink(tree):
     """
     Calculate woody biomass pool sizes from year to year (carbon sink)
@@ -214,6 +224,7 @@ def tree_sink(tree):
 
     return delta
 
+
 def nitrogen_emit(crop, tree, litter):
     """
     Calculate and return emissions due to nitrogen.
@@ -221,15 +232,14 @@ def nitrogen_emit(crop, tree, litter):
     tree_out == list of output dicts from trees
     litter_out == list of output dicts from litter
     """
-    toEmit_crop, toEmit_tree = reduceFromFire(
-        crop, tree, litter, outputType="nitrogen"
-    )
+    toEmit_crop, toEmit_tree = reduceFromFire(crop, tree, litter, outputType="nitrogen")
     toEmit = toEmit_crop + toEmit_tree
 
     ef = 0.01  # emission factor [kbN20-N/kg N]
     mw = 44.0 / 28  # for N2O-N to N2O
 
     return toEmit * ef * mw * gwp["N2O"]
+
 
 def fire_emit(crop, tree, litter, fire, burn_off=True):
     """Calculate and return emissions due to fire.
@@ -280,6 +290,7 @@ def fire_emit(crop, tree, litter, fire, burn_off=True):
     emit *= 0.001  # convert to tonnes
     return emit
 
+
 def fert_emit(litter, fert):
     """Calculate and return emissions due to fertiliser use.
     Args:
@@ -298,9 +309,9 @@ def fert_emit(litter, fert):
     emit = np.zeros(configuration.N_YEARS)
     # still need to add fertiliser ************
     for li in litter:
-        emit += li.output["above"]["nitrogen"] * (1 - volatile_frac_org)
+        emit += np.array(li.output["above"]["nitrogen"], dtype=float) * (1 - volatile_frac_org)
     for f in fert:
-        emit += f.output["above"]["nitrogen"] * (1 - volatile_frac_synth)
+        emit += np.array(f.output["above"]["nitrogen"], dtype=float) * (1 - volatile_frac_synth)
 
     emit *= ef * mw_ratio * gwp
 

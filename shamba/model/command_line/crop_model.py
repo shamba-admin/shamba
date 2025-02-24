@@ -7,8 +7,10 @@ from marshmallow import Schema, fields, post_load
 from ..common import csv_handler
 
 from .. import configuration
+
 # from .crop_params import CropParams
 from .crop_params import ROOT_IN_TOP_30, CropParamsSchema
+from .common_schema import OutputSchema as ClimateDataOutputSchema
 
 """
 Crop model object. Calculate residues and soil inputs
@@ -22,19 +24,12 @@ output          output to soil,fire in t C ha^-1
 
 """
 
-class ClimateDataOutputFieldSchema(Schema):
-    carbon = fields.List(fields.Float, required=True)
-    nitrogen = fields.List(fields.Float, required=True)
-    DMon = fields.List(fields.Float, required=True)
-    DMoff = fields.List(fields.Float, required=True)
 
-class ClimateDataOutputSchema(Schema):
-    above = fields.Nested(ClimateDataOutputFieldSchema)
-    below = fields.Nested(ClimateDataOutputFieldSchema)
 class CropModelData:
     def __init__(self, crop_params, output):
         self.crop_params = crop_params
         self.output = output
+
 
 class ClimateDataSchema(Schema):
     crop_params = fields.Nested(CropParamsSchema)
@@ -44,24 +39,29 @@ class ClimateDataSchema(Schema):
     def build(self, data, **kwargs):
         return CropModelData(**data)
 
-def get_crop_model(crop_params, crop_yield, left_in_field):
+
+def create(crop_params, crop_yield, left_in_field):
     """Args:
-        crop_params: CropParams object with crop params
-        cropYield: dry matter yield of the crop in t C ha^-1
-        leftInField: fraction of residues left in field post-harvest
+    crop_params: CropParams object with crop params
+    cropYield: dry matter yield of the crop in t C ha^-1
+    leftInField: fraction of residues left in field post-harvest
 
     """
     raw_crop_model_data = {
-        "crop_params": vars(crop_params), # We need to convert this to a dictionary for validation
-        "output": get_inputs(crop_params, crop_yield, left_in_field)
+        "crop_params": vars(
+            crop_params
+        ),  # We need to convert this to a dictionary for validation
+        "output": get_inputs(crop_params, crop_yield, left_in_field),
     }
 
     schema = ClimateDataSchema()
     errors = schema.validate(raw_crop_model_data)
 
-    print(f"Errors in crop model data: {str(errors)}")
+    if errors != {}:
+        print(f"Errors in crop model data: {str(errors)}")
 
     return schema.load(raw_crop_model_data)
+
 
 def get_inputs(crop_params, crop_yield, left_in_field):
     """Calculate and return soil carbon inputs, nitrogen inputs,
@@ -103,6 +103,7 @@ def get_inputs(crop_params, crop_yield, left_in_field):
     }
 
     return output
+
 
 def save(crop_model, file="crop_model.csv"):
     """Save output of crop model to a csv file.

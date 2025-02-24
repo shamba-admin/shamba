@@ -15,6 +15,7 @@ from marshmallow import Schema, fields, post_load
 from model.common import csv_handler
 from rasters import climate as climate_raster
 
+
 def validate_list_length(lst):
     return ["List must contain 12 elements"] if len(lst) != 12 else []
 

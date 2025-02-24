@@ -16,13 +16,13 @@ import numpy as np
 from PyQt5 import QtGui, QtCore
 
 from model import configuration
-from model.soil_params import SoilParams
-from model.crop_params import CropParams
-from model.crop_model import CropModel
-from model.tree_params import TreeParams
-from model.tree_growth import TreeGrowth
-from model.tree_model import TreeModel
-from model.litter import LitterModel
+from model.command_line.soil_params import SoilParams
+from model.command_line.crop_params import CropParams
+from model.command_line.crop_model import CropModel
+from model.command_line.tree_params import TreeParams
+from model.command_line.tree_growth import TreeGrowth
+from model.command_line.tree_model import TreeModel
+import model.command_line.litter as LitterModel
 from model import emit
 
 

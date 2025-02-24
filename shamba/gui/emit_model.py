@@ -143,8 +143,14 @@ class Emissions(object):
         # self.emit_inter.save_(
         #     self.emit_inter, file=os.path.join(inter_dir, "emissions.csv")
         # )
-        Emit.save(self.emit_base, self.emit_base, file=os.path.join(base_dir, "emissions.csv"))
-        Emit.save(self.emit_inter, self.emit_inter, file=os.path.join(inter_dir, "emissions.csv"))
+        Emit.save(
+            self.emit_base, self.emit_base, file=os.path.join(base_dir, "emissions.csv")
+        )
+        Emit.save(
+            self.emit_inter,
+            self.emit_inter,
+            file=os.path.join(inter_dir, "emissions.csv"),
+        )
 
         self.save_total_emissions()
 

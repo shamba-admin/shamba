@@ -54,6 +54,7 @@ import model.command_line.climate as Climate
 import model.command_line.crop_params as CropParams
 import model.command_line.crop_model as CropModel
 import model.command_line.emit as Emit
+import model.command_line.litter as LitterModel
 from model.command_line.soil_params import SoilParams
 
 
@@ -61,7 +62,6 @@ from model.command_line.tree_params import TreeParams
 from model.command_line.tree_growth import TreeGrowth
 from model.command_line.tree_model import TreeModel
 
-from model.command_line.litter import LitterModel
 from model.command_line.soil_model import InverseRothC, ForwardRothC
 from model import configuration
 
@@ -380,7 +380,7 @@ def main(n, arguments):
     harvFrac = float(val["crop_base_left1"])
 
     ci = CropParams.from_species_index(spp)
-    c = CropModel.get_crop_model(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
+    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
     crop_base.append(c)
     crop_par_base.append(ci)
 
@@ -392,7 +392,7 @@ def main(n, arguments):
     harvFrac = float(val["crop_base_left2"])
 
     ci = CropParams.from_species_index(spp)
-    c = CropModel.get_crop_model(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
+    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
     crop_base.append(c)
     crop_par_base.append(ci)
 
@@ -404,7 +404,7 @@ def main(n, arguments):
     harvFrac = float(val["crop_base_left3"])
 
     ci = CropParams.from_species_index(spp)
-    c = CropModel.get_crop_model(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
+    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
     crop_base.append(c)
     crop_par_base.append(ci)
 
@@ -422,7 +422,7 @@ def main(n, arguments):
     harvFrac = float(val["crop_proj_left1"])
 
     ci = CropParams.from_species_index(spp)
-    c = CropModel.get_crop_model(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
+    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
     crop_proj.append(c)
     crop_par_proj.append(ci)
 
@@ -434,7 +434,7 @@ def main(n, arguments):
     harvFrac = float(val["crop_proj_left2"])
 
     ci = CropParams.from_species_index(spp)
-    c = CropModel.get_crop_model(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
+    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
     crop_proj.append(c)
     crop_par_proj.append(ci)
 
@@ -446,7 +446,7 @@ def main(n, arguments):
     harvFrac = float(val["crop_proj_left3"])
 
     ci = CropParams.from_species_index(spp)
-    c = CropModel.get_crop_model(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
+    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
     crop_proj.append(c)
     crop_par_proj.append(ci)
 
@@ -700,11 +700,15 @@ def main(n, arguments):
     for i in range(len(crop_base)):
         CropModel.save(crop_base[i], plot_name + "_crop_model_base_" + str(i) + ".csv")
 
-        CropParams.save(crop_par_base[i], plot_name + "_crop_params_base_" + str(i) + ".csv")
+        CropParams.save(
+            crop_par_base[i], plot_name + "_crop_params_base_" + str(i) + ".csv"
+        )
 
         CropModel.save(crop_proj[i], plot_name + "_crop_model_proj_" + str(i) + ".csv")
 
-        CropParams.save(crop_par_proj[i], plot_name + "_crop_params_proj_" + str(i) + ".csv")
+        CropParams.save(
+            crop_par_proj[i], plot_name + "_crop_params_proj_" + str(i) + ".csv"
+        )
 
     invRoth.save_(plot_name + "_invRoth.csv")
     forRoth.save_(plot_name + "_forRoth.csv")
@@ -818,7 +822,11 @@ def main(n, arguments):
     plt.savefig(os.path.join(configuration.OUTPUT_DIR, plot_name + "_emissions.png"))
     plt.close()
 
-    Emit.save(emit_base_emissions=emit_base_emissions, emit_proj_emissions=emit_proj_emissions, file=plot_name + "_emissions.csv")
+    Emit.save(
+        emit_base_emissions=emit_base_emissions,
+        emit_proj_emissions=emit_proj_emissions,
+        file=plot_name + "_emissions.csv",
+    )
 
     return (
         sum(crop_diff),
