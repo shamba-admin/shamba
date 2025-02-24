@@ -55,7 +55,7 @@ import model.command_line.crop_params as CropParams
 import model.command_line.crop_model as CropModel
 import model.command_line.emit as Emit
 import model.command_line.litter as LitterModel
-from model.command_line.soil_params import SoilParams
+import model.command_line.soil_params as SoilParams
 
 
 from model.command_line.tree_params import TreeParams
@@ -521,7 +521,7 @@ def main(n, arguments):
     # print stuff
     print("location: ", loc)
     Climate.print_to_stdout(climate)
-    soil.print_()
+    SoilParams.print_to_stdout(soil)
     growth1.print_()
     growth2.print_()
     growth3.print_()
@@ -688,7 +688,7 @@ def main(n, arguments):
 
     Climate.save(climate, plot_name + "_climate.csv")
 
-    soil.save_(plot_name + "_soil.csv")
+    SoilParams.save(soil, plot_name + "_soil.csv")
     growth1.save_(plot_name + "_growth1.csv")
     growth2.save_(plot_name + "_growth2.csv")
     growth3.save_(plot_name + "_growth3.csv")

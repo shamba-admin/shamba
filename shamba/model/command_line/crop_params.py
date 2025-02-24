@@ -151,7 +151,8 @@ def from_species_name(species):
     schema = CropParamsSchema()
     errors = schema.validate(params)
 
-    print(f"Errors in crop params: {errors}")
+    if errors != {}:
+        print(f"Errors in crop params: {errors}")
 
     return schema.load(params)
 

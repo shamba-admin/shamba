@@ -16,7 +16,7 @@ import numpy as np
 from PyQt5 import QtGui, QtCore
 
 from model import configuration
-from model.command_line.soil_params import SoilParams
+import model.command_line.soil_params as SoilParams
 from model.command_line.crop_params import CropParams
 from model.command_line.crop_model import CropModel
 from model.command_line.tree_params import TreeParams
