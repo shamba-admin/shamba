@@ -56,9 +56,8 @@ import model.command_line.crop_model as CropModel
 import model.command_line.emit as Emit
 import model.command_line.litter as LitterModel
 import model.command_line.soil_params as SoilParams
+import model.command_line.tree_params as TreeParams
 
-
-from model.command_line.tree_params import TreeParams
 from model.command_line.tree_growth import TreeGrowth
 from model.command_line.tree_model import TreeModel
 

@@ -26,6 +26,12 @@ iom     soil inert organic matter in t C ha^-1 (calculated from Ceq)
 
 """
 
+def validate_clay(value):
+    return ["Clay value must be between 0 and 100."] if value < 0 or value > 100 else []
+
+def validate_Cy0(value):
+    return ["Cy0 value must be between 0 and 10000."] if value < 0 or value > 10000 else []
+
 class SoilParamsData:
     def __init__(self, Cy0, clay):
         self.Cy0 = Cy0
@@ -35,8 +41,8 @@ class SoilParamsData:
         self.iom = 0.049 * self.Ceq**1.139
 
 class SoilParamsSchema(Schema):
-    Cy0 = fields.Float(required=True)
-    clay = fields.Float(required=True)
+    clay = fields.Float(required=True, validate=lambda v: validate_clay(v))
+    Cy0 = fields.Float(required=True, validate=lambda v: validate_Cy0(v))
 
     @post_load
     def build(self, data, **kwargs):

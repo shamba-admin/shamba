@@ -7,13 +7,12 @@ import sys
 import logging as log
 
 import numpy as np
-import math
 import matplotlib.pyplot as plt
 
 from ..common import csv_handler
 
 from .. import configuration
-from .tree_params import TreeParams
+from .tree_params import ROOT_IN_TOP_30
 
 
 class TreeModel(object):
@@ -110,7 +109,7 @@ class TreeModel(object):
         mortFrac_temp = data[:, 3]
 
         # Take into account croot alloc - rs * stem alloc
-        alloc[3] = alloc[2] * tree_params.rootToShoot
+        alloc[3] = alloc[2] * tree_params.root_to_shoot
 
         # thinning and mortality
         if thin is None:
@@ -260,9 +259,9 @@ class TreeModel(object):
             "DMoff": np.zeros(len(C[:, 0])),
         }
         output["below"] = {
-            "carbon": 0.001 * TreeParams.ROOT_IN_TOP_30 * (C[:, 3] + C[:, 4]),
-            "nitrogen": 0.001 * TreeParams.ROOT_IN_TOP_30 * (N[:, 3] + N[:, 4]),
-            "DMon": 0.001 * TreeParams.ROOT_IN_TOP_30 * (DM[:, 3] + DM[:, 4]),
+            "carbon": 0.001 * ROOT_IN_TOP_30 * (C[:, 3] + C[:, 4]),
+            "nitrogen": 0.001 * ROOT_IN_TOP_30 * (N[:, 3] + N[:, 4]),
+            "DMon": 0.001 * ROOT_IN_TOP_30 * (DM[:, 3] + DM[:, 4]),
             "DMoff": np.zeros(len(C[:, 0])),
         }
         return output, woodyBiom, massBalance

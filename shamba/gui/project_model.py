@@ -19,7 +19,7 @@ from model import configuration
 import model.command_line.soil_params as SoilParams
 from model.command_line.crop_params import CropParams
 from model.command_line.crop_model import CropModel
-from model.command_line.tree_params import TreeParams
+import model.command_line.tree_params as TreeParams
 from model.command_line.tree_growth import TreeGrowth
 from model.command_line.tree_model import TreeModel
 import model.command_line.litter as LitterModel
