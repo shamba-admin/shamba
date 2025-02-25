@@ -309,9 +309,13 @@ def fert_emit(litter, fert):
     emit = np.zeros(configuration.N_YEARS)
     # still need to add fertiliser ************
     for li in litter:
-        emit += np.array(li.output["above"]["nitrogen"], dtype=float) * (1 - volatile_frac_org)
+        emit += np.array(li.output["above"]["nitrogen"], dtype=float) * (
+            1 - volatile_frac_org
+        )
     for f in fert:
-        emit += np.array(f.output["above"]["nitrogen"], dtype=float) * (1 - volatile_frac_synth)
+        emit += np.array(f.output["above"]["nitrogen"], dtype=float) * (
+            1 - volatile_frac_synth
+        )
 
     emit *= ef * mw_ratio * gwp
 

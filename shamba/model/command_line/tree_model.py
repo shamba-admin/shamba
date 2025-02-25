@@ -13,6 +13,7 @@ from ..common import csv_handler
 
 from .. import configuration
 from .tree_params import ROOT_IN_TOP_30
+from .tree_growth import derivative_functions
 
 
 class TreeModel(object):
@@ -79,7 +80,7 @@ class TreeModel(object):
             log.exception("Pool parameters not provided.")
             sys.exit(1)
 
-        initialBiomass = self.tree_growth.fitData[0]
+        initialBiomass = self.tree_growth.fit_data[0]
 
         self.output, self.woodyBiom, self.balance = self.get_inputs(
             initialBiomass, yearPlanted, initialStandDens
@@ -204,7 +205,7 @@ class TreeModel(object):
             agb = pools[i - 1][1] + pools[i - 1][2]
 
             # Growth for one tree
-            tNPP[i] = self.tree_growth.funcDeriv[self.tree_growth.best](agb)
+            tNPP[i] = derivative_functions[self.tree_growth.best](self.tree_growth.fit_params, agb)
             biomGrowth[i] = tNPP[i] * self.alloc * standDens[i - 1]
 
             for s in inputs:

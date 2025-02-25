@@ -61,6 +61,7 @@ rootToShoot     tree root-to-shoot ratio
 
 ROOT_IN_TOP_30 = 0.7
 
+
 class TreeParamsData:
     def __init__(
         self,
@@ -76,13 +77,16 @@ class TreeParamsData:
         self.carbon = carbon
         self.root_to_shoot = root_to_shoot
 
+
 def validate_species(value):
     # Determining whether the value can be interpreted as a string or an integer
-    errors = (
-        [f"{value} must be convertible to a string."] * (not isinstance(str(value), str)) +
-        [f"{value} must be convertible to an integer."] * (not value.isdigit() if isinstance(value, str) else False)
+    errors = [f"{value} must be convertible to a string."] * (
+        not isinstance(str(value), str)
+    ) + [f"{value} must be convertible to an integer."] * (
+        not value.isdigit() if isinstance(value, str) else False
     )
     return errors
+
 
 class TreeParamsSchema(Schema):
     species = fields.Raw(required=True, validate=lambda v: validate_species(v))
@@ -94,6 +98,7 @@ class TreeParamsSchema(Schema):
     @post_load
     def build(self, data, **kwargs):
         return TreeParamsData(**data)
+
 
 def create(tree_params):
     """Initialise tree data.
@@ -111,7 +116,7 @@ def create(tree_params):
         "dens": tree_params["dens"],
         "carbon": tree_params["carbon"],
         "nitrogen": tree_params["nitrogen"],
-        "root_to_shoot": tree_params["rootToShoot"]
+        "root_to_shoot": tree_params["rootToShoot"],
     }
 
     schema = TreeParamsSchema()
@@ -121,6 +126,7 @@ def create(tree_params):
         print(f"Errors in tree params: {errors}")
 
     return schema.load(params)
+
 
 def from_species_name(species):
     """Construct Tree object from species defaults in tree_spp dict.
@@ -134,6 +140,7 @@ def from_species_name(species):
 
     """
     return create(TREE_SPP[species])
+
 
 def from_species_index(index):
     """Construct Tree object from index of species in the csv.
@@ -155,6 +162,7 @@ def from_species_index(index):
     # TODO: is this being used?
     # def _repr(self):
     #     return "_repr_"
+
 
 def from_csv(speciesName, filename, row=0):
     """Construct Tree object using data from a csv which
@@ -190,6 +198,7 @@ def from_csv(speciesName, filename, row=0):
         "dens": data[row, 7],
     }
     return create(params)
+
 
 def save(tree_params, file="tree_params.csv"):
     """Save tree params to a csv.

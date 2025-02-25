@@ -57,8 +57,8 @@ import model.command_line.emit as Emit
 import model.command_line.litter as LitterModel
 import model.command_line.soil_params as SoilParams
 import model.command_line.tree_params as TreeParams
+import model.command_line.tree_growth as TreeGrowth
 
-from model.command_line.tree_growth import TreeGrowth
 from model.command_line.tree_model import TreeModel
 
 from model.command_line.soil_model import InverseRothC, ForwardRothC
@@ -521,9 +521,9 @@ def main(n, arguments):
     print("location: ", loc)
     Climate.print_to_stdout(climate)
     SoilParams.print_to_stdout(soil)
-    growth1.print_()
-    growth2.print_()
-    growth3.print_()
+    TreeGrowth.print_to_stdout(growth1)
+    TreeGrowth.print_to_stdout(growth2)
+    TreeGrowth.print_to_stdout(growth3)
     tree_proj1.print_biomass()
     tree_proj1.print_balance()
     tree_proj2.print_biomass()
@@ -688,9 +688,9 @@ def main(n, arguments):
     Climate.save(climate, plot_name + "_climate.csv")
 
     SoilParams.save(soil, plot_name + "_soil.csv")
-    growth1.save_(plot_name + "_growth1.csv")
-    growth2.save_(plot_name + "_growth2.csv")
-    growth3.save_(plot_name + "_growth3.csv")
+    TreeGrowth.save(growth1, plot_name + "_growth1.csv")
+    TreeGrowth.save(growth2, plot_name + "_growth2.csv")
+    TreeGrowth.save(growth3, plot_name + "_growth3.csv")
     tree_proj1.save_(plot_name + "_tree_proj1.csv")
     tree_proj2.save_(plot_name + "_tree_proj2.csv")
     tree_proj3.save_(plot_name + "_tree_proj3.csv")
@@ -781,7 +781,7 @@ def main(n, arguments):
             )
 
     # Plot stuff
-    growth1.plot_(saveName=plot_name + "_growthFits.png")
+    TreeGrowth.plot(growth1, saveName=plot_name + "_growthFits.png")
     plt.close()
 
     tree_proj1.plot_biomass(saveName=plot_name + "_biomassPools.png")

@@ -26,11 +26,16 @@ iom     soil inert organic matter in t C ha^-1 (calculated from Ceq)
 
 """
 
+
 def validate_clay(value):
     return ["Clay value must be between 0 and 100."] if value < 0 or value > 100 else []
 
+
 def validate_Cy0(value):
-    return ["Cy0 value must be between 0 and 10000."] if value < 0 or value > 10000 else []
+    return (
+        ["Cy0 value must be between 0 and 10000."] if value < 0 or value > 10000 else []
+    )
+
 
 class SoilParamsData:
     def __init__(self, Cy0, clay):
@@ -40,6 +45,7 @@ class SoilParamsData:
         self.Ceq = 1.25 * self.Cy0
         self.iom = 0.049 * self.Ceq**1.139
 
+
 class SoilParamsSchema(Schema):
     clay = fields.Float(required=True, validate=lambda v: validate_clay(v))
     Cy0 = fields.Float(required=True, validate=lambda v: validate_Cy0(v))
@@ -47,6 +53,7 @@ class SoilParamsSchema(Schema):
     @post_load
     def build(self, data, **kwargs):
         return SoilParamsData(**data)
+
 
 def create(soil_params):
     """Initialise soil data.
@@ -58,10 +65,7 @@ def create(soil_params):
         TypeError: if non-numeric type is used for soil_params
 
     """
-    params = {
-        "Cy0": soil_params["Cy0"],
-        "clay": soil_params["clay"]
-    }
+    params = {"Cy0": soil_params["Cy0"], "clay": soil_params["clay"]}
 
     schema = SoilParamsSchema()
     errors = schema.validate(params)
@@ -71,12 +75,14 @@ def create(soil_params):
 
     return schema.load(params)
 
+
 def from_csv(filename="soil.csv"):
     """Construct Soil object from csv data."""
     data = csv_handler.read_csv(filename)
 
     params = {"Cy0": data[0], "clay": data[1]}
     return create(params)
+
 
 def from_location(location):
     """Construct Soil object from HWSD data for given location
@@ -99,6 +105,7 @@ def from_location(location):
     params = {"Cy0": Cy0, "clay": clay}
     return create(params)
 
+
 def sanitize_params(params):
     """Check that provided soil data makes sense.
 
@@ -112,6 +119,7 @@ def sanitize_params(params):
     if clay < 0 or clay > 100 or Cy0 < 0 or Cy0 > 10000:
         log.warning("Unusual soil parameters. Please check.")
 
+
 def print_to_stdout(soil_params):
     """Print soil information to stdout."""
     print("\nSOIL INFORMATION")
@@ -123,6 +131,7 @@ def print_to_stdout(soil_params):
     print("Depth - - - - -", soil_params.depth)
     print("")
 
+
 def save(soil_params, file="soil_params.csv"):
     """Save soil params to a csv file. Default path is in OUTPUT_DIR
     with filename soil_params.csv
@@ -132,9 +141,18 @@ def save(soil_params, file="soil_params.csv"):
                 (only name), put in OUTPUT_DIR for this program run.
 
     """
-    data = np.array([soil_params.Cy0, soil_params.clay, soil_params.Ceq, soil_params.iom, soil_params.depth])
+    data = np.array(
+        [
+            soil_params.Cy0,
+            soil_params.clay,
+            soil_params.Ceq,
+            soil_params.iom,
+            soil_params.depth,
+        ]
+    )
     cols = ["Cy0", "clay", "Ceq", "iom", "depth"]
     csv_handler.print_csv(file, data, col_names=cols)
+
 
 def get_identifier(location):
     """Find MU_GLOBAL for given location from the HWSD .bil raster."""
@@ -179,6 +197,7 @@ def get_identifier(location):
     value = data[0, 0]  # MU_GLOBAL for input to HWSD_data.csv
 
     return value
+
 
 def get_data_from_identifier(mu):
     """Get soil data from csv given MU_GLOBAL from the raster."""
