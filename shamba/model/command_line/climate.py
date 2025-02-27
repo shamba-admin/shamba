@@ -124,18 +124,19 @@ def from_location(location):
     # pet given in CRU-TS 3.1 instead of evaporation, so convert
     cimate_data[2] /= 0.75
 
-    raw_climate_data = {
+    params = {
         "temperature": cimate_data[0],
         "rain": cimate_data[1],
         "evaporation": cimate_data[2],
     }
 
     schema = ClimateDataSchema()
-    errors = schema.validate(raw_climate_data)
+    errors = schema.validate(params)
 
-    print(f"Errors in climate data: {str(errors)}")
+    if errors != {}:
+        print(f"Errors in climate data: {str(errors)}")
 
-    return schema.load(raw_climate_data)
+    return schema.load(params)
 
 
 def from_csv(filename="climate.csv", order=("temp", "rain", "evap"), isEvap=True):
