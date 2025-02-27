@@ -8,340 +8,428 @@ import logging as log
 
 import numpy as np
 import matplotlib.pyplot as plt
+from marshmallow import Schema, fields, post_load
 
 from ..common import csv_handler
 
 from .. import configuration
-from .tree_params import ROOT_IN_TOP_30
-from .tree_growth import derivative_functions
+from .tree_params import ROOT_IN_TOP_30, TreeParamsSchema
+from .tree_growth import derivative_functions, TreeGrowthSchema
+from .common_schema import OutputSchema as ClimateDataOutputSchema
 
 
-class TreeModel(object):
-    """
-    Tree model class. Calculate residues and soil inputs
-    for given params and growth.
+"""
+Tree model class. Calculate residues and soil inputs
+for given params and growth.
 
-    Instance variables
-    ----------------
-    tree_params     TreeParams object with the params (dens, carbon, etc.)
-    growth          TreeGrowth object governing growth of trees
-    output          output to soil,fire in t C ha^-1
-                        (dict with keys 'carbon,'nitrogen','DMon','DMoff')
-    woodyBiom       vector of woody biomass in each pool in t C ha^-1
+Instance variables
+----------------
+tree_params     TreeParams object with the params (dens, carbon, etc.)
+growth          TreeGrowth object governing growth of trees
+output          output to soil,fire in t C ha^-1
+                    (dict with keys 'carbon,'nitrogen','DMon','DMoff')
+woody_biomass       vector of woody biomass in each pool in t C ha^-1
 
-    """
+"""
 
+
+class MassBalanceData(Schema):
+    in_ = fields.List(fields.Float(allow_nan=True), required=True)
+    out = fields.List(fields.Float(allow_nan=True), required=True)
+    acc = fields.List(fields.Float(allow_nan=True), required=True)
+    bal = fields.List(fields.Float(allow_nan=True), required=True)
+
+
+class TreeModel:
     def __init__(
         self,
         tree_params,
         tree_growth,
-        pool_params,
-        yearPlanted=0,
-        initialStandDens=0,  # Should initialStandDens be 200?
-        thin=None,
-        mort=None,
+        alloc,
+        turnover,
+        thin_frac,
+        mort_frac,
+        thin,
+        mort,
+        output,
+        woody_biomass,
+        balance,
     ):
-        """Intialise TreeModel object (run biomass model, essentially).
-
-        Args:
-            tree_params TreeParams object (holds tree params)
-            growth: tree_growth.Growth object
-            pool_params: dict with alloc, turnover, thinFrac, and mortFrac
-            yearPlanted: year (after start of project) tree is planted
-            thin: thinning vector
-            thinFrac: vector with the retained fraction of thinned biomass
-                      for each pool (default = [leaf=1,branch=0,stem=0,
-                                                croot=1,froot=1])
-            mort: mortality vector
-            mortFrac: vector with the retained fraction of dead biomass
-                      for each pool (default same as thinFrac)
-        Raises:
-            KeyError: if pool_params doesn't have the appropriate keys
-
-        """
-
         self.tree_params = tree_params
         self.tree_growth = tree_growth
-        try:
-            self.alloc = pool_params["alloc"]
-            self.turnover = pool_params["turnover"]
-            self.thinFrac = pool_params["thinFrac"]
-            self.mortFrac = pool_params["mortFrac"]
-            if thin is None:
-                self.thin = np.zeros(configuration.N_YEARS + 1)
-            else:
-                self.thin = thin
-            if mort is None:
-                self.mort = np.zeros(configuration.N_YEARS + 1)
-            else:
-                self.mort = mort
+        self.alloc = alloc
+        self.turnover = turnover
+        self.thin_frac = thin_frac
+        self.mort_frac = mort_frac
+        self.thin = thin
+        self.mort = mort
+        self.output = output
+        self.woody_biomass = np.array(woody_biomass)
+        self.balance = balance
 
-        except KeyError:
-            log.exception("Pool parameters not provided.")
-            sys.exit(1)
 
-        initialBiomass = self.tree_growth.fit_data[0]
+class TreeModelSchema(Schema):
+    tree_params = fields.Nested(TreeParamsSchema, required=True)
+    tree_growth = fields.Nested(TreeGrowthSchema, required=True)
+    alloc = fields.List(fields.Float, required=True)
+    turnover = fields.List(fields.Float, required=True)
+    thin_frac = fields.List(fields.Float, required=True)
+    mort_frac = fields.List(fields.Float, required=True)
+    thin = fields.List(fields.Float, required=True)
+    mort = fields.List(fields.Float, required=True)
+    output = fields.Nested(ClimateDataOutputSchema, required=True)
+    woody_biomass = fields.List(fields.List(fields.Float), required=True)
+    balance = fields.Nested(MassBalanceData, required=True)
 
-        self.output, self.woodyBiom, self.balance = self.get_inputs(
-            initialBiomass, yearPlanted, initialStandDens
-        )
+    @post_load
+    def build(self, data, **kwargs):
+        return TreeModel(**data)
 
-    @classmethod
-    def from_defaults(
-        cls,
-        tree_params,
-        tree_growth,
-        yearPlanted=0,
-        standDens=100,  # Should standDens be 200?
-        thin=None,
-        thinFrac=None,
-        mort=None,
-        mortFrac=None,
-    ):
-        """Use defaults for pool params.
-        Can override defaults for thinFrac and mortFrac by providing arguments.
 
-        """
+def create(
+    tree_params,
+    tree_growth,
+    pool_params,
+    yearPlanted=0,
+    initialStandDens=0,  # Should initialStandDens be 200?
+    thin=None,
+    mort=None,
+):
+    """Intialise TreeModel object (run biomass model, essentially).
 
-        data = csv_handler.read_csv("biomass_pool_params.csv", cols=(3, 4, 5, 6))
-        turnover = data[:, 0]
-        alloc = data[:, 1]
-        thinFrac_temp = data[:, 2]
-        mortFrac_temp = data[:, 3]
+    Args:
+        tree_params TreeParams object (holds tree params)
+        growth: tree_growth.Growth object
+        pool_params: dict with alloc, turnover, thinFrac, and mortFrac
+        yearPlanted: year (after start of project) tree is planted
+        thin: thinning vector
+        thinFrac: vector with the retained fraction of thinned biomass
+                    for each pool (default = [leaf=1,branch=0,stem=0,
+                                            croot=1,froot=1])
+        mort: mortality vector
+        mortFrac: vector with the retained fraction of dead biomass
+                    for each pool (default same as thinFrac)
+    Raises:
+        KeyError: if pool_params doesn't have the appropriate keys
 
-        # Take into account croot alloc - rs * stem alloc
-        alloc[3] = alloc[2] * tree_params.root_to_shoot
+    """
+    alloc = pool_params["alloc"]
+    turnover = pool_params["turnover"]
+    thin_frac = pool_params["thinFrac"]
+    mort_frac = pool_params["mortFrac"]
+    thin = np.zeros(configuration.N_YEARS + 1) if thin is None else thin
+    mort = np.zeros(configuration.N_YEARS + 1) if mort is None else mort
+    initial_biomass = tree_growth.fit_data[0]
 
-        # thinning and mortality
-        if thin is None:
-            thin = np.zeros(configuration.N_YEARS + 1)
-        if thinFrac is None:
-            thinFrac = thinFrac_temp
-        if mort is None:
-            mort = np.zeros(configuration.N_YEARS + 1)
-        if mortFrac is None:
-            mortFrac = mortFrac_temp
+    output, woody_biomass, balance = get_inputs(
+        tree_params=tree_params,
+        tree_growth=tree_growth,
+        alloc=alloc,
+        turnover=turnover,
+        thin_frac=thin_frac,
+        mort_frac=mort_frac,
+        initial_biomass=initial_biomass,
+        year_planted=yearPlanted,
+        initial_stand_dens=initialStandDens,
+        thin=thin,
+        mort=mort,
+    )
 
-        params = {
-            "alloc": alloc,
-            "turnover": turnover,
-            "thinFrac": thinFrac,
-            "mortFrac": mortFrac,
-        }
-        return cls(tree_params, tree_growth, params, yearPlanted, standDens, thin, mort)
+    params = {
+        "tree_params": vars(tree_params),
+        "tree_growth": vars(tree_growth),
+        "alloc": alloc,
+        "turnover": turnover,
+        "thin_frac": thin_frac,
+        "mort_frac": mort_frac,
+        "thin": thin,
+        "mort": mort,
+        "output": output,
+        "woody_biomass": woody_biomass,
+        "balance": balance,
+    }
 
-    def get_inputs(self, initialBiomass, yearPlanted, initialStandDens):
-        """
-        Calculate and return residues and soil inputs from the tree.
+    schema = TreeModelSchema()
+    errors = schema.validate(params)
 
-        Args:
-            same explanations as __init__
-        Returns:
-            output: dict with soil,fire inputs due to this tree
-                         (keys='carbon','nitrogen','DMon','DMoff')
-            woodyBiom: vector with yearly woody biomass pools
+    if errors != {}:
+        print(f"Errors in tree model: {errors}")
 
-        **NOTE** a lot of these arrays are implicitly 2d with 2nd
-        dimension = [leaf, branch, stem, croot, froot]. Careful here.
+    return schema.load(params)
 
-        """
-        # NOTE - initially quantities are in kg C
-        #   -> woodyBiom and output get converted at end before returning
 
-        # First get params from bpFile and ppFile
-        print("new tree cohort running...")
-        print(initialBiomass, yearPlanted, initialStandDens)
+def from_defaults(
+    tree_params,
+    tree_growth,
+    yearPlanted=0,
+    standDens=100,  # Should standDens be 200?
+    thin=None,
+    thinFrac=None,
+    mort=None,
+    mortFrac=None,
+):
+    """Use defaults for pool params.
+    Can override defaults for thinFrac and mortFrac by providing arguments.
 
-        yp = yearPlanted
-        print("yp,  then initialSD")
-        print(yp)
-        print(initialStandDens)
+    """
 
-        standDens = np.zeros(configuration.N_YEARS + 1)
-        standDens[yp] = initialStandDens
-        print("standDens:")
-        print(standDens)
+    data = csv_handler.read_csv("biomass_pool_params.csv", cols=(3, 4, 5, 6))
+    turnover = data[:, 0]
+    alloc = data[:, 1]
+    thinFrac_temp = data[:, 2]
+    mortFrac_temp = data[:, 3]
 
-        inputParams = {
-            "live": np.array((configuration.N_YEARS + 1) * [self.turnover]),
-            "thin": self.thin,
-            "dead": self.mort,
-        }
-        retainedFrac = {"live": 1, "thin": self.thinFrac, "dead": self.mortFrac}
+    # Take into account croot alloc - rs * stem alloc
+    alloc[3] = alloc[2] * tree_params.root_to_shoot
 
-        # initialise stuff
-        pools = np.zeros((configuration.N_YEARS + 1, 5))
-        woodyBiom = np.zeros((configuration.N_YEARS + 1, 5))
-        tNPP = np.zeros(configuration.N_YEARS + 1)
+    # thinning and mortality
+    if thin is None:
+        thin = np.zeros(configuration.N_YEARS + 1)
+    if thinFrac is None:
+        thinFrac = thinFrac_temp
+    if mort is None:
+        mort = np.zeros(configuration.N_YEARS + 1)
+    if mortFrac is None:
+        mortFrac = mortFrac_temp
 
-        flux = {}
-        inputs = {}
-        exports = {}
-        for s in ["live", "dead", "thin"]:
-            flux[s] = np.zeros((configuration.N_YEARS + 1, 5))
-            inputs[s] = np.zeros((configuration.N_YEARS + 1, 5))
-            exports[s] = np.zeros((configuration.N_YEARS + 1, 5))
+    params = {
+        "alloc": alloc,
+        "turnover": turnover,
+        "thinFrac": thinFrac,
+        "mortFrac": mortFrac,
+    }
+    return create(tree_params, tree_growth, params, yearPlanted, standDens, thin, mort)
 
-        inputC = np.zeros((configuration.N_YEARS + 1, 5))
-        exportC = np.zeros((configuration.N_YEARS + 1, 5))
-        biomGrowth = np.zeros((configuration.N_YEARS + 1, 5))
 
-        # set woodyBiom[0] to initial (allocated appropriately)
-        pools[yp] = initialBiomass * self.alloc
-        woodyBiom[yp] = pools[yp] * standDens[yp]
+def get_inputs(
+    thin,
+    mort,
+    turnover,
+    thin_frac,
+    mort_frac,
+    alloc,
+    tree_growth,
+    tree_params,
+    initial_biomass,
+    year_planted,
+    initial_stand_dens,
+):
+    """
+    Calculate and return residues and soil inputs from the tree.
+
+    Args:
+        same explanations as __init__
+    Returns:
+        output: dict with soil,fire inputs due to this tree
+                        (keys='carbon','nitrogen','DMon','DMoff')
+        woody_biomass: vector with yearly woody biomass pools
+
+    **NOTE** a lot of these arrays are implicitly 2d with 2nd
+    dimension = [leaf, branch, stem, croot, froot]. Careful here.
+
+    """
+    # NOTE - initially quantities are in kg C
+    #   -> woody_biomass and output get converted at end before returning
+
+    # First get params from bpFile and ppFile
+    print("new tree cohort running...")
+    print(initial_biomass, year_planted, initial_stand_dens)
+
+    yp = year_planted
+    print("yp,  then initialSD")
+    print(yp)
+    print(initial_stand_dens)
+
+    standDens = np.zeros(configuration.N_YEARS + 1)
+    standDens[yp] = initial_stand_dens
+    print("standDens:")
+    print(standDens)
+
+    inputParams = {
+        "live": np.array((configuration.N_YEARS + 1) * [turnover]),
+        "thin": thin,
+        "dead": mort,
+    }
+    retainedFrac = {"live": 1, "thin": thin_frac, "dead": mort_frac}
+
+    # initialise stuff
+    pools = np.zeros((configuration.N_YEARS + 1, 5))
+    woody_biomass = np.zeros((configuration.N_YEARS + 1, 5))
+    tNPP = np.zeros(configuration.N_YEARS + 1)
+
+    flux = {}
+    inputs = {}
+    exports = {}
+    for s in ["live", "dead", "thin"]:
+        flux[s] = np.zeros((configuration.N_YEARS + 1, 5))
+        inputs[s] = np.zeros((configuration.N_YEARS + 1, 5))
+        exports[s] = np.zeros((configuration.N_YEARS + 1, 5))
+
+    inputC = np.zeros((configuration.N_YEARS + 1, 5))
+    exportC = np.zeros((configuration.N_YEARS + 1, 5))
+    biomGrowth = np.zeros((configuration.N_YEARS + 1, 5))
+
+    # set woody_biomass[0] to initial (allocated appropriately)
+    pools[yp] = initial_biomass * alloc
+    woody_biomass[yp] = pools[yp] * standDens[yp]
+    for s in inputs:
+        flux[s][yp] = woody_biomass[yp] * inputParams[s][yp]
+
+    in_ = np.zeros(configuration.N_YEARS + 1)
+    acc = np.zeros(configuration.N_YEARS + 1)
+    bal = np.zeros(configuration.N_YEARS + 1)
+    out = np.zeros(configuration.N_YEARS + 1)
+
+    for i in range(1 + year_planted, configuration.N_YEARS + 1):
+        # Careful with indices - using 1-based here
+        #   since, e.g., woody_biomass[2] should correspond to
+        #   biomass after 2 years
+
+        agb = pools[i - 1][1] + pools[i - 1][2]
+
+        # Growth for one tree
+        tNPP[i] = derivative_functions[tree_growth.best](tree_growth.fit_params, agb)
+        biomGrowth[i] = tNPP[i] * alloc * standDens[i - 1]
+
         for s in inputs:
-            flux[s][yp] = woodyBiom[yp] * inputParams[s][yp]
+            flux[s][i] = inputParams[s][i] * pools[i - 1] * standDens[i - 1]
+            inputs[s][i] = retainedFrac[s] * flux[s][i]
+            exports[s][i] = (1 - retainedFrac[s]) * flux[s][i]
 
-        in_ = np.zeros(configuration.N_YEARS + 1)
-        acc = np.zeros(configuration.N_YEARS + 1)
-        bal = np.zeros(configuration.N_YEARS + 1)
-        out = np.zeros(configuration.N_YEARS + 1)
+        # Totals (in t C / ha)
+        inputC[i] = sum(inputs.values())[i]
+        exportC[i] = sum(exports.values())[i]
 
-        for i in range(1 + yearPlanted, configuration.N_YEARS + 1):
-            # Careful with indices - using 1-based here
-            #   since, e.g., woodyBiom[2] should correspond to
-            #   biomass after 2 years
+        woody_biomass[i] = woody_biomass[i - 1]
+        woody_biomass[i] += biomGrowth[i]
+        woody_biomass[i] -= sum(flux.values())[i]
 
-            agb = pools[i - 1][1] + pools[i - 1][2]
+        standDens[i] = standDens[i - 1]
+        standDens[i] *= 1 - (inputParams["dead"][i] + inputParams["thin"][i])
+        if standDens[i] < 1:
+            print("SD [i] is less than 1, end of this tree cohort...")
+            break
+        pools[i] = woody_biomass[i] / standDens[i]
 
-            # Growth for one tree
-            tNPP[i] = derivative_functions[self.tree_growth.best](self.tree_growth.fit_params, agb)
-            biomGrowth[i] = tNPP[i] * self.alloc * standDens[i - 1]
+        # Balance stuff
 
-            for s in inputs:
-                flux[s][i] = inputParams[s][i] * pools[i - 1] * standDens[i - 1]
-                inputs[s][i] = retainedFrac[s] * flux[s][i]
-                exports[s][i] = (1 - retainedFrac[s]) * flux[s][i]
+        in_[i] = biomGrowth[i].sum()
+        acc[i] = woody_biomass[i].sum() - woody_biomass[i - 1].sum()
+        out[i] = inputC[i].sum() + exportC[i].sum()
+        bal[i] = in_[i] - out[i] - acc[i]
 
-            # Totals (in t C / ha)
-            inputC[i] = sum(inputs.values())[i]
-            exportC[i] = sum(exports.values())[i]
+    # *********************
+    # Standard output stuff
+    # in tonnes
+    # *********************
+    massBalance = {
+        "in_": in_ * 0.001,
+        "out": out * 0.001,
+        "acc": acc * 0.001,
+        "bal": bal * 0.001,
+    }
+    woody_biomass *= 0.001  # convert to tonnes for emissions calc.
+    C = inputC[0 : configuration.N_YEARS]
+    DM = C / tree_params.carbon
+    N = np.zeros((configuration.N_YEARS, 5))
+    for i in range(configuration.N_YEARS):
+        N[i] = tree_params.nitrogen[0 : configuration.N_YEARS] * DM[i]
 
-            woodyBiom[i] = woodyBiom[i - 1]
-            woodyBiom[i] += biomGrowth[i]
-            woodyBiom[i] -= sum(flux.values())[i]
+    output = {}
+    output["above"] = {
+        "carbon": 0.001 * (C[:, 0] + C[:, 1] + C[:, 2]),
+        "nitrogen": 0.001 * (N[:, 0] + N[:, 1] + N[:, 2]),
+        "DMon": 0.001 * (DM[:, 0] + DM[:, 1] + DM[:, 2]),
+        "DMoff": np.zeros(len(C[:, 0])),
+    }
+    output["below"] = {
+        "carbon": 0.001 * ROOT_IN_TOP_30 * (C[:, 3] + C[:, 4]),
+        "nitrogen": 0.001 * ROOT_IN_TOP_30 * (N[:, 3] + N[:, 4]),
+        "DMon": 0.001 * ROOT_IN_TOP_30 * (DM[:, 3] + DM[:, 4]),
+        "DMoff": np.zeros(len(C[:, 0])),
+    }
+    return output, woody_biomass, massBalance
 
-            standDens[i] = standDens[i - 1]
-            standDens[i] *= 1 - (inputParams["dead"][i] + inputParams["thin"][i])
-            if standDens[i] < 1:
-                print("SD [i] is less than 1, end of this tree cohort...")
-                break
-            pools[i] = woodyBiom[i] / standDens[i]
 
-            # Balance stuff
+def plot_biomass(tree_model, saveName=None):
+    """Plot the biomass pool data."""
 
-            in_[i] = biomGrowth[i].sum()
-            acc[i] = woodyBiom[i].sum() - woodyBiom[i - 1].sum()
-            out[i] = inputC[i].sum() + exportC[i].sum()
-            bal[i] = in_[i] - out[i] - acc[i]
+    fig = plt.figure()
+    fig.suptitle("Biomass Pools")
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(tree_model.woody_biomass[:, 0], label="leaf")
+    ax.plot(tree_model.woody_biomass[:, 1], label="branch")
+    ax.plot(tree_model.woody_biomass[:, 2], label="stem")
+    ax.plot(tree_model.woody_biomass[:, 3], label="coarse root")
+    ax.plot(tree_model.woody_biomass[:, 4], label="fine root")
+    ax.legend(loc="best")
+    ax.set_xlabel("Time (years)")
+    ax.set_ylabel("Pool biomass (t C ha^-1)")
+    ax.set_title("Biomass pools vs time")
 
-        # *********************
-        # Standard output stuff
-        # in tonnes
-        # *********************
-        massBalance = {
-            "in": in_ * 0.001,
-            "out": out * 0.001,
-            "acc": acc * 0.001,
-            "bal": bal * 0.001,
-        }
-        woodyBiom *= 0.001  # convert to tonnes for emissions calc.
-        C = inputC[0 : configuration.N_YEARS]
-        DM = C / self.tree_params.carbon
-        N = np.zeros((configuration.N_YEARS, 5))
-        for i in range(configuration.N_YEARS):
-            N[i] = self.tree_params.nitrogen[0 : configuration.N_YEARS] * DM[i]
+    if saveName is not None:
+        plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
-        output = {}
-        output["above"] = {
-            "carbon": 0.001 * (C[:, 0] + C[:, 1] + C[:, 2]),
-            "nitrogen": 0.001 * (N[:, 0] + N[:, 1] + N[:, 2]),
-            "DMon": 0.001 * (DM[:, 0] + DM[:, 1] + DM[:, 2]),
-            "DMoff": np.zeros(len(C[:, 0])),
-        }
-        output["below"] = {
-            "carbon": 0.001 * ROOT_IN_TOP_30 * (C[:, 3] + C[:, 4]),
-            "nitrogen": 0.001 * ROOT_IN_TOP_30 * (N[:, 3] + N[:, 4]),
-            "DMon": 0.001 * ROOT_IN_TOP_30 * (DM[:, 3] + DM[:, 4]),
-            "DMoff": np.zeros(len(C[:, 0])),
-        }
-        return output, woodyBiom, massBalance
 
-    def plot_biomass(self, saveName=None):
-        """Plot the biomass pool data."""
+def plot_balance(tree_model, saveName=None):
+    """Plot the mass balance data."""
 
-        fig = plt.figure()
-        fig.canvas.manager.set_window_title("Biomass Pools")
-        ax = fig.add_subplot(1, 1, 1)
-        ax.plot(self.woodyBiom[:, 0], label="leaf")
-        ax.plot(self.woodyBiom[:, 1], label="branch")
-        ax.plot(self.woodyBiom[:, 2], label="stem")
-        ax.plot(self.woodyBiom[:, 3], label="coarse root")
-        ax.plot(self.woodyBiom[:, 4], label="fine root")
-        ax.legend(loc="best")
-        ax.set_xlabel("Time (years)")
-        ax.set_ylabel("Pool biomass (t C ha^-1)")
-        ax.set_title("Biomass pools vs time")
+    fig = plt.figure()
+    fig.suptitle("Biomass Mass Balance")
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(tree_model.balance["in_"], label="in")
+    ax.plot(tree_model.balance["out"], label="out")
+    ax.plot(tree_model.balance["acc"], label="accumulated")
+    ax.plot(tree_model.balance["bal"], label="balance")
+    ax.legend(loc="best")
+    ax.set_xlabel("Time (years)")
+    ax.set_ylabel("Biomass (t C ha^-1)")
+    ax.set_title("Mass balance vs time")
 
-        if saveName is not None:
-            plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
+    if saveName is not None:
+        plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
-    def plot_balance(self, saveName=None):
-        """Plot the mass balance data."""
 
-        fig = plt.figure()
-        fig.canvas.manager.set_window_title("Biomass Mass Balance")
-        ax = fig.add_subplot(1, 1, 1)
-        ax.plot(self.balance["in"], label="in")
-        ax.plot(self.balance["out"], label="out")
-        ax.plot(self.balance["acc"], label="accumulated")
-        ax.plot(self.balance["bal"], label="balance")
-        ax.legend(loc="best")
-        ax.set_xlabel("Time (years)")
-        ax.set_ylabel("Biomass (t C ha^-1)")
-        ax.set_title("Mass balance vs time")
+def print_biomass(tree_model):
+    print("\n\nBIOMASS MODEL")
+    print("=============\n")
+    totalBiomass = np.sum(tree_model.woody_biomass, axis=1)
+    print("year  biomass")
+    for i in range(len(totalBiomass)):
+        print(i, "  ", totalBiomass[i])
 
-        if saveName is not None:
-            plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
-    def print_biomass(self):
-        print("\n\nBIOMASS MODEL")
-        print("=============\n")
-        totalBiomass = np.sum(self.woodyBiom, axis=1)
-        print("year  biomass")
-        for i in range(len(totalBiomass)):
-            print(i, "  ", totalBiomass[i])
+def print_balance(tree_model):
+    print("\nMass-balance sum (kg C /ha): ", np.sum(tree_model.balance["bal"]))
+    totDiff = np.sum(tree_model.balance["bal"]) / np.sum(tree_model.woody_biomass[-1])
+    print("Normalized mass balance (kg C /ha): ", totDiff)
 
-    def print_balance(self):
-        print("\nMass-balance sum (kg C /ha): ", self.balance["bal"].sum())
-        totDiff = self.balance["bal"].sum() / self.woodyBiom[-1].sum()
-        print("Normalized mass balance (kg C /ha): ", totDiff)
 
-    def save_(self, file="tree_model.csv"):
-        """Save output and biomass to a csv file.
-        Default path is in OUTPUT_DIR.
+def save(tree_model, file="tree_model.csv"):
+    """Save output and biomass to a csv file.
+    Default path is in OUTPUT_DIR.
 
-        Args:
-            file: name or path to csv
+    Args:
+        file: name or path to csv
 
-        """
-        # outputs
-        cols = []
-        data = []
-        for s1 in ["above", "below"]:
-            for s2 in ["carbon", "nitrogen", "DMon", "DMoff"]:
-                cols.append(s2 + "_" + s1)
-                data.append(self.output[s1][s2])
-        data = np.column_stack(tuple(data))
-        csv_handler.print_csv(file, data, col_names=cols)
+    """
+    # outputs
+    cols = []
+    data = []
+    for s1 in ["above", "below"]:
+        for s2 in ["carbon", "nitrogen", "DMon", "DMoff"]:
+            cols.append(s2 + "_" + s1)
+            data.append(tree_model.output[s1][s2])
+    data = np.column_stack(tuple(data))
+    csv_handler.print_csv(file, data, col_names=cols)
 
-        # biomass
-        biomass_file = file.split(".csv")[0] + "_biomass.csv"
-        cols = ["leaf", "branch", "stem", "croot", "froot"]
-        csv_handler.print_csv(
-            biomass_file,
-            self.woodyBiom,
-            col_names=cols,
-            print_total=True,
-            print_years=True,
-        )
+    # biomass
+    biomass_file = file.split(".csv")[0] + "_biomass.csv"
+    cols = ["leaf", "branch", "stem", "croot", "froot"]
+    csv_handler.print_csv(
+        biomass_file,
+        tree_model.woody_biomass,
+        col_names=cols,
+        print_total=True,
+        print_years=True,
+    )

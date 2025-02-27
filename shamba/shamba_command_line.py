@@ -58,8 +58,8 @@ import model.command_line.litter as LitterModel
 import model.command_line.soil_params as SoilParams
 import model.command_line.tree_params as TreeParams
 import model.command_line.tree_growth as TreeGrowth
+import model.command_line.tree_model as TreeModel
 
-from model.command_line.tree_model import TreeModel
 
 from model.command_line.soil_model import InverseRothC, ForwardRothC
 from model import configuration
@@ -524,12 +524,12 @@ def main(n, arguments):
     TreeGrowth.print_to_stdout(growth1)
     TreeGrowth.print_to_stdout(growth2)
     TreeGrowth.print_to_stdout(growth3)
-    tree_proj1.print_biomass()
-    tree_proj1.print_balance()
-    tree_proj2.print_biomass()
-    tree_proj2.print_balance()
-    tree_proj3.print_biomass()
-    tree_proj3.print_balance()
+    TreeModel.print_biomass(tree_proj1)
+    TreeModel.print_balance(tree_proj1)
+    TreeModel.print_biomass(tree_proj2)
+    TreeModel.print_balance(tree_proj2)
+    TreeModel.print_biomass(tree_proj3)
+    TreeModel.print_balance(tree_proj3)
     forRoth.print_()
     roth_base.print_()
     roth_proj.print_()
@@ -691,9 +691,9 @@ def main(n, arguments):
     TreeGrowth.save(growth1, plot_name + "_growth1.csv")
     TreeGrowth.save(growth2, plot_name + "_growth2.csv")
     TreeGrowth.save(growth3, plot_name + "_growth3.csv")
-    tree_proj1.save_(plot_name + "_tree_proj1.csv")
-    tree_proj2.save_(plot_name + "_tree_proj2.csv")
-    tree_proj3.save_(plot_name + "_tree_proj3.csv")
+    TreeModel.save(tree_proj1, plot_name + "_tree_proj1.csv")
+    TreeModel.save(tree_proj2, plot_name + "_tree_proj2.csv")
+    TreeModel.save(tree_proj3, plot_name + "_tree_proj3.csv")
 
     i = 1
     for i in range(len(crop_base)):
@@ -784,22 +784,22 @@ def main(n, arguments):
     TreeGrowth.plot(growth1, saveName=plot_name + "_growthFits.png")
     plt.close()
 
-    tree_proj1.plot_biomass(saveName=plot_name + "_biomassPools.png")
+    TreeModel.plot_biomass(tree_proj1, saveName=plot_name + "_biomassPools.png")
     plt.close()
 
-    tree_proj1.plot_balance(saveName=plot_name + "_massBalance.png")
+    TreeModel.plot_balance(tree_proj1, saveName=plot_name + "_massBalance.png")
     plt.close()
 
-    tree_proj2.plot_biomass(saveName=plot_name + "_biomassPools.png")
+    TreeModel.plot_biomass(tree_proj2, saveName=plot_name + "_biomassPools.png")
     plt.close()
 
-    tree_proj2.plot_balance(saveName=plot_name + "_massBalance.png")
+    TreeModel.plot_balance(tree_proj2, saveName=plot_name + "_massBalance.png")
     plt.close()
 
-    tree_proj3.plot_biomass(saveName=plot_name + "_biomassPools.png")
+    TreeModel.plot_biomass(tree_proj3, saveName=plot_name + "_biomassPools.png")
     plt.close()
 
-    tree_proj3.plot_balance(saveName=plot_name + "_massBalance.png")
+    TreeModel.plot_balance(tree_proj3, saveName=plot_name + "_massBalance.png")
     plt.close()
 
     forRoth.plot_(legendStr="initialisation")

@@ -126,6 +126,7 @@ class FitData(Schema):
     lin = fields.List(fields.Float(allow_nan=True), required=True)
     log = fields.List(fields.Float(allow_nan=True), required=True)
 
+
 class FitMSEData(Schema):
     exp = fields.Float(allow_nan=True)
     hyp = fields.Float(allow_nan=True)
@@ -726,6 +727,7 @@ def save(tree_growth, file="tree_growth.csv"):
     data = [row1, row2, row3, row4]
     cols = ["exp", "hyp", "lin", "log"]
     csv_handler.print_csv(param_file, data, col_names=cols)
+
 
 # --------------------------------------------------
 # Begin methods for allometric equations

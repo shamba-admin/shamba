@@ -216,7 +216,7 @@ def tree_sink(tree):
 
     biomass = np.zeros(configuration.N_YEARS + 1)
     for t in tree:
-        biomass += np.sum(t.woodyBiom, axis=1)
+        biomass += np.sum(t.woody_biomass, axis=1)
 
     delta = np.zeros(configuration.N_YEARS)
     for i in range(configuration.N_YEARS):
