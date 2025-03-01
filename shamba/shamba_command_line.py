@@ -59,9 +59,9 @@ import model.command_line.soil_params as SoilParams
 import model.command_line.tree_params as TreeParams
 import model.command_line.tree_growth as TreeGrowth
 import model.command_line.tree_model as TreeModel
+import model.command_line.soil_models.roth_c.forward_roth_c as ForwardRothC
+import model.command_line.soil_models.roth_c.inverse_roth_c as InverseRothC
 
-
-from model.command_line.soil_model import InverseRothC, ForwardRothC
 from model import configuration
 
 
@@ -160,7 +160,7 @@ def main(n, arguments):
     # soil equilibrium solve
     # ----------
     soil = SoilParams.from_location(loc)
-    invRoth = InverseRothC(soil, climate)
+    invRoth = InverseRothC.create(soil, climate)
 
     # ----------
     # tree model
@@ -462,7 +462,7 @@ def main(n, arguments):
     )
 
     # Solve to y=0
-    forRoth = ForwardRothC(
+    forRoth = ForwardRothC.create(
         soil,
         climate,
         cover_base,
@@ -473,7 +473,7 @@ def main(n, arguments):
     )
 
     # Soil carbon for baseline and project
-    roth_base = ForwardRothC(
+    roth_base = ForwardRothC.create(
         soil,
         climate,
         cover_base,
@@ -484,7 +484,7 @@ def main(n, arguments):
         fire=fire_base,
     )
 
-    roth_proj = ForwardRothC(
+    roth_proj = ForwardRothC.create(
         soil,
         climate,
         cover_proj,
@@ -530,9 +530,9 @@ def main(n, arguments):
     TreeModel.print_balance(tree_proj2)
     TreeModel.print_biomass(tree_proj3)
     TreeModel.print_balance(tree_proj3)
-    forRoth.print_()
-    roth_base.print_()
-    roth_proj.print_()
+    ForwardRothC.print_to_stdout(forRoth)
+    ForwardRothC.print_to_stdout(roth_base)
+    ForwardRothC.print_to_stdout(roth_proj)
 
     # crop emissions print
     print("\n\nCROP EMISSIONS (t CO2)")
@@ -709,11 +709,12 @@ def main(n, arguments):
             crop_par_proj[i], plot_name + "_crop_params_proj_" + str(i) + ".csv"
         )
 
-    invRoth.save_(plot_name + "_invRoth.csv")
-    forRoth.save_(plot_name + "_forRoth.csv")
+    InverseRothC.save(invRoth, plot_name + "_invRoth.csv")
+    ForwardRothC.save(forRoth, plot_name + "_forRoth.csv")
 
-    roth_base.save_(plot_name + "_soil_model_base.csv")
-    roth_proj.save_(plot_name + "_soil_model_proj.csv")
+    ForwardRothC.save(roth_base, plot_name + "_soil_model_base.csv")
+    ForwardRothC.save(roth_proj, plot_name + "_soil_model_proj.csv")
+
     Emit.save(emit_base_emissions, emit_proj_emissions, plot_name + "_emit_proj.csv")
 
     with open(
@@ -802,11 +803,13 @@ def main(n, arguments):
     TreeModel.plot_balance(tree_proj3, saveName=plot_name + "_massBalance.png")
     plt.close()
 
-    forRoth.plot_(legendStr="initialisation")
+    ForwardRothC.plot(forRoth, legendStr="initialisation")
 
-    roth_base.plot_(legendStr="baseline")
+    ForwardRothC.plot(roth_base, legendStr="baseline")
 
-    roth_proj.plot_(legendStr="project", saveName=plot_name + "_soilModel.png")
+    ForwardRothC.plot(
+        roth_proj, legendStr="project", saveName=plot_name + "_soilModel.png"
+    )
     plt.close()
 
     Emit.plot(emit_base_emissions, legendStr="baseline")

@@ -38,17 +38,20 @@ def validate_Cy0(value):
 
 
 class SoilParamsData:
-    def __init__(self, Cy0, clay):
+    def __init__(self, Cy0, clay, depth, Ceq, iom):
         self.Cy0 = Cy0
         self.clay = clay
-        self.depth = 30.0
-        self.Ceq = 1.25 * self.Cy0
-        self.iom = 0.049 * self.Ceq**1.139
+        self.depth = depth
+        self.Ceq = Ceq
+        self.iom = iom
 
 
 class SoilParamsSchema(Schema):
     clay = fields.Float(required=True, validate=lambda v: validate_clay(v))
     Cy0 = fields.Float(required=True, validate=lambda v: validate_Cy0(v))
+    depth = fields.Float(required=True)
+    Ceq = fields.Float(required=True)
+    iom = fields.Float(required=True)
 
     @post_load
     def build(self, data, **kwargs):
@@ -65,7 +68,16 @@ def create(soil_params):
         TypeError: if non-numeric type is used for soil_params
 
     """
-    params = {"Cy0": soil_params["Cy0"], "clay": soil_params["clay"]}
+    Cy0 = soil_params["Cy0"]
+    Ceq = 1.25 * Cy0
+
+    params = {
+        "Cy0": Cy0,
+        "clay": soil_params["clay"],
+        "depth": 30.0,
+        "Ceq": Ceq,
+        "iom": 0.049 * Ceq**1.139,
+    }
 
     schema = SoilParamsSchema()
     errors = schema.validate(params)

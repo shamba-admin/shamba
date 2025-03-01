@@ -4,7 +4,7 @@ from scipy import optimize
 from marshmallow import fields, post_load
 
 from ....common import csv_handler
-from .roth_c import dC_dt, RothCSchema, create as create_roth_c
+from .roth_c import dC_dt, RothCSchema, RothCData, create as create_roth_c
 
 """
 Inverse RothC model. Extends RothC class.
@@ -17,35 +17,28 @@ x       partitioning coefficients
 
 """
 
-class ForwardRothCData:
-    def __init__(
-        self,
-        soil_params,
-        climate,
-        cover,
-        k,
-        eqC,
-        inputC,
-        x,
-    ):
-        self.soil = soil_params
-        self.climate = climate
-        self.cover = cover
-        self.k = k
+
+class InverseRothCData(RothCData):
+    def __init__(self, eqC, inputC, x, **kwargs):
+        super().__init__(**kwargs)
         self.eqC = eqC
         self.inputC = inputC
         self.x = x
 
-class ForwardRothCSchema(RothCSchema):
+
+class InverseRothCSchema(RothCSchema):
     eqC = fields.List(fields.Float, required=True)
     inputC = fields.Float(required=True)
     x = fields.List(fields.Float, required=True)
 
     @post_load
-    def build_forward_roth_c(self, data, **kwargs):
-        return ForwardRothCData(**data)
+    def build_inverse_roth_c(self, data, **kwargs):
+        roth_c_data = {k: data[k] for k in RothCSchema().fields.keys()}
+        inverse_data = {k: data[k] for k in ["eqC", "inputC", "x"]}
+        return InverseRothCData(**inverse_data, **roth_c_data)
 
-def create(self, soil, climate, cover=np.ones(12)):
+
+def create(soil, climate, cover=np.ones(12)):
     """Initialise inverse rothc object.
 
     Args:
@@ -59,8 +52,8 @@ def create(self, soil, climate, cover=np.ones(12)):
     eqC, inputC, x = solver(roth_c)
 
     params = {
-        "soil_params": roth_c.soil,
-        "climate": roth_c.climate,
+        "soil_params": vars(roth_c.soil),
+        "climate": vars(roth_c.climate),
         "cover": roth_c.cover,
         "k": roth_c.k,
         "eqC": eqC,
@@ -68,13 +61,14 @@ def create(self, soil, climate, cover=np.ones(12)):
         "x": x,
     }
 
-    schema = ForwardRothCSchema()
+    schema = InverseRothCSchema()
     errors = schema.validate(params)
 
     if errors != {}:
         print(f"Errors in InverseRothC data: {str(errors)}")
 
     return schema.load(params)
+
 
 def solver(roth_c):
     """Run RothC in 'inverse' mode to find inputs
@@ -115,6 +109,7 @@ def solver(roth_c):
     eqInput = inputC
     return eqC, eqInput, x
 
+
 def get_partitions(roth_c):
     """Calculate partitioning coefficients.
 
@@ -138,6 +133,7 @@ def get_partitions(roth_c):
     p1 = 0.2
     return np.array([p1, 1 - p1, p3 * (1 - p2), (1 - p2) * (1 - p3)])
 
+
 def print_to_stdout(inverse_roth_c):
     """Print data from inverse RothC run to stdout."""
 
@@ -151,12 +147,13 @@ def print_to_stdout(inverse_roth_c):
     print("Equil. inputs -", inverse_roth_c.inputC)
     print("")
 
+
 def save(inverse_roth_c, file="soil_model_inverse.csv"):
     """Save data to csv. Default path is OUTPUT_DIR."""
 
     data = np.array(
         [
-            inverse_roth_c.eqC.sum() + inverse_roth_c.soil.iom,
+            np.sum(inverse_roth_c.eqC) + inverse_roth_c.soil.iom,
             inverse_roth_c.eqC[0],
             inverse_roth_c.eqC[1],
             inverse_roth_c.eqC[2],

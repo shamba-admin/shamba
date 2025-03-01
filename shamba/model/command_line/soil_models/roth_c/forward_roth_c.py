@@ -19,6 +19,7 @@ SOC     vector with soil distributions for each year
 
 """
 
+
 class ForwardRothCData:
     def __init__(
         self,
@@ -38,17 +39,20 @@ class ForwardRothCData:
         self.inputs = inputs
         self.Cy0Year = Cy0Year
 
+
 class ForwardRothCSchema(RothCSchema):
-    SOC = fields.List(fields.Float, required=True)
+    SOC = fields.List(fields.List(fields.Float), required=True)
     inputs = fields.List(fields.List(fields.Float), required=True)
     Cy0Year = fields.Float(required=True)
 
     @post_load
     def build_forward_roth_c(self, data, **kwargs):
-        return ForwardRothCData(**data)
+        roth_c_data = {k: data[k] for k in RothCSchema().fields.keys()}
+        forward_data = {k: data[k] for k in ["SOC", "inputs", "Cy0Year"]}
+        return ForwardRothCData(**forward_data, **roth_c_data)
+
 
 def create(
-    self,
     soil,
     climate,
     cover,
@@ -74,12 +78,12 @@ def create(
     """
     roth_c = create_roth_c(soil, climate, cover)
 
-    SOC, inputs, Cy0Year = solver(
-        Ci, crop, tree, litter, fire, solveToValue
-    )
+    SOC, inputs, Cy0Year = solver(roth_c, Ci, crop, tree, litter, fire, solveToValue)
+
+    print("XXXX", SOC)
     params = {
-        "soil_params": roth_c.soil,
-        "climate": roth_c.climate,
+        "soil_params": vars(roth_c.soil),
+        "climate": vars(roth_c.climate),
         "cover": roth_c.cover,
         "k": roth_c.k,
         "SOC": SOC,
@@ -95,7 +99,8 @@ def create(
 
     return schema.load(params)
 
-def solver(forward_roth_c, Ci, crop=[], tree=[], litter=[], fire=[], solveToValue=False):
+
+def solver(roth_c, Ci, crop=[], tree=[], litter=[], fire=[], solveToValue=False):
     """Run RothC in 'forward' mode;
     solve dC_dt over a given time period
     or to a certain value, given a vector with soil inputs.
@@ -122,7 +127,7 @@ def solver(forward_roth_c, Ci, crop=[], tree=[], litter=[], fire=[], solveToValu
     inputs = np.column_stack((soilIn_crop, soilIn_tree))
 
     # Calculate yearly values of x based dpm:rpm ratio for each year
-    x = get_partitions(forward_roth_c, inputs)
+    x = get_partitions(roth_c, inputs)
     t = np.arange(0, 1, 0.001)
     C = np.zeros((configuration.N_YEARS + 1, 4))
     C[0] = Ci
@@ -141,7 +146,7 @@ def solver(forward_roth_c, Ci, crop=[], tree=[], litter=[], fire=[], solveToValu
 
         # Solve the diffEQs to get pools for year i
         Ctemp = integrate.odeint(
-            dC_dt, C[i - 1], t, args=(x[i - 1], forward_roth_c.k, inputs[i - 1].sum())
+            dC_dt, C[i - 1], t, args=(x[i - 1], roth_c.k, inputs[i - 1].sum())
         )
         C[i] = Ctemp[-1]  # carbon pools at end of year
 
@@ -150,8 +155,8 @@ def solver(forward_roth_c, Ci, crop=[], tree=[], litter=[], fire=[], solveToValu
             j = -1
             for c in Ctemp:
                 j += 1
-                Ctot = c.sum() + forward_roth_c.soil.iom
-                currDiff = math.fabs(Ctot - forward_roth_c.soil.Cy0)
+                Ctot = c.sum() + roth_c.soil.iom
+                currDiff = math.fabs(Ctot - roth_c.soil.Cy0)
 
                 if currDiff - prevDiff_inner < 0.00000001:
                     prevDiff_inner = currDiff
@@ -175,7 +180,8 @@ def solver(forward_roth_c, Ci, crop=[], tree=[], litter=[], fire=[], solveToValu
 
     return C, inputs, year_target_reached
 
-def get_partitions(forward_roth_c, inputs):
+
+def get_partitions(roth_c, inputs):
     """Calculate partitioning coefficients.
 
     Args:
@@ -186,7 +192,7 @@ def get_partitions(forward_roth_c, inputs):
     """
 
     # Determine p_2 (fraction of input going to CO2) based on clay content
-    z = 1.67 * (1.85 + 1.6 * math.exp(-0.0786 * forward_roth_c.soil.clay))
+    z = 1.67 * (1.85 + 1.6 * math.exp(-0.0786 * roth_c.soil.clay))
     p2 = z / (z + 1)
 
     # p_3 is always 0.46 (see RothC papaer
@@ -223,6 +229,7 @@ def get_partitions(forward_roth_c, inputs):
 
     return x
 
+
 def plot(forward_roth_c, legendStr, saveName=None):
     """Plot total carbon vs year for forwardRothC run.
 
@@ -253,6 +260,7 @@ def plot(forward_roth_c, legendStr, saveName=None):
 
     if saveName is not None:
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
+
 
 def print_to_stdout(forward_roth_c, solveToValue=False):
     """Print data from forward RothC run to stdout."""
@@ -298,6 +306,7 @@ def print_to_stdout(forward_roth_c, solveToValue=False):
                 pass
             else:
                 print(forward_roth_c.inputs[i][0], "  ", forward_roth_c.inputs[i][1])
+
 
 def save(forward_roth_c, file="soil_model_forward.csv"):
     """Save data from forward RothC run to a csv.

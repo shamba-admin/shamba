@@ -20,6 +20,7 @@ cover   vector with soil cover for each month (1 if covered, 0 else)
 # Class variables (defaults)
 K_BASE = np.array([10.0, 0.3, 0.66, 0.02])
 
+
 class RothCData:
     def __init__(
         self,
@@ -33,16 +34,15 @@ class RothCData:
         self.cover = np.array(cover)
         self.k = np.array(k)
 
+
 class RothCSchema(Schema):
     soil_params = fields.Nested(SoilParamsSchema, required=True)
     climate = fields.Nested(ClimateDataSchema, required=True)
     cover = fields.List(fields.Float, required=True)
     k = fields.List(fields.Float, required=True)
 
-    @post_load
-    def build(self, data, **kwargs):
-        return RothCData(**data)
 
+# We probably do not need this `create` function
 def create(soil, climate, cover):
     """Initialise rothc object.
 
@@ -54,19 +54,21 @@ def create(soil, climate, cover):
     """
 
     params = {
-        "soil_params": soil,
-        "climate": climate,
+        "soil_params": vars(soil),
+        "climate": vars(climate),
         "cover": cover,
         "k": get_rmf(climate=climate, cover=cover, soil=soil) * K_BASE,
     }
 
-    schema = ClimateDataSchema()
+    schema = RothCSchema()
     errors = schema.validate(params)
 
     if errors != {}:
         print(f"Errors in RothC data: {str(errors)}")
 
-    return schema.load(params)
+    validated_data = schema.load(params)
+    return RothCData(**validated_data)
+
 
 # Rate modifying-factor function - needed in forward and inverse
 def get_rmf(climate, cover, soil):
@@ -127,6 +129,7 @@ def get_rmf(climate, cover, soil):
 
     return (a * b * c).mean()  # yearly average of total RMF
 
+
 # Helper methods for finding b (topsoil moisture RMF)
 # Find first month where deficit > 0
 def get_first_pos_def(deficit):
@@ -144,6 +147,7 @@ def get_first_pos_def(deficit):
 
     return m  # first month where deficit > 0
 
+
 # Find first month after m where rainfall < evap (deficit<0)
 def get_first_neg_def(deficit, m):
     rainAlwaysExceedsEvap = True
@@ -156,6 +160,7 @@ def get_first_neg_def(deficit, m):
             break
 
     return m, rainAlwaysExceedsEvap
+
 
 # Get accTSMD for a given month
 def get_acc_tsmd(smd, def_m, cover_m, max):
@@ -182,6 +187,7 @@ def get_acc_tsmd(smd, def_m, cover_m, max):
                     smd = 0.556 * max
     # End if-else for deficit > 0
     return smd
+
 
 def dC_dt(C, t, x, k, input):
     """Function for system of differential equations governing
@@ -211,4 +217,3 @@ def dC_dt(C, t, x, k, input):
     )
 
     return rhs
-
