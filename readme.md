@@ -16,6 +16,12 @@ eval $(poetry env activate)
 ### Format Files
 ```sh
 poetry run black .
+
+```
+
+### Run Tests
+```sh
+poetry run pytest
 ```
 
 ### Docker Installation

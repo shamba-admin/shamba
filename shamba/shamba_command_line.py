@@ -44,6 +44,7 @@ import shutil
 
 import matplotlib.pyplot as plt
 import numpy as np
+from tabulate import tabulate
 
 from model.common import csv_handler, io_handler
 
@@ -63,6 +64,30 @@ import model.command_line.soil_models.roth_c.forward_roth_c as ForwardRothC
 import model.command_line.soil_models.roth_c.inverse_roth_c as InverseRothC
 
 from model import configuration
+
+
+def print_crop_emissions(
+    crop_base_emissions: np.ndarray,
+    crop_projection_emissions: np.ndarray,
+    crop_difference_emissions: np.ndarray,
+):
+    table_data = [
+        (base, proj, proj - base)
+        for base, proj in zip(crop_base_emissions, crop_projection_emissions)
+    ]
+
+    headers = ["Baseline Emissions", "Projected Emissions", "Difference"]
+    table_title = "CROP EMISSIONS (t CO2)"
+
+    print() # Newline
+    print() # Newline
+    print(table_title)
+    print("=" * len(table_title))
+    print(tabulate(table_data, headers=headers, floatfmt=".9f", numalign="center", tablefmt="fancy_grid"))
+
+    print() # Newline
+    print("Total crop difference: ", sum(crop_difference_emissions), " t CO2 ha^-1")
+    print("Average crop difference: ", np.mean(crop_difference_emissions))
 
 
 def setup_project_directory(project_name):
@@ -535,20 +560,12 @@ def main(n, arguments):
     ForwardRothC.print_to_stdout(roth_proj)
 
     # crop emissions print
-    print("\n\nCROP EMISSIONS (t CO2)")
-    print("=================\n")
-    print("baseline    project")
-
     crop_base_emissions = Emit.create(crop=crop_base, fire=fire_base)
     crop_proj_emissions = Emit.create(crop=crop_proj, fire=fire_proj)
 
-    crop_diff = crop_proj_emissions - crop_base_emissions
-    for i in range(len(crop_base_emissions)):
-        print(crop_base_emissions[i], crop_proj_emissions[i], crop_diff[i])
+    crop_difference = crop_proj_emissions - crop_base_emissions
 
-    print("\nTotal crop difference: ", sum(crop_diff), " t CO2 ha^-1")
-
-    print("Average crop difference: ", np.mean(crop_diff))
+    print_crop_emissions(crop_base_emissions, crop_proj_emissions, crop_difference)
 
     # fert emissions print
     print("\n\nFERTILISER EMISSIONS (t CO2)")
@@ -663,7 +680,7 @@ def main(n, arguments):
     print("=================\n")
     print("baseline    project")
 
-    print("\nTotal crop difference: ", sum(crop_diff), " t CO2 ha^-1")
+    print("\nTotal crop difference: ", sum(crop_difference), " t CO2 ha^-1")
     print("\nTotal fertiliser difference: ", sum(fert_diff), " t CO2 ha^-1")
     print("\nTotal litter difference: ", sum(lit_diff), " t CO2 ha^-1")
     print("\nTotal fire difference: ", sum(fire_diff), " t CO2 ha^-1")
@@ -751,7 +768,7 @@ def main(n, arguments):
                 "fert_diff",
                 "crop_base",
                 "crop_proj",
-                "crop_diff",
+                "crop_difference",
             ]
         )
         for i in range(len(emit_base_emissions)):
@@ -777,7 +794,7 @@ def main(n, arguments):
                     fert_diff[i],
                     crop_base_emissions[i],
                     crop_proj_emissions[i],
-                    crop_diff[i],
+                    crop_difference[i],
                 ]
             )
 
@@ -831,7 +848,7 @@ def main(n, arguments):
     )
 
     return (
-        sum(crop_diff),
+        sum(crop_difference),
         sum(fert_diff),
         sum(lit_diff),
         sum(fire_diff),
