@@ -2,14 +2,14 @@
 
 """Module holding Climate class."""
 
-from typing import List
 import logging as log
+import math
 import os
 import sys
+from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
-import math
 from marshmallow import Schema, fields, post_load
 
 from model.common import csv_handler

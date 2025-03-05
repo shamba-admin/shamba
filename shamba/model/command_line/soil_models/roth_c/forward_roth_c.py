@@ -1,14 +1,17 @@
-import os
-import numpy as np
 import math
-from scipy import integrate
-import matplotlib.pyplot as plt
-from marshmallow import fields, post_load
+import os
 
-from ....common import csv_handler
+import matplotlib.pyplot as plt
+import numpy as np
+from marshmallow import fields, post_load
+from scipy import integrate
+
 from .... import configuration
 from ....command_line import emit
-from .roth_c import dC_dt, RothCSchema, create as create_roth_c
+from ....common import csv_handler
+from .roth_c import RothCSchema
+from .roth_c import create as create_roth_c
+from .roth_c import dC_dt
 
 """
 Forward RothC class. Extends RothC class.
@@ -80,7 +83,6 @@ def create(
 
     SOC, inputs, Cy0Year = solver(roth_c, Ci, crop, tree, litter, fire, solveToValue)
 
-    print("XXXX", SOC)
     params = {
         "soil_params": vars(roth_c.soil),
         "climate": vars(roth_c.climate),

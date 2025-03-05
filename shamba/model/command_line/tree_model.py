@@ -2,21 +2,19 @@
 
 """Module containing Tree class."""
 
+import logging as log
 import os
 import sys
-import logging as log
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from marshmallow import Schema, fields, post_load
 
-from ..common import csv_handler
-
 from .. import configuration
-from .tree_params import ROOT_IN_TOP_30, TreeParamsSchema
-from .tree_growth import derivative_functions, TreeGrowthSchema
+from ..common import csv_handler
 from .common_schema import OutputSchema as ClimateDataOutputSchema
-
+from .tree_growth import TreeGrowthSchema, derivative_functions
+from .tree_params import ROOT_IN_TOP_30, TreeParamsSchema
 
 """
 Tree model class. Calculate residues and soil inputs

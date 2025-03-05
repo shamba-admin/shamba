@@ -1,11 +1,9 @@
-import numpy as np
-
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.image
+import numpy as np
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from matplotlib.patches import Polygon
 from matplotlib.lines import Line2D
-
+from matplotlib.patches import Polygon
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from model import configuration

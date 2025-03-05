@@ -1,9 +1,11 @@
 """Module containing NextBackButtons and PageComplete classes"""
 
 import math
-from PyQt5 import QtGui, QtCore, QtWidgets
-from gui.translate_ import translate_ as _
 from functools import partial
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+from gui.translate_ import translate_ as _
 
 
 class NextBackButtons(QtCore.QObject):

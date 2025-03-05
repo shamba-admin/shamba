@@ -5,8 +5,8 @@ import sys
 
 import numpy as np
 from marshmallow import Schema, fields, post_load
-from model.common import csv_handler
 
+from model.common import csv_handler
 
 # ----------------------------------
 # Read species data from csv

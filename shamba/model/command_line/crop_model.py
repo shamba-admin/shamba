@@ -1,16 +1,22 @@
 #!/usr/bin/python
 
 """Module holding Crop class for the crop model."""
+from typing import Tuple
+
 import numpy as np
 from marshmallow import Schema, fields, post_load
 
-from ..common import csv_handler
-
 from .. import configuration
+from ..common import csv_handler
+from .common_schema import OutputSchema as ClimateDataOutputSchema
 
 # from .crop_params import CropParams
-from .crop_params import ROOT_IN_TOP_30, CropParamsSchema
-from .common_schema import OutputSchema as ClimateDataOutputSchema
+from .crop_params import (
+    ROOT_IN_TOP_30,
+    CropParamsData,
+    CropParamsSchema,
+)
+from .crop_params import from_species_index as create_crop_params_from_species_index
 
 """
 Crop model object. Calculate residues and soil inputs
@@ -40,7 +46,7 @@ class ClimateDataSchema(Schema):
         return CropModelData(**data)
 
 
-def create(crop_params, crop_yield, left_in_field):
+def create(crop_params, no_of_years, crop_yield, left_in_field) -> CropModelData:
     """Args:
     crop_params: CropParams object with crop params
     cropYield: dry matter yield of the crop in t C ha^-1
@@ -51,7 +57,7 @@ def create(crop_params, crop_yield, left_in_field):
         "crop_params": vars(
             crop_params
         ),  # We need to convert this to a dictionary for validation
-        "output": get_inputs(crop_params, crop_yield, left_in_field),
+        "output": get_inputs(crop_params, no_of_years, crop_yield, left_in_field),
     }
 
     schema = ClimateDataSchema()
@@ -63,7 +69,7 @@ def create(crop_params, crop_yield, left_in_field):
     return schema.load(raw_crop_model_data)
 
 
-def get_inputs(crop_params, crop_yield, left_in_field):
+def get_inputs(crop_params, no_of_years, crop_yield, left_in_field):
     """Calculate and return soil carbon inputs, nitrogen inputs,
     on-farm residues, and off-farm residues from soil parameters.
 
@@ -81,7 +87,7 @@ def get_inputs(crop_params, crop_yield, left_in_field):
 
     # residues
     res = crop_yield * crop_params.slope + crop_params.intercept
-    res *= np.ones(configuration.N_YEARS)  # convert to array
+    res *= np.ones(no_of_years)  # convert to array
     resAG = res * left_in_field
     resBG = crop_yield + res
     resBG *= crop_params.root_to_shoot * ROOT_IN_TOP_30
@@ -121,3 +127,65 @@ def save(crop_model, file="crop_model.csv"):
             data.append(crop_model.output[s1][s2])
     data = np.column_stack(tuple(data))
     csv_handler.print_csv(file, data, col_names=cols)
+
+
+def get_crop_models_and_crop_params(
+    input_data, no_of_years, start_index, end_index, crop_getter
+):
+    results = [
+        crop_getter(input_data, no_of_years, index)
+        for index in range(start_index, end_index + 1)
+    ]
+
+    # Unzip the results into two separate lists
+    crop_models, crop_params = zip(*results)
+
+    # Convert the results to lists (as zip returns tuples)
+    return list(crop_models), list(crop_params)
+
+
+def get_crop_bases(input_data, no_of_years, start_index, end_index):
+    return get_crop_models_and_crop_params(
+        input_data, no_of_years, start_index, end_index, get_crop_base
+    )
+
+
+def get_crop_projections(input_data, no_of_years, start_index, end_index):
+    return get_crop_models_and_crop_params(
+        input_data, no_of_years, start_index, end_index, get_crop_projection
+    )
+
+
+def get_crop_data(
+    input_data, no_of_years, prefix, index
+) -> Tuple[CropModelData, CropParamsData]:
+    spp = int(input_data[f"{prefix}_spp{index}"])
+    harvYield = np.zeros(no_of_years)
+    harvYield[
+        int(input_data[f"{prefix}_start{index}"]) : int(
+            input_data[f"{prefix}_end{index}"]
+        )
+    ] = float(input_data[f"{prefix}_yd{index}"])
+    harv_frac = float(input_data[f"{prefix}_left{index}"])
+
+    crop_params = create_crop_params_from_species_index(spp)
+    crop_model = create(
+        crop_params=crop_params,
+        no_of_years=no_of_years,
+        crop_yield=harvYield,
+        left_in_field=harv_frac,
+    )
+
+    return crop_model, crop_params
+
+
+def get_crop_base(
+    input_data, no_of_years, index
+) -> Tuple[CropModelData, CropParamsData]:
+    return get_crop_data(input_data, no_of_years, "crop_base", index)
+
+
+def get_crop_projection(
+    input_data, no_of_years, index
+) -> Tuple[CropModelData, CropParamsData]:
+    return get_crop_data(input_data, no_of_years, "crop_proj", index)

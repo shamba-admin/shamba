@@ -1,11 +1,12 @@
 """Run the emissions model from the gui"""
 
 import os
+
 import numpy as np
 
-from model import configuration
-from model.command_line.soil_model import InverseRothC, ForwardRothC
 import model.command_line.emit as Emit
+from model import configuration
+from model.command_line.soil_model import ForwardRothC, InverseRothC
 
 
 class Emissions(object):
@@ -105,6 +106,7 @@ class Emissions(object):
 
     def run_emit_model(self):
         self.emit_base = Emit.create(
+            no_of_years=configuration.N_YEARS,
             forRothC=self.roth_base,
             crop=self.crop_models_base,
             tree=self.tree_models_base,
@@ -113,6 +115,7 @@ class Emissions(object):
             burnOff=self.crop_burn_res_base,
         )
         self.emit_inter = Emit.create(
+            no_of_years=configuration.N_YEARS,
             forRothC=self.roth_inter,
             crop=self.crop_models_inter,
             tree=self.tree_models_inter,

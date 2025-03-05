@@ -1,11 +1,11 @@
+import os
+import sys
+
 from PyQt5 import QtCore, QtGui
 
-from gui.translate_ import translate_ as _
 from gui import designer
 from gui.designer.disclaimer_ui import Ui_Disclaimer
-import sys
-import os
-
+from gui.translate_ import translate_ as _
 
 DISCLAIMER = """The SHAMBA tool has been developed as part of the Climate-Smart Agriculture in Sub-Saharan Africa project, led by the Sustainability and Climate Change team at PwC UK, with funding from the Rockefeller Foundation. It was created by members of the tropical land use research group in the School of Geosciences at the University of Edinburgh. 
 

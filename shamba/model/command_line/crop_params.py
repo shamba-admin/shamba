@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
 
-import sys
 import logging as log
+import sys
+
 import numpy as np
-from model.common import csv_handler
 from marshmallow import Schema, fields, post_load
 
+from model.common import csv_handler
 
 # --------------------------
 # Read species data from csv
@@ -124,7 +125,7 @@ class CropParamsSchema(Schema):
         return CropParamsData(**data)
 
 
-def from_species_name(species):
+def from_species_name(species) -> CropParamsData:
     """Construct Crop object from species default in CROP_SPP.
 
     Args:
@@ -157,7 +158,7 @@ def from_species_name(species):
     return schema.load(params)
 
 
-def from_species_index(index):
+def from_species_index(index) -> CropParamsData:
     """Construct Crop object from index of species in the csv
 
     Args:
@@ -196,7 +197,7 @@ def from_species_index(index):
     return schema.load(params)
 
 
-def from_csv(speciesName, filename, row=0):
+def from_csv(speciesName, filename, row=0) -> CropParamsData:
     """Construct Crop object using data from a csv which
     is structured like the master csv (crop_ipcc_defaults.csv).
 

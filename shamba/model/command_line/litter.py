@@ -4,11 +4,12 @@
 
 
 import logging as log
+
 import numpy as np
 from marshmallow import Schema, fields, post_load
 
-from ..common import csv_handler
 from .. import configuration
+from ..common import csv_handler
 from .common_schema import OutputSchema as LitterDataOutputSchema
 
 

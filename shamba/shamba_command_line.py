@@ -36,11 +36,10 @@ If you have feedback on the model code, please feel free to change the code
 and send the script with a short explanation to shamba.model@gmail.com
 """
 
-import os
-import sys
-
 import csv
+import os
 import shutil
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -48,22 +47,21 @@ from tabulate import tabulate
 
 from model.common import csv_handler, io_handler
 
-_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(_dir))
-
 import model.command_line.climate as Climate
-import model.command_line.crop_params as CropParams
 import model.command_line.crop_model as CropModel
+import model.command_line.crop_params as CropParams
 import model.command_line.emit as Emit
 import model.command_line.litter as LitterModel
-import model.command_line.soil_params as SoilParams
-import model.command_line.tree_params as TreeParams
-import model.command_line.tree_growth as TreeGrowth
-import model.command_line.tree_model as TreeModel
 import model.command_line.soil_models.roth_c.forward_roth_c as ForwardRothC
 import model.command_line.soil_models.roth_c.inverse_roth_c as InverseRothC
-
+import model.command_line.soil_params as SoilParams
+import model.command_line.tree_growth as TreeGrowth
+import model.command_line.tree_model as TreeModel
+import model.command_line.tree_params as TreeParams
 from model import configuration
+
+_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(_dir))
 
 
 def print_crop_emissions(
@@ -79,13 +77,21 @@ def print_crop_emissions(
     headers = ["Baseline Emissions", "Projected Emissions", "Difference"]
     table_title = "CROP EMISSIONS (t CO2)"
 
-    print() # Newline
-    print() # Newline
+    print()  # Newline
+    print()  # Newline
     print(table_title)
     print("=" * len(table_title))
-    print(tabulate(table_data, headers=headers, floatfmt=".9f", numalign="center", tablefmt="fancy_grid"))
+    print(
+        tabulate(
+            table_data,
+            headers=headers,
+            floatfmt=".9f",
+            numalign="center",
+            tablefmt="fancy_grid",
+        )
+    )
 
-    print() # Newline
+    print()  # Newline
     print("Total crop difference: ", sum(crop_difference_emissions), " t CO2 ha^-1")
     print("Average crop difference: ", np.mean(crop_difference_emissions))
 
@@ -155,31 +161,29 @@ def main(n, arguments):
     # ----------
 
     ## creating dictionary of input data from input.csv
-    data = list(csv.reader(open(configuration.INPUT_DIR + "/" + input_csv)))
-    keys = data[0]
-    values = data[n + 1]
-    val = dict(list(zip(keys, values)))
+    file_path = os.path.join(configuration.INPUT_DIR, input_csv)
+    csv_input_data = csv_handler.get_csv_input_data(n, file_path)
 
-    # terms in coded below preceded by val are values being pulled in from dictionary
+    # terms in coded below preceded by csv_input_data are values being pulled in from dictionary
     # created above. Converting to float or interger as needed for each
     # key
 
     ## getting plot anlaysis number to name output
 
-    st = int(val["analysis_no"])
+    st = int(csv_input_data["analysis_no"])
 
     # ----------
     # location information
     # ----------
-    loc = (float(val["lat"]), float(val["lon"]))
+    loc = (float(csv_input_data["lat"]), float(csv_input_data["lon"]))
     climate = Climate.from_location(loc)
 
     # ----------
     # project length
     # ----------
     # YEARS = length of tree data. ACCT = years in accounting period
-    configuration.N_YEARS = int(val["yrs_proj"])
-    configuration.N_ACCT = int(val["yrs_acct"])
+    configuration.N_YEARS = int(csv_input_data["yrs_proj"])
+    configuration.N_ACCT = int(csv_input_data["yrs_acct"])
 
     # ----------
     # soil equilibrium solve
@@ -200,13 +204,13 @@ def main(n, arguments):
     """
 
     # linking tree cohort parameteres
-    tree_par_base = TreeParams.from_species_index(int(val["species_base"]))
-    tree_par1 = TreeParams.from_species_index(int(val["species1"]))
-    tree_par2 = TreeParams.from_species_index(int(val["species2"]))
-    tree_par3 = TreeParams.from_species_index(int(val["species3"]))
+    tree_par_base = TreeParams.from_species_index(int(csv_input_data["species_base"]))
+    tree_par1 = TreeParams.from_species_index(int(csv_input_data["species1"]))
+    tree_par2 = TreeParams.from_species_index(int(csv_input_data["species2"]))
+    tree_par3 = TreeParams.from_species_index(int(csv_input_data["species3"]))
 
     # linking tree growth
-    spp = int(val["species_base"])
+    spp = int(csv_input_data["species_base"])
     if spp == 1:
         growth_base = TreeGrowth.from_csv1(tree_par_base, n, filename=input_csv)
     elif spp == 2:
@@ -214,7 +218,7 @@ def main(n, arguments):
     else:
         growth_base = TreeGrowth.from_csv3(tree_par_base, n, filename=input_csv)
 
-    spp = int(val["species1"])
+    spp = int(csv_input_data["species1"])
     if spp == 1:
         growth1 = TreeGrowth.from_csv1(tree_par1, n, filename=input_csv)
     elif spp == 2:
@@ -222,7 +226,7 @@ def main(n, arguments):
     else:
         growth1 = TreeGrowth.from_csv3(tree_par1, n, filename=input_csv)
 
-    spp = int(val["species2"])
+    spp = int(csv_input_data["species2"])
     if spp == 1:
         growth2 = TreeGrowth.from_csv1(tree_par2, n, filename=input_csv)
     elif spp == 2:
@@ -230,7 +234,7 @@ def main(n, arguments):
     else:
         growth2 = TreeGrowth.from_csv3(tree_par2, n, filename=input_csv)
 
-    spp = int(val["species3"])
+    spp = int(csv_input_data["species3"])
     if spp == 1:
         growth3 = TreeGrowth.from_csv1(tree_par3, n, filename=input_csv)
     elif spp == 2:
@@ -242,23 +246,41 @@ def main(n, arguments):
     # baseline thinning regime
     # (add line of thinning[yr] = % thinned for each event)
     thinning_base = np.zeros(configuration.N_YEARS + 1)
-    thinning_base[int(val["thin_base_yr1"])] = float(val["thin_base_pc1"])
-    thinning_base[int(val["thin_base_yr2"])] = float(val["thin_base_pc2"])
+    thinning_base[int(csv_input_data["thin_base_yr1"])] = float(
+        csv_input_data["thin_base_pc1"]
+    )
+    thinning_base[int(csv_input_data["thin_base_yr2"])] = float(
+        csv_input_data["thin_base_pc2"]
+    )
 
     # project thinning regime
     # (add need line of thinning[yr] = % thinned for each event)
     thinning_proj = np.zeros(configuration.N_YEARS + 1)
-    thinning_proj[int(val["thin_proj_yr1"])] = float(val["thin_proj_pc1"])
-    thinning_proj[int(val["thin_proj_yr2"])] = float(val["thin_proj_pc2"])
-    thinning_proj[int(val["thin_proj_yr3"])] = float(val["thin_proj_pc3"])
-    thinning_proj[int(val["thin_proj_yr4"])] = float(val["thin_proj_pc4"])
+    thinning_proj[int(csv_input_data["thin_proj_yr1"])] = float(
+        csv_input_data["thin_proj_pc1"]
+    )
+    thinning_proj[int(csv_input_data["thin_proj_yr2"])] = float(
+        csv_input_data["thin_proj_pc2"]
+    )
+    thinning_proj[int(csv_input_data["thin_proj_yr3"])] = float(
+        csv_input_data["thin_proj_pc3"]
+    )
+    thinning_proj[int(csv_input_data["thin_proj_yr4"])] = float(
+        csv_input_data["thin_proj_pc4"]
+    )
 
     # baseline fraction of thinning left in the field
     # specify vector = array[(leaf,branch,stem,course root,fine root)].
     # 1 = 100% left in field. Leaf and roots assumed 100%.
     # (can specify for individual years) using above code for thinning_proj.
     thin_frac_lif_base = np.array(
-        [1, float(val["thin_base_br"]), float(val["thin_base_st"]), 1, 1]
+        [
+            1,
+            float(csv_input_data["thin_base_br"]),
+            float(csv_input_data["thin_base_st"]),
+            1,
+            1,
+        ]
     )
 
     # project fraction of thinning left in the field
@@ -266,23 +288,39 @@ def main(n, arguments):
     # 1 = 100% left in field. Leaf and roots assumed 100%.
     # (can specify for individual years) using above code for thinning_proj.
     thin_frac_lif_proj = np.array(
-        [1, float(val["thin_proj_br"]), float(val["thin_proj_st"]), 1, 1]
+        [
+            1,
+            float(csv_input_data["thin_proj_br"]),
+            float(csv_input_data["thin_proj_st"]),
+            1,
+            1,
+        ]
     )
 
     # specify mortality regime and fraction left in field (lif)
 
     # baseline yearly mortality
-    mort_base = np.array((configuration.N_YEARS + 1) * [float(val["base_mort"])])
+    mort_base = np.array(
+        (configuration.N_YEARS + 1) * [float(csv_input_data["base_mort"])]
+    )
 
     # project yearly mortality
-    mort_proj = np.array((configuration.N_YEARS + 1) * [float(val["proj_mort"])])
+    mort_proj = np.array(
+        (configuration.N_YEARS + 1) * [float(csv_input_data["proj_mort"])]
+    )
 
     # baseline fraction of dead biomass left in the field
     # specify vector = array[(leaf,branch,stem,course root,fine root)].
     # 1 = 100% left in field. Leaf and roots assumed 100%.
     # (can specify for individual years) using above code for thinning_proj.
     mort_frac_lif_base = np.array(
-        [1, float(val["mort_base_br"]), float(val["mort_base_st"]), 1, 1]
+        [
+            1,
+            float(csv_input_data["mort_base_br"]),
+            float(csv_input_data["mort_base_st"]),
+            1,
+            1,
+        ]
     )
 
     # project fraction of dead biomass left in the field
@@ -290,7 +328,13 @@ def main(n, arguments):
     # 1 = 100% left in field. Leaf and roots assumed 100%.
     # (can specify for individual years) using above code for thinning_proj.
     mort_frac_lif_proj = np.array(
-        [1, float(val["mort_proj_br"]), float(val["mort_proj_st"]), 1, 1]
+        [
+            1,
+            float(csv_input_data["mort_proj_br"]),
+            float(csv_input_data["mort_proj_st"]),
+            1,
+            1,
+        ]
     )
 
     # run tree model
@@ -300,7 +344,7 @@ def main(n, arguments):
         tree_params=tree_par1,
         tree_growth=growth_base,
         yearPlanted=0,
-        standDens=int(val["base_plant_dens"]),
+        standDens=int(csv_input_data["base_plant_dens"]),
         thin=thinning_base,
         thinFrac=thin_frac_lif_base,
         mort=mort_base,
@@ -311,8 +355,8 @@ def main(n, arguments):
     tree_proj1 = TreeModel.from_defaults(
         tree_params=tree_par1,
         tree_growth=growth1,
-        yearPlanted=int(val["proj_plant_yr1"]),
-        standDens=int(val["proj_plant_dens1"]),
+        yearPlanted=int(csv_input_data["proj_plant_yr1"]),
+        standDens=int(csv_input_data["proj_plant_dens1"]),
         thin=thinning_proj,
         thinFrac=thin_frac_lif_proj,
         mort=mort_proj,
@@ -322,8 +366,8 @@ def main(n, arguments):
     tree_proj2 = TreeModel.from_defaults(
         tree_params=tree_par2,
         tree_growth=growth2,
-        yearPlanted=int(val["proj_plant_yr2"]),
-        standDens=int(val["proj_plant_dens2"]),
+        yearPlanted=int(csv_input_data["proj_plant_yr2"]),
+        standDens=int(csv_input_data["proj_plant_dens2"]),
         thin=thinning_proj,
         thinFrac=thin_frac_lif_proj,
         mort=mort_proj,
@@ -333,8 +377,8 @@ def main(n, arguments):
     tree_proj3 = TreeModel.from_defaults(
         tree_params=tree_par3,
         tree_growth=growth3,
-        yearPlanted=int(val["proj_plant_yr3"]),
-        standDens=int(val["proj_plant_dens3"]),
+        yearPlanted=int(csv_input_data["proj_plant_yr3"]),
+        standDens=int(csv_input_data["proj_plant_dens3"]),
         thin=thinning_proj,
         thinFrac=thin_frac_lif_proj,
         mort=mort_proj,
@@ -345,19 +389,19 @@ def main(n, arguments):
     # fire model
     # ----------
     # return interval of fire, [::2] = 1 is return interval of two years
-    base_fire_interval = int(val["fire_int_base"])
+    base_fire_interval = int(csv_input_data["fire_int_base"])
     if base_fire_interval == 0:
         fire_base = np.zeros(configuration.N_YEARS)
     else:
         fire_base = np.zeros(configuration.N_YEARS)
-        fire_base[::base_fire_interval] = int(val["fire_pres_base"])
+        fire_base[::base_fire_interval] = int(csv_input_data["fire_pres_base"])
 
-    proj_fire_interval = int(val["fire_int_proj"])
+    proj_fire_interval = int(csv_input_data["fire_int_proj"])
     if proj_fire_interval == 0:
         fire_proj = np.zeros(configuration.N_YEARS)
     else:
         fire_proj = np.zeros(configuration.N_YEARS)
-        fire_proj[::proj_fire_interval] = int(val["fire_pres_proj"])
+        fire_proj[::proj_fire_interval] = int(csv_input_data["fire_pres_proj"])
 
     # ----------
     # litter model
@@ -365,26 +409,28 @@ def main(n, arguments):
 
     # baseline external organic inputs
     l_base = LitterModel.from_defaults(
-        litterFreq=int(val["base_lit_int"]), litterQty=float(val["base_lit_qty"])
+        litterFreq=int(csv_input_data["base_lit_int"]),
+        litterQty=float(csv_input_data["base_lit_qty"]),
     )
 
     # baseline synthetic fertiliser additions
     sf_base = LitterModel.synthetic_fert(
-        freq=int(val["base_sf_int"]),
-        qty=float(val["base_sf_qty"]),
-        nitrogen=float(val["base_sf_n"]),
+        freq=int(csv_input_data["base_sf_int"]),
+        qty=float(csv_input_data["base_sf_qty"]),
+        nitrogen=float(csv_input_data["base_sf_n"]),
     )
 
     # Project external organic inputs
     l_proj = LitterModel.from_defaults(
-        litterFreq=int(val["proj_lit_int"]), litterQty=float(val["proj_lit_qty"])
+        litterFreq=int(csv_input_data["proj_lit_int"]),
+        litterQty=float(csv_input_data["proj_lit_qty"]),
     )
 
     # Project synthetic fertiliser additions
     sf_proj = LitterModel.synthetic_fert(
-        freq=int(val["proj_sf_int"]),
-        qty=float(val["proj_sf_qty"]),
-        nitrogen=float(val["proj_sf_n"]),
+        freq=int(csv_input_data["proj_sf_int"]),
+        qty=float(csv_input_data["proj_sf_qty"]),
+        nitrogen=float(csv_input_data["proj_sf_n"]),
     )
 
     # ----------
@@ -393,98 +439,73 @@ def main(n, arguments):
     # Baseline specify crop, yield, and % left in field in csv file
     cropPar = csv_handler.read_csv(input_csv)
     cropPar = np.atleast_2d(cropPar)
-    crop_base = []  # list for crop objects
-    crop_par_base = []
 
-    spp = int(val["crop_base_spp1"])
-    harvYield = np.zeros(configuration.N_YEARS)
-    harvYield[int(val["crop_base_start1"]) : int(val["crop_base_end1"])] = float(
-        val["crop_base_yd1"]
+    crop_base, crop_par_base = CropModel.get_crop_bases(
+        input_data=csv_input_data,
+        no_of_years=configuration.N_YEARS,
+        start_index=1,
+        end_index=3,
     )
-    harvFrac = float(val["crop_base_left1"])
-
-    ci = CropParams.from_species_index(spp)
-    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
-    crop_base.append(c)
-    crop_par_base.append(ci)
-
-    spp = int(val["crop_base_spp2"])
-    harvYield = np.zeros(configuration.N_YEARS)
-    harvYield[int(val["crop_base_start2"]) : int(val["crop_base_end2"])] = float(
-        val["crop_base_yd2"]
+    crop_projection, crop_par_projection = CropModel.get_crop_projections(
+        input_data=csv_input_data,
+        no_of_years=configuration.N_YEARS,
+        start_index=1,
+        end_index=3,
     )
-    harvFrac = float(val["crop_base_left2"])
-
-    ci = CropParams.from_species_index(spp)
-    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
-    crop_base.append(c)
-    crop_par_base.append(ci)
-
-    spp = int(val["crop_base_spp3"])
-    harvYield = np.zeros(configuration.N_YEARS)
-    harvYield[int(val["crop_base_start3"]) : int(val["crop_base_end3"])] = float(
-        val["crop_base_yd3"]
-    )
-    harvFrac = float(val["crop_base_left3"])
-
-    ci = CropParams.from_species_index(spp)
-    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
-    crop_base.append(c)
-    crop_par_base.append(ci)
 
     # Project specify crop, yield, and % left in field in csv file
-    cropPar = csv_handler.read_csv(input_csv)
-    cropPar = np.atleast_2d(cropPar)
-    crop_proj = []
-    crop_par_proj = []
+    # cropPar = csv_handler.read_csv(input_csv)
+    # cropPar = np.atleast_2d(cropPar)
+    # crop_projection = []
+    # crop_par_projection = []
 
-    spp = int(val["crop_proj_spp1"])
-    harvYield = np.zeros(configuration.N_YEARS)
-    harvYield[int(val["crop_proj_start1"]) : int(val["crop_proj_end1"])] = float(
-        val["crop_proj_yd1"]
-    )
-    harvFrac = float(val["crop_proj_left1"])
+    # spp = int(csv_input_data["crop_proj_spp1"])
+    # harvYield = np.zeros(configuration.N_YEARS)
+    # harvYield[int(csv_input_data["crop_proj_start1"]) : int(csv_input_data["crop_proj_end1"])] = float(
+    #     csv_input_data["crop_proj_yd1"]
+    # )
+    # harvFrac = float(csv_input_data["crop_proj_left1"])
 
-    ci = CropParams.from_species_index(spp)
-    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
-    crop_proj.append(c)
-    crop_par_proj.append(ci)
+    # ci = CropParams.from_species_index(spp)
+    # c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
+    # crop_projection.append(c)
+    # crop_par_projection.append(ci)
 
-    spp = int(val["crop_proj_spp2"])
-    harvYield = np.zeros(configuration.N_YEARS)
-    harvYield[int(val["crop_proj_start2"]) : int(val["crop_proj_end2"])] = float(
-        val["crop_proj_yd2"]
-    )
-    harvFrac = float(val["crop_proj_left2"])
+    # spp = int(csv_input_data["crop_proj_spp2"])
+    # harvYield = np.zeros(configuration.N_YEARS)
+    # harvYield[int(csv_input_data["crop_proj_start2"]) : int(csv_input_data["crop_proj_end2"])] = float(
+    #     csv_input_data["crop_proj_yd2"]
+    # )
+    # harvFrac = float(csv_input_data["crop_proj_left2"])
 
-    ci = CropParams.from_species_index(spp)
-    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
-    crop_proj.append(c)
-    crop_par_proj.append(ci)
+    # ci = CropParams.from_species_index(spp)
+    # c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
+    # crop_projection.append(c)
+    # crop_par_projection.append(ci)
 
-    spp = int(val["crop_proj_spp3"])
-    harvYield = np.zeros(configuration.N_YEARS)
-    harvYield[int(val["crop_proj_start3"]) : int(val["crop_proj_end3"])] = float(
-        val["crop_proj_yd3"]
-    )
-    harvFrac = float(val["crop_proj_left3"])
+    # spp = int(csv_input_data["crop_proj_spp3"])
+    # harvYield = np.zeros(configuration.N_YEARS)
+    # harvYield[int(csv_input_data["crop_proj_start3"]) : int(csv_input_data["crop_proj_end3"])] = float(
+    #     csv_input_data["crop_proj_yd3"]
+    # )
+    # harvFrac = float(csv_input_data["crop_proj_left3"])
 
-    ci = CropParams.from_species_index(spp)
-    c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
-    crop_proj.append(c)
-    crop_par_proj.append(ci)
+    # ci = CropParams.from_species_index(spp)
+    # c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
+    # crop_projection.append(c)
+    # crop_par_projection.append(ci)
 
     # soil cover for baseline
     cover_base = np.zeros(12)
-    cover_base[int(val["base_cvr_mth_st"]) : int(val["base_cvr_mth_en"])] = int(
-        val["base_cvr_pres"]
-    )
+    cover_base[
+        int(csv_input_data["base_cvr_mth_st"]) : int(csv_input_data["base_cvr_mth_en"])
+    ] = int(csv_input_data["base_cvr_pres"])
 
     # soil cover for project
     cover_proj = np.zeros(12)
-    cover_proj[int(val["proj_cvr_mth_st"]) : int(val["proj_cvr_mth_en"])] = int(
-        val["proj_cvr_pres"]
-    )
+    cover_proj[
+        int(csv_input_data["proj_cvr_mth_st"]) : int(csv_input_data["proj_cvr_mth_en"])
+    ] = int(csv_input_data["proj_cvr_pres"])
 
     # Solve to y=0
     forRoth = ForwardRothC.create(
@@ -514,7 +535,7 @@ def main(n, arguments):
         climate,
         cover_proj,
         Ci=forRoth.SOC[-1],
-        crop=crop_proj,
+        crop=crop_projection,
         tree=[tree_proj1, tree_proj2, tree_proj3],
         litter=[l_proj],
         fire=fire_proj,
@@ -522,6 +543,7 @@ def main(n, arguments):
 
     # Emissions stuff
     emit_base_emissions = Emit.create(
+        no_of_years=configuration.N_YEARS,
         forRothC=roth_base,
         crop=crop_base,
         tree=[tree_base],
@@ -530,8 +552,9 @@ def main(n, arguments):
         fire=fire_base,
     )
     emit_proj_emissions = Emit.create(
+        no_of_years=configuration.N_YEARS,
         forRothC=roth_proj,
-        crop=crop_proj,
+        crop=crop_projection,
         tree=[tree_proj1, tree_proj2, tree_proj3],
         litter=[l_proj],
         fert=[sf_proj],
@@ -560,20 +583,26 @@ def main(n, arguments):
     ForwardRothC.print_to_stdout(roth_proj)
 
     # crop emissions print
-    crop_base_emissions = Emit.create(crop=crop_base, fire=fire_base)
-    crop_proj_emissions = Emit.create(crop=crop_proj, fire=fire_proj)
+    crop_base_emissions = Emit.create(
+        no_of_years=configuration.N_YEARS, crop=crop_base, fire=fire_base
+    )
+    crop_projection_emissions = Emit.create(
+        no_of_years=configuration.N_YEARS, crop=crop_projection, fire=fire_proj
+    )
 
-    crop_difference = crop_proj_emissions - crop_base_emissions
+    crop_difference = crop_projection_emissions - crop_base_emissions
 
-    print_crop_emissions(crop_base_emissions, crop_proj_emissions, crop_difference)
+    print_crop_emissions(
+        crop_base_emissions, crop_projection_emissions, crop_difference
+    )
 
     # fert emissions print
     print("\n\nFERTILISER EMISSIONS (t CO2)")
     print("=================\n")
     print("baseline    project")
 
-    fert_base_emissions = Emit.create(fert=[sf_base])
-    fert_proj_emissions = Emit.create(fert=[sf_proj])
+    fert_base_emissions = Emit.create(no_of_years=configuration.N_YEARS, fert=[sf_base])
+    fert_proj_emissions = Emit.create(no_of_years=configuration.N_YEARS, fert=[sf_proj])
 
     fert_diff = fert_proj_emissions - fert_base_emissions
     for i in range(len(fert_base_emissions)):
@@ -588,8 +617,12 @@ def main(n, arguments):
     print("=================\n")
     print("baseline    project")
 
-    lit_base_emissions = Emit.create(litter=[l_base], fire=fire_base)
-    lit_proj_emissions = Emit.create(litter=[l_proj], fire=fire_proj)
+    lit_base_emissions = Emit.create(
+        no_of_years=configuration.N_YEARS, litter=[l_base], fire=fire_base
+    )
+    lit_proj_emissions = Emit.create(
+        no_of_years=configuration.N_YEARS, litter=[l_proj], fire=fire_proj
+    )
 
     lit_diff = lit_proj_emissions - lit_base_emissions
     for i in range(len(lit_base_emissions)):
@@ -604,8 +637,8 @@ def main(n, arguments):
     print("=================\n")
     print("baseline    project")
 
-    fire_base_emissions = Emit.create(fire=fire_base)
-    fire_proj_emissions = Emit.create(fire=fire_proj)
+    fire_base_emissions = Emit.create(no_of_years=configuration.N_YEARS, fire=fire_base)
+    fire_proj_emissions = Emit.create(no_of_years=configuration.N_YEARS, fire=fire_proj)
 
     fire_diff = fire_proj_emissions - fire_base_emissions
     for i in range(len(fire_base_emissions)):
@@ -620,9 +653,13 @@ def main(n, arguments):
     print("=================\n")
     print("baseline    project")
 
-    tree_base_emissions = Emit.create(tree=[tree_base], fire=fire_base)
+    tree_base_emissions = Emit.create(
+        no_of_years=configuration.N_YEARS, tree=[tree_base], fire=fire_base
+    )
     tree_proj_emissions = Emit.create(
-        tree=[tree_proj1, tree_proj2, tree_proj3], fire=fire_proj
+        no_of_years=configuration.N_YEARS,
+        tree=[tree_proj1, tree_proj2, tree_proj3],
+        fire=fire_proj,
     )
 
     tree_diff = tree_proj_emissions - tree_base_emissions
@@ -646,7 +683,7 @@ def main(n, arguments):
         + tree_base_emissions
     )
     soil_proj_emit = emit_proj_emissions - (
-        crop_proj_emissions
+        crop_projection_emissions
         + fert_proj_emissions
         + lit_proj_emissions
         + fire_proj_emissions
@@ -676,7 +713,7 @@ def main(n, arguments):
 
     # summary of GHG pools
     print("\n\nSUMMARY OF EMISSIONS (t CO2)")
-    print("over " + str(val["yrs_acct"]) + " years")
+    print("over " + str(csv_input_data["yrs_acct"]) + " years")
     print("=================\n")
     print("baseline    project")
 
@@ -720,10 +757,12 @@ def main(n, arguments):
             crop_par_base[i], plot_name + "_crop_params_base_" + str(i) + ".csv"
         )
 
-        CropModel.save(crop_proj[i], plot_name + "_crop_model_proj_" + str(i) + ".csv")
+        CropModel.save(
+            crop_projection[i], plot_name + "_crop_model_proj_" + str(i) + ".csv"
+        )
 
         CropParams.save(
-            crop_par_proj[i], plot_name + "_crop_params_proj_" + str(i) + ".csv"
+            crop_par_projection[i], plot_name + "_crop_params_proj_" + str(i) + ".csv"
         )
 
     InverseRothC.save(invRoth, plot_name + "_invRoth.csv")
@@ -767,7 +806,7 @@ def main(n, arguments):
                 "fert_proj",
                 "fert_diff",
                 "crop_base",
-                "crop_proj",
+                "crop_projection",
                 "crop_difference",
             ]
         )
@@ -793,7 +832,7 @@ def main(n, arguments):
                     fert_proj_emissions[i],
                     fert_diff[i],
                     crop_base_emissions[i],
-                    crop_proj_emissions[i],
+                    crop_projection_emissions[i],
                     crop_difference[i],
                 ]
             )

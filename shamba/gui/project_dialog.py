@@ -5,14 +5,14 @@
 
 
 import os
-from model import configuration
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from gui.translate_ import translate_ as _
-from gui.designer.project_dialog_ui import Ui_project
-from gui.page_change import NextBackButtons
-from gui.dialog_setup import GenericDialog, GenericPage
 
+from gui.designer.project_dialog_ui import Ui_project
+from gui.dialog_setup import GenericDialog, GenericPage
+from gui.page_change import NextBackButtons
+from gui.translate_ import translate_ as _
+from model import configuration
 
 # Rich-text for the title page - set to baseline text by default, but set
 # text programmatically to these if !isBaseline

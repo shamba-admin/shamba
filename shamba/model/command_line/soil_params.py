@@ -7,8 +7,8 @@ import os
 import sys
 
 import numpy as np
-from osgeo import gdal
 from marshmallow import Schema, fields, post_load
+from osgeo import gdal
 
 from model.common import csv_handler
 from rasters import soil as soil_raster

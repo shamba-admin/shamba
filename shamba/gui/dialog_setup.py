@@ -1,11 +1,13 @@
 """Contains classes for all the setup of the page widgets."""
 
 import os
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from gui.translate_ import translate_ as _
 from model import configuration
-from .page_change import PageComplete, NextBackButtons
+
+from .page_change import NextBackButtons, PageComplete
 
 
 class GenericDialog(QtWidgets.QDialog):

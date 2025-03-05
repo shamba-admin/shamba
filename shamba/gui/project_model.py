@@ -6,24 +6,24 @@ import sys
 from model.common import csv_handler
 
 try:
-    from io import StringIO  ## for Python 2
+    from io import StringIO  # # for Python 2
 except ImportError:
     from io import StringIO  ## for Python 3
+
 import logging as log
 import shutil
+
 import numpy as np
+from PyQt5 import QtCore, QtGui
 
-from PyQt5 import QtGui, QtCore
-
-from model import configuration
+import model.command_line.litter as LitterModel
 import model.command_line.soil_params as SoilParams
-from model.command_line.crop_params import CropParams
-from model.command_line.crop_model import CropModel
 import model.command_line.tree_params as TreeParams
+from model import configuration, emit
+from model.command_line.crop_model import CropModel
+from model.command_line.crop_params import CropParams
 from model.command_line.tree_growth import TreeGrowth
 from model.command_line.tree_model import TreeModel
-import model.command_line.litter as LitterModel
-from model import emit
 
 
 class ProjectModel(object):

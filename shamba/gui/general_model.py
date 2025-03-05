@@ -6,17 +6,18 @@ import sys
 from model.common import csv_handler
 
 try:
-    from io import StringIO  ## for Python 2
+    from io import StringIO  # # for Python 2
 except ImportError:
     from io import StringIO  ## for Python 3
+
 import logging as log
+import shutil
+
 import numpy as np
 from PyQt5 import QtCore, QtGui
 
-import shutil
-
-from model import configuration
 import model.command_line.climate as Climate
+from model import configuration
 
 
 class GeneralModel(object):

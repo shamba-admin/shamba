@@ -4,8 +4,9 @@
 
 import logging as log
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 from model import configuration
 from model.common import csv_handler
@@ -83,7 +84,16 @@ emissions   vector of yearly GHG emissions in t CO2e/ha
 """
 
 
-def create(forRothC=None, crop=[], tree=[], litter=[], fert=[], fire=[], burnOff=True):
+def create(
+    no_of_years,
+    forRothC=None,
+    crop=[],
+    tree=[],
+    litter=[],
+    fert=[],
+    fire=[],
+    burnOff=True,
+):
     """Initialise object.
     Optional arguments gives flexibility about what/what kind of
     emissions to calculate
@@ -102,7 +112,7 @@ def create(forRothC=None, crop=[], tree=[], litter=[], fert=[], fire=[], burnOff
     """
 
     # Calculate total emission (for types that aren't None or empty)
-    emissions = np.zeros(configuration.N_YEARS)
+    emissions = np.zeros(no_of_years)
     # += the sources (nitrogen, fire, fertiliser)
     # and -= the sinks (biomass, soil)
 

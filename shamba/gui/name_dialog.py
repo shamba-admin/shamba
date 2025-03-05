@@ -1,6 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from gui.translate_ import translate_ as _
+
 from gui.designer.name_dialog_ui import Ui_name
+from gui.translate_ import translate_ as _
 
 
 class NameDialog(Ui_name, QtWidgets.QDialog):

@@ -5,13 +5,12 @@ Created on Thu May 24 10:09:08 2012
 @author: mhagdorn
 """
 
-import pylab, numpy
-
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.image
+import numpy
+import pylab
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from mpl_toolkits.basemap import Basemap
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 

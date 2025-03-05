@@ -2,10 +2,9 @@
 
 """Module for io related functions in the SHAMBA program."""
 
-import os
 import logging as log
+import os
 from datetime import datetime
-
 
 from model import configuration
 

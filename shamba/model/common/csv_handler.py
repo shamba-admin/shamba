@@ -2,11 +2,12 @@
 
 """Module for io related functions in the SHAMBA program."""
 
-import os
-import logging as log
 import csv
+import logging as log
+import os
 
 import numpy as np
+
 from model import configuration
 
 
@@ -175,3 +176,15 @@ def read_mixed_csv(fileIn, cols=None, types=None):
         raise FileOpenError(fileIn)
 
     return array
+
+
+def get_csv_input_data(n, file_path):
+    with open(file_path, newline="") as csvfile:
+        reader = csv.reader(csvfile)
+        data = list(reader)
+
+    keys = data[0]
+    values = data[n + 1]
+
+    # Create dictionary directly using zip
+    return dict(zip(keys, values))

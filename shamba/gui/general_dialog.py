@@ -4,13 +4,14 @@
 
 
 import os
-from model import configuration
 
 from PyQt5 import QtCore, QtGui
-from gui.translate_ import translate_ as _
+
 from gui.designer.general_dialog_ui import Ui_general
-from gui.page_change import NextBackButtons
 from gui.dialog_setup import GenericDialog, GenericPage
+from gui.page_change import NextBackButtons
+from gui.translate_ import translate_ as _
+from model import configuration
 
 
 class GeneralDialog(GenericDialog, Ui_general):

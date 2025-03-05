@@ -1,11 +1,11 @@
+import os
+import sys
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from gui.translate_ import translate_ as _
 from gui import designer
 from gui.designer.disclaimer_ui import Ui_Disclaimer
-import sys
-import os
-
+from gui.translate_ import translate_ as _
 
 DISCLAIMER = """The SHAMBA tool has been developed with support from: the Sustainability and Climate Change department at PwC UK and funded by the Rockefeller Foundation; the Climate Change, Agriculture and Food Security research program (CCAFS), part of CGIAR, funded by the European Union (EU) and with technical support from the International Fund for Agricultural Development (IFAD);  and the Ecosystem Services for Poverty Alleviation (ESPA) research programme, which is in turn funded by the United Kingdom's Department for International Development (DFID), the Natural Environment Research Council (NERC) and the Economic and Social Research Council (ESRC).
 

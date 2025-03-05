@@ -454,6 +454,22 @@ files = [
 ]
 
 [[package]]
+name = "isort"
+version = "6.0.1"
+description = "A Python utility / library to sort Python imports."
+optional = false
+python-versions = ">=3.9.0"
+groups = ["dev"]
+files = [
+    {file = "isort-6.0.1-py3-none-any.whl", hash = "sha256:2dc5d7f65c9678d94c88dfc29161a320eec67328bc97aad576874cb4be1e9615"},
+    {file = "isort-6.0.1.tar.gz", hash = "sha256:1cb5df28dfbc742e490c5e41bad6da41b805b0a8be7bc93cd0fb2a8a890ac450"},
+]
+
+[package.extras]
+colors = ["colorama"]
+plugins = ["setuptools"]
+
+[[package]]
 name = "kiwisolver"
 version = "1.4.8"
 description = "A fast implementation of the Cassowary constraint solver"
@@ -1298,4 +1314,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "==3.10.16"
-content-hash = "f6aeadafa72f8fd58e80aade509f8bfa6e1da6a4255a59b2d631e30a881672f9"
+content-hash = "f2ef9d805f71749d00dc2c27c429734661f1858ad3c1135fdfaa9aaedda723cd"

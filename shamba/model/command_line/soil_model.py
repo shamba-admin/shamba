@@ -9,19 +9,18 @@ class ForwardRothC(RothC)   forward soil model (solve ODEs forward in time)
 NOTE, all units are in t C ha^-1
 """
 
-import sys
-import os
 import logging as log
-
 import math
-import numpy as np
-from scipy import optimize, integrate
-import matplotlib.pyplot as plt
+import os
+import sys
 
-from ..common import csv_handler
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import integrate, optimize
 
 from .. import configuration
 from ..command_line import emit
+from ..common import csv_handler
 
 
 class RothC(object):

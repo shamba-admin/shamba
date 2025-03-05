@@ -1,10 +1,13 @@
-import numpy as np
 import math
-from scipy import optimize
+
+import numpy as np
 from marshmallow import fields, post_load
+from scipy import optimize
 
 from ....common import csv_handler
-from .roth_c import dC_dt, RothCSchema, RothCData, create as create_roth_c
+from .roth_c import RothCData, RothCSchema
+from .roth_c import create as create_roth_c
+from .roth_c import dC_dt
 
 """
 Inverse RothC model. Extends RothC class.

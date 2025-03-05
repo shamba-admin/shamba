@@ -7,21 +7,20 @@ def ryan      allometric function based on C. Ryan biotropica paper (2010)
 
 """
 
-from typing import Dict, Tuple
-import sys
-import os
 import logging as log
-from marshmallow import Schema, fields, post_load
-
-import numpy as np
 import math
-from scipy import optimize
-import matplotlib.pyplot as plt
-import pandas as pd
+import os
+import sys
+from typing import Dict, Tuple
 
-from ..common import csv_handler
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from marshmallow import Schema, fields, post_load
+from scipy import optimize
 
 from .. import configuration
+from ..common import csv_handler
 
 
 # Functions to fit to
