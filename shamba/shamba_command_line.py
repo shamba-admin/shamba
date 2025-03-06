@@ -70,11 +70,11 @@ def print_crop_emissions(
     crop_difference_emissions: np.ndarray,
 ):
     table_data = [
-        (base, proj, proj - base)
-        for base, proj in zip(crop_base_emissions, crop_projection_emissions)
+        (year, base, proj, proj - base)
+        for year, base, proj in zip(range(1, len(crop_base_emissions) + 1), crop_base_emissions, crop_projection_emissions)
     ]
 
-    headers = ["Baseline Emissions", "Projected Emissions", "Difference"]
+    headers = ["Year", "Baseline Emissions", "Projected Emissions", "Difference"]
     table_title = "CROP EMISSIONS (t CO2)"
 
     print()  # Newline
