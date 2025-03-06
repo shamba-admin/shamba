@@ -16,27 +16,10 @@ def get_arguments_interactively():
     """
     arguments = {}
 
-    # Prompt for verbosity
-    print("Verbosity level:")
-    print("0 - Normal")
-    print("1 - Info")
-    print("2 - Debug")
-    arguments["verbose"] = int(
-        input("Enter verbosity level (0/1/2): ").lower().startswith("0")
-    )
-
     # Prompt for param
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     project_name = input("Enter project name (or press Enter to skip): ").strip()
     arguments["project-name"] = project_name if project_name else f"project_{timestamp}"
-
-    # Prompt for report
-    arguments["report"] = (
-        input("Print report to stdout? (y/n): ").lower().startswith("y")
-    )
-
-    # Prompt for graph
-    arguments["graph"] = input("Show plots? (y/n): ").lower().startswith("y")
 
     # Add some instructions here
     print(
@@ -78,13 +61,7 @@ def get_arguments_interactively():
     output_title = input("Enter the title of the output file (default is 'WL'): ")
     arguments["output-title"] = output_title if output_title else "WL"
 
-    # Set up logging level based on verbosity
-    if arguments["verbose"] == 2:
-        log.basicConfig(format="%(levelname)s: %(message)s", level=log.DEBUG)
-    elif arguments["verbose"] == 1:
-        log.basicConfig(format="%(levelname)s: %(message)s", level=log.INFO)
-    else:
-        log.basicConfig(format="%(levelname)s: %(message)s")
+    log.basicConfig(format="%(levelname)s: %(message)s", level=log.INFO) # Or DEBUG
 
     return arguments
 
