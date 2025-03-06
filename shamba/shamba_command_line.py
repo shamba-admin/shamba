@@ -457,48 +457,6 @@ def main(n, arguments):
         end_index=3,
     )
 
-    # Project specify crop, yield, and % left in field in csv file
-    # cropPar = csv_handler.read_csv(input_csv)
-    # cropPar = np.atleast_2d(cropPar)
-    # crop_projection = []
-    # crop_par_projection = []
-
-    # spp = int(csv_input_data["crop_proj_spp1"])
-    # harvYield = np.zeros(N_YEARS)
-    # harvYield[int(csv_input_data["crop_proj_start1"]) : int(csv_input_data["crop_proj_end1"])] = float(
-    #     csv_input_data["crop_proj_yd1"]
-    # )
-    # harvFrac = float(csv_input_data["crop_proj_left1"])
-
-    # ci = CropParams.from_species_index(spp)
-    # c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
-    # crop_projection.append(c)
-    # crop_par_projection.append(ci)
-
-    # spp = int(csv_input_data["crop_proj_spp2"])
-    # harvYield = np.zeros(N_YEARS)
-    # harvYield[int(csv_input_data["crop_proj_start2"]) : int(csv_input_data["crop_proj_end2"])] = float(
-    #     csv_input_data["crop_proj_yd2"]
-    # )
-    # harvFrac = float(csv_input_data["crop_proj_left2"])
-
-    # ci = CropParams.from_species_index(spp)
-    # c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
-    # crop_projection.append(c)
-    # crop_par_projection.append(ci)
-
-    # spp = int(csv_input_data["crop_proj_spp3"])
-    # harvYield = np.zeros(N_YEARS)
-    # harvYield[int(csv_input_data["crop_proj_start3"]) : int(csv_input_data["crop_proj_end3"])] = float(
-    #     csv_input_data["crop_proj_yd3"]
-    # )
-    # harvFrac = float(csv_input_data["crop_proj_left3"])
-
-    # ci = CropParams.from_species_index(spp)
-    # c = CropModel.create(crop_params=ci, crop_yield=harvYield, left_in_field=harvFrac)
-    # crop_projection.append(c)
-    # crop_par_projection.append(ci)
-
     # soil cover for baseline
     cover_base = np.zeros(12)
     cover_base[
