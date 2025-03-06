@@ -12,7 +12,7 @@ from model import configuration
 from model.common import csv_handler
 
 # Fire vector - can redefine from elsewhere if there are fires
-fire = np.zeros(configuration.N_YEARS)
+# fire = np.zeros(configuration.N_YEARS)
 
 # Emissions stuff
 # From table 2.5 IPCC 2006 GHG Inventory
@@ -26,7 +26,9 @@ cf = {"crop": 0.8, "tree": 0.74}
 
 
 # Reduce crop/tree/litter outputs due to fire
-def reduceFromFire(crop=[], tree=[], litter=[], fire=[], outputType="carbon"):
+def reduceFromFire(
+    no_of_years, crop=[], tree=[], litter=[], fire=[], outputType="carbon"
+):
     """
     Calculate the crop and tree outputs
     of specified type (e.g. 'carbon', 'nitrogen', 'DMon', DMoff')
@@ -44,13 +46,14 @@ def reduceFromFire(crop=[], tree=[], litter=[], fire=[], outputType="carbon"):
     """
     # Add up all inputs
     crop_inputs = {
-        "above": np.zeros(configuration.N_YEARS),
-        "below": np.zeros(configuration.N_YEARS),
+        "above": np.zeros(no_of_years),
+        "below": np.zeros(no_of_years),
     }
     tree_inputs = {
-        "above": np.zeros(configuration.N_YEARS),
-        "below": np.zeros(configuration.N_YEARS),
+        "above": np.zeros(no_of_years),
+        "below": np.zeros(no_of_years),
     }
+
     for s in ["above", "below"]:
         try:
             for c in crop:
@@ -116,17 +119,19 @@ def create(
     # += the sources (nitrogen, fire, fertiliser)
     # and -= the sinks (biomass, soil)
 
-    emissions_soc = -soc_sink(forRothC) if forRothC is not None else 0
-    emissions_tree = -tree_sink(tree) if tree else 0
+    emissions_soc = -soc_sink(forRothC, no_of_years) if forRothC is not None else 0
+    emissions_tree = -tree_sink(tree, no_of_years) if tree else 0
     emissions_nitro = (
-        nitrogen_emit(crop, tree, litter) if (crop or tree or litter) else 0
-    )
-    emissions_fire = (
-        fire_emit(crop, tree, litter, fire, burn_off=burnOff)
+        nitrogen_emit(no_of_years=no_of_years, crop=crop, tree=tree, litter=litter)
         if (crop or tree or litter)
         else 0
     )
-    emissions_fert = fert_emit(litter, fert) if (fert or litter) else 0
+    emissions_fire = (
+        fire_emit(crop, tree, litter, fire, no_of_years, burn_off=burnOff)
+        if (crop or tree or litter)
+        else 0
+    )
+    emissions_fert = fert_emit(litter, fert, no_of_years) if (fert or litter) else 0
 
     total_emissions = (
         emissions
@@ -138,7 +143,7 @@ def create(
     )
 
     # We only care about portion in the project accounting period
-    return total_emissions[0 : configuration.N_ACCT]
+    return total_emissions[0:no_of_years]
 
 
 def plot(emissions, legendStr, saveName=None):
@@ -192,7 +197,7 @@ def save(emit_base_emissions, emit_proj_emissions=None, file="emissions.csv"):
     csv_handler.print_csv(file, data, col_names=cols, print_column=True)
 
 
-def soc_sink(forRothC):
+def soc_sink(forRothC, no_of_years):
     """
     Calculate SOC differences from year to year (carbon sink)
     Instance of ForwardRothC is the argument.
@@ -207,15 +212,15 @@ def soc_sink(forRothC):
 
     # IMPORTANT: make sure soc is of length N_YEARS+1
     # (N years, inclusive of beginning and end = N+1 array entries)
-    deltaSOC = np.zeros(configuration.N_YEARS)
+    deltaSOC = np.zeros(no_of_years)
 
-    for i in range(configuration.N_YEARS):
+    for i in range(no_of_years):
         deltaSOC[i] = (soc[i + 1] - soc[i]) * conversionFactor
 
     return deltaSOC
 
 
-def tree_sink(tree):
+def tree_sink(tree, no_of_years):
     """
     Calculate woody biomass pool sizes from year to year (carbon sink)
     Tree object is the input argument
@@ -224,25 +229,31 @@ def tree_sink(tree):
     """
     conversionFactor = 44.0 / 12
 
-    biomass = np.zeros(configuration.N_YEARS + 1)
+    biomass = np.zeros(no_of_years + 1)
     for t in tree:
         biomass += np.sum(t.woody_biomass, axis=1)
 
-    delta = np.zeros(configuration.N_YEARS)
-    for i in range(configuration.N_YEARS):
+    delta = np.zeros(no_of_years)
+    for i in range(no_of_years):
         delta[i] = (biomass[i + 1] - biomass[i]) * conversionFactor
 
     return delta
 
 
-def nitrogen_emit(crop, tree, litter):
+def nitrogen_emit(no_of_years, crop, tree, litter):
     """
     Calculate and return emissions due to nitrogen.
     crop_out == list of output dicts from crops
     tree_out == list of output dicts from trees
     litter_out == list of output dicts from litter
     """
-    toEmit_crop, toEmit_tree = reduceFromFire(crop, tree, litter, outputType="nitrogen")
+    toEmit_crop, toEmit_tree = reduceFromFire(
+        no_of_years=no_of_years,
+        crop=crop,
+        tree=tree,
+        litter=litter,
+        outputType="nitrogen",
+    )
     toEmit = toEmit_crop + toEmit_tree
 
     ef = 0.01  # emission factor [kbN20-N/kg N]
@@ -251,7 +262,7 @@ def nitrogen_emit(crop, tree, litter):
     return toEmit * ef * mw * gwp["N2O"]
 
 
-def fire_emit(crop, tree, litter, fire, burn_off=True):
+def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
     """Calculate and return emissions due to fire.
     crop: list of crop models
     tree: list of tree models
@@ -261,11 +272,11 @@ def fire_emit(crop, tree, litter, fire, burn_off=True):
                     e.g. [True, False] -> burn crop1 off-res but not crop2
     """
 
-    emit = np.zeros(configuration.N_YEARS)
+    emit = np.zeros(no_of_years)
     # sum up the above-ground mass on-farm eligible to be burned
     # off-farm is summed up if any of the crops has burn=True
-    crop_inputs_on = np.zeros(configuration.N_YEARS)
-    tree_inputs_on = np.zeros(configuration.N_YEARS)
+    crop_inputs_on = np.zeros(no_of_years)
+    tree_inputs_on = np.zeros(no_of_years)
     for c in crop:
         crop_inputs_on += c.output["above"]["DMon"]
     for t in tree:
@@ -290,7 +301,7 @@ def fire_emit(crop, tree, litter, fire, burn_off=True):
         burn_off_lst = burn_off
 
     if any(burn_off_lst):
-        crop_inputs_off = np.zeros(configuration.N_YEARS)
+        crop_inputs_off = np.zeros(no_of_years)
         for i, c in enumerate(crop):
             if burn_off_lst[i]:
                 crop_inputs_off += c.output["above"]["DMoff"]
@@ -301,7 +312,7 @@ def fire_emit(crop, tree, litter, fire, burn_off=True):
     return emit
 
 
-def fert_emit(litter, fert):
+def fert_emit(litter, fert, no_of_years):
     """Calculate and return emissions due to fertiliser use.
     Args:
         litter: list-like of litter model objects
@@ -316,7 +327,7 @@ def fert_emit(litter, fert):
     volatile_frac_org = 0.2
 
     # calculate emissions
-    emit = np.zeros(configuration.N_YEARS)
+    emit = np.zeros(no_of_years)
     # still need to add fertiliser ************
     for li in litter:
         emit += np.array(li.output["above"]["nitrogen"], dtype=float) * (

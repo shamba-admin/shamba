@@ -60,6 +60,7 @@ def create(
     climate,
     cover,
     Ci,
+    no_of_years,
     crop=[],
     tree=[],
     litter=[],
@@ -81,7 +82,9 @@ def create(
     """
     roth_c = create_roth_c(soil, climate, cover)
 
-    SOC, inputs, Cy0Year = solver(roth_c, Ci, crop, tree, litter, fire, solveToValue)
+    SOC, inputs, Cy0Year = solver(
+        roth_c, Ci, no_of_years, crop, tree, litter, fire, solveToValue
+    )
 
     params = {
         "soil_params": vars(roth_c.soil),
@@ -102,7 +105,9 @@ def create(
     return schema.load(params)
 
 
-def solver(roth_c, Ci, crop=[], tree=[], litter=[], fire=[], solveToValue=False):
+def solver(
+    roth_c, Ci, no_of_years, crop=[], tree=[], litter=[], fire=[], solveToValue=False
+):
     """Run RothC in 'forward' mode;
     solve dC_dt over a given time period
     or to a certain value, given a vector with soil inputs.
@@ -123,17 +128,19 @@ def solver(roth_c, Ci, crop=[], tree=[], litter=[], fire=[], solveToValue=False)
     """
 
     # Reduce inputs due to fire
-    soilIn_crop, soilIn_tree = emit.reduceFromFire(crop, tree, litter, fire)
+    soilIn_crop, soilIn_tree = emit.reduceFromFire(
+        no_of_years=no_of_years, crop=crop, tree=tree, litter=litter, fire=fire
+    )
 
     # make input into array with 2 columns (soilIn_crop,soilIn_tree)
     inputs = np.column_stack((soilIn_crop, soilIn_tree))
 
     # Calculate yearly values of x based dpm:rpm ratio for each year
-    x = get_partitions(roth_c, inputs)
+    x = get_partitions(roth_c, inputs, no_of_years)
     t = np.arange(0, 1, 0.001)
-    C = np.zeros((configuration.N_YEARS + 1, 4))
+    C = np.zeros((no_of_years + 1, 4))
     C[0] = Ci
-    Ctot = np.zeros(configuration.N_YEARS + 1)
+    Ctot = np.zeros(no_of_years + 1)
 
     # keep track of when target year reached
     year_target_reached = 0
@@ -142,7 +149,7 @@ def solver(roth_c, Ci, crop=[], tree=[], litter=[], fire=[], solveToValue=False)
         prevDiff_outer = 1000.0
         prevDiff_inner = 1000.0
 
-    for i in range(1, configuration.N_YEARS + 1):
+    for i in range(1, no_of_years + 1):
         # Careful with indices - using 1-based for arrays here
         # since, e.g., C[2] should correspond to carbon after 2 years
 
@@ -183,7 +190,7 @@ def solver(roth_c, Ci, crop=[], tree=[], litter=[], fire=[], solveToValue=False)
     return C, inputs, year_target_reached
 
 
-def get_partitions(roth_c, inputs):
+def get_partitions(roth_c, inputs, no_of_years):
     """Calculate partitioning coefficients.
 
     Args:
@@ -207,7 +214,7 @@ def get_partitions(roth_c, inputs):
 
     # Normalize
     i = 0
-    normInput = np.zeros((configuration.N_YEARS, 2))
+    normInput = np.zeros((no_of_years, 2))
     for row in inputs:
         if math.fabs(float(row.sum())) < 0.00000001:
             normInput[i] = 0
@@ -224,15 +231,15 @@ def get_partitions(roth_c, inputs):
         (
             p1,
             1 - p1,
-            np.array(configuration.N_YEARS * [p3 * (1 - p2)]),
-            np.array(configuration.N_YEARS * [(1 - p2) * (1 - p3)]),
+            np.array(no_of_years * [p3 * (1 - p2)]),
+            np.array(no_of_years * [(1 - p2) * (1 - p3)]),
         )
     )
 
     return x
 
 
-def plot(forward_roth_c, legendStr, saveName=None):
+def plot(forward_roth_c, legendStr, no_of_years, saveName=None):
     """Plot total carbon vs year for forwardRothC run.
 
     Args:
@@ -247,7 +254,7 @@ def plot(forward_roth_c, legendStr, saveName=None):
     ax.set_title("Total soil carbon vs time")
 
     tot_soc = np.sum(forward_roth_c.SOC, axis=1)
-    if len(tot_soc) == configuration.N_YEARS + 1:
+    if len(tot_soc) == no_of_years + 1:
         # baseline or project
         x = list(range(len(tot_soc)))
     else:
@@ -264,16 +271,16 @@ def plot(forward_roth_c, legendStr, saveName=None):
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
 
-def print_to_stdout(forward_roth_c, solveToValue=False):
+def print_to_stdout(forward_roth_c, no_of_years, solveToValue=False):
     """Print data from forward RothC run to stdout."""
     print("\n\nFORWARD CALCULATIONS")
     print("====================\n")
-    print("Length: ", configuration.N_YEARS, "years")
+    print("Length: ", no_of_years, "years")
     print("year carbon  crop_in  tree_in")
     tot_soc = np.sum(forward_roth_c.SOC, axis=1)
-    if len(tot_soc) == configuration.N_YEARS + 1:
+    if len(tot_soc) == no_of_years + 1:
         for i in range(len(tot_soc)):
-            if i == configuration.N_YEARS:
+            if i == no_of_years:
                 print(
                     i,
                     "  ",
@@ -310,7 +317,7 @@ def print_to_stdout(forward_roth_c, solveToValue=False):
                 print(forward_roth_c.inputs[i][0], "  ", forward_roth_c.inputs[i][1])
 
 
-def save(forward_roth_c, file="soil_model_forward.csv"):
+def save(forward_roth_c, no_of_years, file="soil_model_forward.csv"):
     """Save data from forward RothC run to a csv.
     Default path is OUTPUT_DIR.
 
@@ -327,7 +334,7 @@ def save(forward_roth_c, file="soil_model_forward.csv"):
         )
     )
     cols = ["soc", "dpm", "rpm", "bio", "hum", "iom", "crop_in", "tree_in"]
-    if len(tot_soc) != configuration.N_YEARS + 1:  # solve to value
+    if len(tot_soc) != no_of_years + 1:  # solve to value
         cols.insert(0, "year")
         x = np.array(list(range(-len(tot_soc) + 2, 2)))
         x = x - forward_roth_c.Cy0Year

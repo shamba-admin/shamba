@@ -88,6 +88,7 @@ def create(
     tree_params,
     tree_growth,
     pool_params,
+    no_of_years,
     yearPlanted=0,
     initialStandDens=0,  # Should initialStandDens be 200?
     thin=None,
@@ -115,8 +116,8 @@ def create(
     turnover = pool_params["turnover"]
     thin_frac = pool_params["thinFrac"]
     mort_frac = pool_params["mortFrac"]
-    thin = np.zeros(configuration.N_YEARS + 1) if thin is None else thin
-    mort = np.zeros(configuration.N_YEARS + 1) if mort is None else mort
+    thin = np.zeros(no_of_years + 1) if thin is None else thin
+    mort = np.zeros(no_of_years + 1) if mort is None else mort
     initial_biomass = tree_growth.fit_data[0]
 
     output, woody_biomass, balance = get_inputs(
@@ -131,6 +132,7 @@ def create(
         initial_stand_dens=initialStandDens,
         thin=thin,
         mort=mort,
+        no_of_years=no_of_years,
     )
 
     params = {
@@ -159,6 +161,7 @@ def create(
 def from_defaults(
     tree_params,
     tree_growth,
+    no_of_years,
     yearPlanted=0,
     standDens=100,  # Should standDens be 200?
     thin=None,
@@ -182,11 +185,11 @@ def from_defaults(
 
     # thinning and mortality
     if thin is None:
-        thin = np.zeros(configuration.N_YEARS + 1)
+        thin = np.zeros(no_of_years + 1)
     if thinFrac is None:
         thinFrac = thinFrac_temp
     if mort is None:
-        mort = np.zeros(configuration.N_YEARS + 1)
+        mort = np.zeros(no_of_years + 1)
     if mortFrac is None:
         mortFrac = mortFrac_temp
 
@@ -196,7 +199,16 @@ def from_defaults(
         "thinFrac": thinFrac,
         "mortFrac": mortFrac,
     }
-    return create(tree_params, tree_growth, params, yearPlanted, standDens, thin, mort)
+    return create(
+        tree_params=tree_params,
+        tree_growth=tree_growth,
+        pool_params=params,
+        no_of_years=no_of_years,
+        yearPlanted=yearPlanted,
+        initialStandDens=standDens,
+        thin=thin,
+        mort=mort,
+    )
 
 
 def get_inputs(
@@ -211,6 +223,7 @@ def get_inputs(
     initial_biomass,
     year_planted,
     initial_stand_dens,
+    no_of_years,
 ):
     """
     Calculate and return residues and soil inputs from the tree.
@@ -238,34 +251,34 @@ def get_inputs(
     print(yp)
     print(initial_stand_dens)
 
-    standDens = np.zeros(configuration.N_YEARS + 1)
+    standDens = np.zeros(no_of_years + 1)
     standDens[yp] = initial_stand_dens
     print("standDens:")
     print(standDens)
 
     inputParams = {
-        "live": np.array((configuration.N_YEARS + 1) * [turnover]),
+        "live": np.array((no_of_years + 1) * [turnover]),
         "thin": thin,
         "dead": mort,
     }
     retainedFrac = {"live": 1, "thin": thin_frac, "dead": mort_frac}
 
     # initialise stuff
-    pools = np.zeros((configuration.N_YEARS + 1, 5))
-    woody_biomass = np.zeros((configuration.N_YEARS + 1, 5))
-    tNPP = np.zeros(configuration.N_YEARS + 1)
+    pools = np.zeros((no_of_years + 1, 5))
+    woody_biomass = np.zeros((no_of_years + 1, 5))
+    tNPP = np.zeros(no_of_years + 1)
 
     flux = {}
     inputs = {}
     exports = {}
     for s in ["live", "dead", "thin"]:
-        flux[s] = np.zeros((configuration.N_YEARS + 1, 5))
-        inputs[s] = np.zeros((configuration.N_YEARS + 1, 5))
-        exports[s] = np.zeros((configuration.N_YEARS + 1, 5))
+        flux[s] = np.zeros((no_of_years + 1, 5))
+        inputs[s] = np.zeros((no_of_years + 1, 5))
+        exports[s] = np.zeros((no_of_years + 1, 5))
 
-    inputC = np.zeros((configuration.N_YEARS + 1, 5))
-    exportC = np.zeros((configuration.N_YEARS + 1, 5))
-    biomGrowth = np.zeros((configuration.N_YEARS + 1, 5))
+    inputC = np.zeros((no_of_years + 1, 5))
+    exportC = np.zeros((no_of_years + 1, 5))
+    biomGrowth = np.zeros((no_of_years + 1, 5))
 
     # set woody_biomass[0] to initial (allocated appropriately)
     pools[yp] = initial_biomass * alloc
@@ -273,12 +286,12 @@ def get_inputs(
     for s in inputs:
         flux[s][yp] = woody_biomass[yp] * inputParams[s][yp]
 
-    in_ = np.zeros(configuration.N_YEARS + 1)
-    acc = np.zeros(configuration.N_YEARS + 1)
-    bal = np.zeros(configuration.N_YEARS + 1)
-    out = np.zeros(configuration.N_YEARS + 1)
+    in_ = np.zeros(no_of_years + 1)
+    acc = np.zeros(no_of_years + 1)
+    bal = np.zeros(no_of_years + 1)
+    out = np.zeros(no_of_years + 1)
 
-    for i in range(1 + year_planted, configuration.N_YEARS + 1):
+    for i in range(1 + year_planted, no_of_years + 1):
         # Careful with indices - using 1-based here
         #   since, e.g., woody_biomass[2] should correspond to
         #   biomass after 2 years
@@ -327,11 +340,11 @@ def get_inputs(
         "bal": bal * 0.001,
     }
     woody_biomass *= 0.001  # convert to tonnes for emissions calc.
-    C = inputC[0 : configuration.N_YEARS]
+    C = inputC[0:no_of_years]
     DM = C / tree_params.carbon
-    N = np.zeros((configuration.N_YEARS, 5))
-    for i in range(configuration.N_YEARS):
-        N[i] = tree_params.nitrogen[0 : configuration.N_YEARS] * DM[i]
+    N = np.zeros((no_of_years, 5))
+    for i in range(no_of_years):
+        N[i] = tree_params.nitrogen[0:no_of_years] * DM[i]
 
     output = {}
     output["above"] = {
