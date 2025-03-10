@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from marshmallow import fields, post_load
 from scipy import integrate
+from tabulate import tabulate
+from typing import List, Tuple, Optional
 
 from .... import configuration
 from ....command_line import emit
@@ -270,52 +272,37 @@ def plot(forward_roth_c, legendStr, no_of_years, saveName=None):
     if saveName is not None:
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
+def create_row(year: float, carbon: float, inputs: Optional[List[float]] = None) -> List[float]:
+    return [year, carbon] + (inputs or [])
 
-def print_to_stdout(forward_roth_c, no_of_years, solveToValue=False):
-    """Print data from forward RothC run to stdout."""
-    print("\n\nFORWARD CALCULATIONS")
-    print("====================\n")
-    print("Length: ", no_of_years, "years")
-    print("year carbon  crop_in  tree_in")
+def generate_table_data(tot_soc: np.ndarray, soil_iom: float, inputs: List[Tuple[float, float]], years: np.ndarray) -> List[List[float]]:
+    return [
+        create_row(year, soc + soil_iom, list(inputs[i]) if i < len(inputs) else [])
+        for i, (year, soc) in enumerate(zip(years, tot_soc))
+    ]
+
+def print_to_stdout(forward_roth_c, no_of_years: int, label: str) -> None:
+    """Print data from forward RothC run to stdout using tabulate with a functional approach."""
+    table_title = f"FORWARD CALCULATIONS for {label}"
+
     tot_soc = np.sum(forward_roth_c.SOC, axis=1)
-    if len(tot_soc) == no_of_years + 1:
-        for i in range(len(tot_soc)):
-            if i == no_of_years:
-                print(
-                    i,
-                    "  ",
-                )
-                print(tot_soc[i] + forward_roth_c.soil.iom)
-            else:
-                print(
-                    i,
-                    "  ",
-                )
-                print(
-                    tot_soc[i] + forward_roth_c.soil.iom,
-                    "  ",
-                )
-                print(forward_roth_c.inputs[i][0], "  ", forward_roth_c.inputs[i][1])
-    else:
-        x = np.array(list(range(-len(tot_soc) + 2, 2)))
-        x = x - forward_roth_c.Cy0Year
-        x[-1] = 0
-        for i in range(len(tot_soc)):
-            print(
-                "%6.3f" % (x[i]),
-            )
-            print(
-                "  ",
-            )
-            print(
-                tot_soc[i] + forward_roth_c.soil.iom,
-                "  ",
-            )
-            if i == len(tot_soc) - 1:
-                pass
-            else:
-                print(forward_roth_c.inputs[i][0], "  ", forward_roth_c.inputs[i][1])
+    soil_iom = forward_roth_c.soil.iom
 
+    if len(tot_soc) == no_of_years + 1:
+        years = np.arange(len(tot_soc), dtype=float)
+    else:
+        years = np.arange(-len(tot_soc) + 2, 2, dtype=float) - forward_roth_c.Cy0Year
+        years[-1] = 0
+
+    table_data = generate_table_data(tot_soc, soil_iom, forward_roth_c.inputs, years)
+
+    headers = ["Year", "Carbon", "Crop In", "Tree In"]
+
+    print()  # Newline
+    print()  # Newline
+    print(table_title)
+    print("=" * len(table_title))
+    print(tabulate(table_data, headers=headers, floatfmt=".3f", tablefmt="grid"))
 
 def save(forward_roth_c, no_of_years, file="soil_model_forward.csv"):
     """Save data from forward RothC run to a csv.

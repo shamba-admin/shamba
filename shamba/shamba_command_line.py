@@ -552,9 +552,9 @@ def main(n, arguments):
     TreeModel.print_balance(tree_proj2)
     TreeModel.print_biomass(tree_proj3)
     TreeModel.print_balance(tree_proj3)
-    ForwardRothC.print_to_stdout(forRoth, no_of_years=N_YEARS)
-    ForwardRothC.print_to_stdout(roth_base, no_of_years=N_YEARS)
-    ForwardRothC.print_to_stdout(roth_proj, no_of_years=N_YEARS)
+    ForwardRothC.print_to_stdout(forRoth, no_of_years=N_YEARS, label="initialisation")
+    ForwardRothC.print_to_stdout(roth_base, no_of_years=N_YEARS, label="baseline")
+    ForwardRothC.print_to_stdout(roth_proj, no_of_years=N_YEARS, label="projection")
 
     # crop emissions print
     crop_base_emissions = Emit.create(

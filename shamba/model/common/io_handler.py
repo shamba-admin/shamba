@@ -29,9 +29,10 @@ def get_arguments_interactively():
         print(f"{idx + 1}: {key}")
 
     # Get user input for allometric choice
-    allometric_choice = (
-        int(input("Choose an allometric option by number: ").strip()) - 1
-    )
+    try:
+        allometric_choice = int(input("Choose an allometric option by number: ").strip()) - 1
+    except ValueError:
+        allometric_choice = -1  # A value that will trigger the default assignment
 
     # Validate the choice and assign the corresponding key
     if allometric_choice >= 0 and allometric_choice < len(allometric_keys):
