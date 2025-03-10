@@ -64,6 +64,24 @@ _dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(_dir))
 
 
+def get_growths(csv_input_data, spp_key, input_csv, tree_params, allometric_key):
+    spp = int(csv_input_data[spp_key])
+    if spp == 1:
+        growth = TreeGrowth.from_csv1(
+            tree_params, n, allometric_key=allometric_key, filename=input_csv
+        )
+    elif spp == 2:
+        growth = TreeGrowth.from_csv2(
+            tree_params, n, allometric_key=allometric_key, filename=input_csv
+        )
+    else:
+        growth = TreeGrowth.from_csv3(
+            tree_params, n, allometric_key=allometric_key, filename=input_csv
+        )
+
+    return growth
+
+
 def print_crop_emissions(
     crop_base_emissions: np.ndarray,
     crop_projection_emissions: np.ndarray,
@@ -71,7 +89,11 @@ def print_crop_emissions(
 ):
     table_data = [
         (year, base, proj, proj - base)
-        for year, base, proj in zip(range(1, len(crop_base_emissions) + 1), crop_base_emissions, crop_projection_emissions)
+        for year, base, proj in zip(
+            range(1, len(crop_base_emissions) + 1),
+            crop_base_emissions,
+            crop_projection_emissions,
+        )
     ]
 
     headers = ["Year", "Baseline Emissions", "Projected Emissions", "Difference"]
@@ -210,37 +232,24 @@ def main(n, arguments):
     tree_par3 = TreeParams.from_species_index(int(csv_input_data["species3"]))
 
     # linking tree growth
-    spp = int(csv_input_data["species_base"])
-    if spp == 1:
-        growth_base = TreeGrowth.from_csv1(tree_par_base, n, filename=input_csv)
-    elif spp == 2:
-        growth_base = TreeGrowth.from_csv2(tree_par_base, n, filename=input_csv)
-    else:
-        growth_base = TreeGrowth.from_csv3(tree_par_base, n, filename=input_csv)
+    allometric_key = arguments["allometric-key"]
 
-    spp = int(csv_input_data["species1"])
-    if spp == 1:
-        growth1 = TreeGrowth.from_csv1(tree_par1, n, filename=input_csv)
-    elif spp == 2:
-        growth1 = TreeGrowth.from_csv2(tree_par1, n, filename=input_csv)
-    else:
-        growth1 = TreeGrowth.from_csv3(tree_par1, n, filename=input_csv)
-
-    spp = int(csv_input_data["species2"])
-    if spp == 1:
-        growth2 = TreeGrowth.from_csv1(tree_par2, n, filename=input_csv)
-    elif spp == 2:
-        growth2 = TreeGrowth.from_csv2(tree_par2, n, filename=input_csv)
-    else:
-        growth2 = TreeGrowth.from_csv3(tree_par2, n, filename=input_csv)
-
-    spp = int(csv_input_data["species3"])
-    if spp == 1:
-        growth3 = TreeGrowth.from_csv1(tree_par3, n, filename=input_csv)
-    elif spp == 2:
-        growth3 = TreeGrowth.from_csv2(tree_par3, n, filename=input_csv)
-    else:
-        growth3 = TreeGrowth.from_csv3(tree_par3, n, filename=input_csv)
+    growth_base = get_growths(
+        csv_input_data,
+        "species_base",
+        input_csv,
+        tree_par_base,
+        allometric_key=allometric_key,
+    )
+    growth1 = get_growths(
+        csv_input_data, "species1", input_csv, tree_par1, allometric_key=allometric_key
+    )
+    growth2 = get_growths(
+        csv_input_data, "species2", input_csv, tree_par2, allometric_key=allometric_key
+    )
+    growth3 = get_growths(
+        csv_input_data, "species3", input_csv, tree_par3, allometric_key=allometric_key
+    )
 
     # specify thinning regime and fraction left in field (lif)
     # baseline thinning regime

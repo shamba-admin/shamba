@@ -245,9 +245,9 @@ def create(tree_params, growth_params, allom="chave dry"):
 def from_csv1(
     tree_params,
     n,
+    allometric_key,
     filename="growth_measurements.csv",
     isBiomass=False,
-    allom="chave dry",
 ):
     """Construct Growth object using data in a csv file.
 
@@ -292,7 +292,7 @@ def from_csv1(
             "diam": diam,
         }
 
-        growth = create(tree_params, params, allom)
+        growth = create(tree_params, params, allometric_key)
 
     except IndexError:
         log.exception("Can't read growth data from %s " % filename)
@@ -304,9 +304,9 @@ def from_csv1(
 def from_csv2(
     tree_params,
     n,
+    allometric_key,
     filename="growth_measurements.csv",
     isBiomass=False,
-    allom="chave dry",
 ):
     """Construct Growth object using data in a csv file.
 
@@ -363,7 +363,7 @@ def from_csv2(
             "diam": diam,
         }
 
-        growth = create(tree_params, params, allom)
+        growth = create(tree_params, params, allometric_key)
 
     except IndexError:
         log.exception("Can't read growth data from %s " % filename)
@@ -375,9 +375,9 @@ def from_csv2(
 def from_csv3(
     tree_params,
     n,
+    allometric_key,
     filename="growth_measurements.csv",
     isBiomass=False,
-    allom="chave dry",
 ):
     """Construct Growth object using data in a csv file.
 
@@ -434,7 +434,7 @@ def from_csv3(
             "diam": diam,
         }
 
-        growth = create(tree_params, params, allom)
+        growth = create(tree_params, params, allometric_key)
 
     except IndexError:
         log.exception("Can't read growth data from %s " % filename)
@@ -443,7 +443,7 @@ def from_csv3(
     return growth
 
 
-def from_arrays(tree, age, data, isBiomass=False, allom="chave dry"):
+def from_arrays(tree, age, data, isBiomass=False, allometric_key="chave dry"):
     """Construct Growth object using data from numpy arrays."""
     pass
 
