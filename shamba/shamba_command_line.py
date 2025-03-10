@@ -96,7 +96,7 @@ def print_crop_emissions(
     print("Average crop difference: ", np.mean(crop_difference_emissions))
 
 
-def setup_project_directory(project_name):
+def setup_project_directory(project_name, arguments):
     """
     Set up a new project directory with the required input files.
 
@@ -122,7 +122,7 @@ def setup_project_directory(project_name):
         "crop_ipcc.csv",
         "climate.csv",
         "soil-info.csv",
-        "WL_input.csv",
+        arguments["input-file-name"],
     ]
 
     # Source directory (using an existing project as an example)
@@ -145,7 +145,7 @@ def main(n, arguments):
     project_name = arguments["project-name"]
 
     # Create a new project directory
-    setup_project_directory(project_name)
+    setup_project_directory(project_name, arguments)
 
     # Setup the project directory constants
     configuration.SAVE_DIR = os.path.join(configuration.PROJECT_DIR, project_name)
