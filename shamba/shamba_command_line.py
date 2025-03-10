@@ -543,9 +543,9 @@ def main(n, arguments):
     print("location: ", loc)
     Climate.print_to_stdout(climate)
     SoilParams.print_to_stdout(soil)
-    TreeGrowth.print_to_stdout(growth1)
-    TreeGrowth.print_to_stdout(growth2)
-    TreeGrowth.print_to_stdout(growth3)
+    TreeGrowth.print_to_stdout(growth1, label="growth1")
+    TreeGrowth.print_to_stdout(growth2, label="growth2")
+    TreeGrowth.print_to_stdout(growth3, label="growth3")
     TreeModel.print_biomass(tree_proj1)
     TreeModel.print_balance(tree_proj1)
     TreeModel.print_biomass(tree_proj2)
@@ -556,21 +556,19 @@ def main(n, arguments):
     ForwardRothC.print_to_stdout(roth_base, no_of_years=N_YEARS, label="baseline")
     ForwardRothC.print_to_stdout(roth_proj, no_of_years=N_YEARS, label="projection")
 
-    # crop emissions print
+    # Crop Emissions
     crop_base_emissions = Emit.create(
         no_of_years=N_YEARS, crop=crop_base, fire=fire_base
     )
     crop_projection_emissions = Emit.create(
         no_of_years=N_YEARS, crop=crop_projection, fire=fire_proj
     )
-
     crop_difference = crop_projection_emissions - crop_base_emissions
-
     print_crop_emissions(
         crop_base_emissions, crop_projection_emissions, crop_difference
     )
 
-    # fert emissions print
+    # Fertilizer Emissions
     print("\n\nFERTILISER EMISSIONS (t CO2)")
     print("=================\n")
     print("baseline    project")

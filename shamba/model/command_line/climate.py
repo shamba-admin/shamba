@@ -6,9 +6,9 @@ import logging as log
 import math
 import os
 import sys
-from typing import List
 
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 import numpy as np
 from marshmallow import Schema, fields, post_load
 
@@ -206,41 +206,72 @@ def plot(climate):
 
 
 def print_to_stdout(climate):
-    """Print climate data to stdout."""
+    """Print climate data to stdout using tabulate."""
 
-    monthNames = [
-        "JAN",
-        "FEB",
-        "MAR",
-        "APR",
-        "MAY",
-        "JUN",
-        "JUL",
-        "AUG",
-        "SEP",
-        "OCT",
-        "NOV",
-        "DEC",
+    month_names = [
+        "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+        "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
     ]
 
-    print("\nCLIMATE 2 DATA")
-    print("============\n")
-    print("Month   Temp.    Rain     Evap.")
-    print("        (*C)     (mm)     (mm) ")
-    print("-------------------------------")
-    for i in range(12):
-        print(
-            (
-                " %s    %5.2f   %6.2f   %6.2f"
-                % (
-                    monthNames[i],
-                    climate.temperature[i],
-                    climate.rain[i],
-                    climate.evaporation[i],
-                )
-            )
+    table_title = "CLIMATE 2 DATA"
+
+    # Prepare the data for tabulate
+    table_data = [
+        [month, f"{temp:.2f}", f"{rain:.2f}", f"{evap:.2f}"]
+        for month, temp, rain, evap in zip(
+            month_names,
+            climate.temperature,
+            climate.rain,
+            climate.evaporation
         )
-    print("")
+    ]
+
+    # Define headers
+    headers = ["Month", "Temp. (°C)", "Rain (mm)", "Evap. (mm)"]
+
+    # Print the table using tabulate
+    print()  # Newline
+    print()  # Newline
+    print(table_title)
+    print("=" * len(table_title))
+    print(tabulate(table_data, headers=headers, numalign="center", tablefmt="grid"))
+
+# def print_to_stdout(climate):
+#     """Print climate data to stdout."""
+
+#     monthNames = [
+#         "JAN",
+#         "FEB",
+#         "MAR",
+#         "APR",
+#         "MAY",
+#         "JUN",
+#         "JUL",
+#         "AUG",
+#         "SEP",
+#         "OCT",
+#         "NOV",
+#         "DEC",
+#     ]
+
+#     print("\nCLIMATE 2 DATA")
+#     print("============\n")
+#     print("Month   Temp.    Rain     Evap.")
+#     print("        (*C)     (mm)     (mm) ")
+#     print("-------------------------------")
+#     for i in range(12):
+#         print(
+#             (
+#                 " %s    %5.2f   %6.2f   %6.2f"
+#                 % (
+#                     monthNames[i],
+#                     climate.temperature[i],
+#                     climate.rain[i],
+#                     climate.evaporation[i],
+#                 )
+#             )
+#         )
+#     print("")
 
 
 def save(climate, file="climate.csv"):

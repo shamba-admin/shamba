@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 from marshmallow import Schema, fields, post_load
 from scipy import optimize
+from tabulate import tabulate
 
 from .. import configuration
 from ..common import csv_handler
@@ -593,85 +594,58 @@ def plot(tree_growth, fit=True, saveName=None):
     if saveName is not None:
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
-
-def print_to_stdout(tree_growth, fit=None, params=None, mse=None):
-    """Print data and fits for tree growth data to stdout."""
-    fit = True
-    params = True
-    mse = True
-
-    print("\n\nTREE GROWTH DATA")
-    print("=========\n")
-    print("Allometric: ", tree_growth.allometric_key)
-    print("\n  Age    Diameter  Biomass")
-    print("(years)    (cm)     (kg C)")
-    print("--------------------------")
-    for i in range(len(tree_growth.age)):
-        print(
-            (
-                "  %2d      %5.2f     %6.2f"
-                % (
-                    tree_growth.age[i],
-                    tree_growth.tree_diameter[i],
-                    tree_growth.biomass[i],
-                )
-            )
+def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):
+    """Print data and fits for tree growth data to stdout using tabulate."""
+    # Prepare the data for tabulate
+    table_data = [
+        [age, f"{diameter:.2f}", f"{biomass:.2f}"]
+        for age, diameter, biomass in zip(
+            tree_growth.age,
+            tree_growth.tree_diameter,
+            tree_growth.biomass
         )
+    ]
+
+    # Define headers
+    headers = ["Age (years)", "Diameter (cm)", "Biomass (kg C)"]
+
+    table_title = f"TREE GROWTH Data for {label}"
+
+    # Print the table using tabulate
+    print() # Newline
+    print() # Newline
+    print(table_title)
+    print(f"Allometric: {tree_growth.allometric_key}")
+    print("=" * len(table_title))
+    print(tabulate(table_data, headers=headers, tablefmt="grid"))
+
     if fit:
-        print("\n Data      Exp.     Hyp.     Lin.     Log.")
-        print("-----------------------------------------")
-        for i in range(len(tree_growth.age)):
-            print(
-                (
-                    "%6.2f   %6.2f   %6.2f   %6.2f   %6.2f"
-                    % (
-                        tree_growth.biomass[i],
-                        tree_growth.all_fit_data["exp"][i],
-                        tree_growth.all_fit_data["hyp"][i],
-                        tree_growth.all_fit_data["lin"][i],
-                        tree_growth.all_fit_data["log"][i],
-                    )
-                )
+        table_data = [
+            [f"{data:.2f}", f"{exp:.2f}", f"{hyp:.2f}", f"{lin:.2f}", f"{log:.2f}"]
+            for data, exp, hyp, lin, log in zip(
+                tree_growth.biomass,
+                tree_growth.all_fit_data["exp"],
+                tree_growth.all_fit_data["hyp"],
+                tree_growth.all_fit_data["lin"],
+                tree_growth.all_fit_data["log"]
             )
-    if params and mse:
-        print(
-            (
-                "\nMSE      %6.2f   %6.2f   %6.2f   %6.2f"
-                % (
-                    tree_growth.all_mse["exp"],
-                    tree_growth.all_mse["hyp"],
-                    tree_growth.all_mse["lin"],
-                    tree_growth.all_mse["log"],
-                )
-            )
-        )
-        print(
-            (
-                "a        %6.2f   %6.2f   %6.2f   %6.2f"
-                % (
-                    tree_growth.all_fit_params["exp"][0],
-                    tree_growth.all_fit_params["hyp"][0],
-                    tree_growth.all_fit_params["lin"][0],
-                    tree_growth.all_fit_params["log"][0],
-                )
-            )
-        )
-        print(
-            (
-                "b          -     %6.2f    -      %6.2f"
-                % (
-                    tree_growth.all_fit_params["hyp"][1],
-                    tree_growth.all_fit_params["log"][1],
-                )
-            )
-        )
-        print(
-            (
-                "c           -         -       -      %5.2f"
-                % (tree_growth.all_fit_params["log"][2])
-            )
-        )
+        ]
+        headers = ["Data", "Exp.", "Hyp.", "Lin.", "Log."]
 
+        print() # Newline
+        print(tabulate(table_data, headers=headers, tablefmt="grid"))
+
+    if params and mse:
+        table_data = [
+            ["MSE", f"{tree_growth.all_mse['exp']:.2f}", f"{tree_growth.all_mse['hyp']:.2f}", f"{tree_growth.all_mse['lin']:.2f}", f"{tree_growth.all_mse['log']:.2f}"],
+            ["a", f"{tree_growth.all_fit_params['exp'][0]:.2f}", f"{tree_growth.all_fit_params['hyp'][0]:.2f}", f"{tree_growth.all_fit_params['lin'][0]:.2f}", f"{tree_growth.all_fit_params['log'][0]:.2f}"],
+            ["b", "", f"{tree_growth.all_fit_params['hyp'][1]:.2f}", "", f"{tree_growth.all_fit_params['log'][1]:.2f}"],
+            ["c", "", "", "", f"{tree_growth.all_fit_params['log'][2]:.2f}"]
+        ]
+        headers = ["", "Exp.", "Hyp.", "Lin.", "Log."]
+
+        print() # Newline
+        print(tabulate(table_data, headers=headers, tablefmt="grid"))
 
 def save(tree_growth, file="tree_growth.csv"):
     """Save growth stuff to a csv file
