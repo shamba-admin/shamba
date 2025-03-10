@@ -418,7 +418,9 @@ def print_biomass(tree_model):
     print()  # Newline
     print(table_title)
     print("=" * len(table_title))
-    print(tabulate(table_data, headers=headers, numalign="center", tablefmt="grid"))
+    print(
+        tabulate(table_data, headers=headers, numalign="center", tablefmt="fancy_grid")
+    )
 
 
 def print_balance(tree_model):

@@ -118,6 +118,74 @@ def print_crop_emissions(
     print("Average crop difference: ", np.mean(crop_difference_emissions))
 
 
+def print_fertilizer_emissions(
+    fertiliser_base_emissions,
+    fertiliser_projection_emissions,
+    fertiliser_difference,
+    n_years,
+):
+    table_data = [
+        [
+            i + 1,
+            f"{fertiliser_base_emissions[i]:.2f}",
+            f"{fertiliser_projection_emissions[i]:.2f}",
+            f"{fertiliser_difference[i]:.2f}",
+        ]
+        for i in range(n_years)
+    ]
+
+    headers = ["Year", "Baseline Emissions", "Projected Emissions", "Difference"]
+    table_title = "FERTILISER EMISSIONS (t CO2)"
+
+    print()  # Newline
+    print()  # Newline
+    print(table_title)
+    print("=" * len(table_title))
+    print(
+        tabulate(
+            table_data,
+            headers=headers,
+            floatfmt=".9f",
+            numalign="center",
+            tablefmt="fancy_grid",
+        )
+    )
+
+    print()  # Newline
+    print("Total fertiliser difference: ", sum(fertiliser_difference), " t CO2 ha^-1")
+    print("Average fertiliser difference: ", np.mean(fertiliser_difference))
+
+def print_litter_emissions(litter_base_emissions, litter_projection_emissions, litter_difference, n_years):
+    table_data = [
+        [
+            i + 1,
+            f"{litter_base_emissions[i]:.2f}",
+            f"{litter_projection_emissions[i]:.2f}",
+            f"{litter_difference[i]:.2f}",
+        ]
+        for i in range(n_years)
+    ]
+
+    headers = ["Year", "Baseline Emissions", "Projected Emissions", "Difference"]
+    table_title = "LITTER EMISSIONS (t CO2)"
+
+    print()  # Newline
+    print()  # Newline
+    print(table_title)
+    print("=" * len(table_title))
+    print(
+        tabulate(
+            table_data,
+            headers=headers,
+            floatfmt=".9f",
+            numalign="center",
+            tablefmt="fancy_grid",
+        )
+    )
+    print()  # Newline
+    print("Total Litter difference: ", sum(litter_difference), " t CO2 ha^-1")
+    print("Average Litter difference: ", np.mean(litter_difference))
+
 def setup_project_directory(project_name, arguments):
     """
     Set up a new project directory with the required input files.
@@ -564,45 +632,38 @@ def main(n, arguments):
         no_of_years=N_YEARS, crop=crop_projection, fire=fire_proj
     )
     crop_difference = crop_projection_emissions - crop_base_emissions
+
     print_crop_emissions(
         crop_base_emissions, crop_projection_emissions, crop_difference
     )
 
     # Fertilizer Emissions
-    print("\n\nFERTILISER EMISSIONS (t CO2)")
-    print("=================\n")
-    print("baseline    project")
+    fertiliser_base_emissions = Emit.create(no_of_years=N_YEARS, fert=[sf_base])
+    fertiliser_projection_emissions = Emit.create(no_of_years=N_YEARS, fert=[sf_proj])
+    fertiliser_difference = fertiliser_projection_emissions - fertiliser_base_emissions
 
-    fert_base_emissions = Emit.create(no_of_years=N_YEARS, fert=[sf_base])
-    fert_proj_emissions = Emit.create(no_of_years=N_YEARS, fert=[sf_proj])
+    print_fertilizer_emissions(
+        fertiliser_base_emissions=fertiliser_base_emissions,
+        fertiliser_projection_emissions=fertiliser_projection_emissions,
+        fertiliser_difference=fertiliser_difference,
+        n_years=N_YEARS,
+    )
 
-    fert_diff = fert_proj_emissions - fert_base_emissions
-    for i in range(len(fert_base_emissions)):
-        print(fert_base_emissions[i], fert_proj_emissions[i], fert_diff[i])
-
-    print("\nTotal fertiliser difference: ", sum(fert_diff), " t CO2 ha^-1")
-
-    print("Average fertiliser difference: ", np.mean(fert_diff))
-
-    # litter emissions print
-    print("\n\nLITTER EMISSIONS (t CO2)")
-    print("=================\n")
-    print("baseline    project")
-
-    lit_base_emissions = Emit.create(
+    # Litter Emissions
+    litter_base_emissions = Emit.create(
         no_of_years=N_YEARS, litter=[l_base], fire=fire_base
     )
-    lit_proj_emissions = Emit.create(
+    litter_projection_emissions = Emit.create(
         no_of_years=N_YEARS, litter=[l_proj], fire=fire_proj
     )
+    litter_difference = litter_projection_emissions - litter_base_emissions
 
-    lit_diff = lit_proj_emissions - lit_base_emissions
-    for i in range(len(lit_base_emissions)):
-        print(lit_base_emissions[i], lit_proj_emissions[i], lit_diff[i])
-
-    print("\nTotal Litter difference: ", sum(lit_diff), " t CO2 ha^-1")
-
-    print("Average Litter difference: ", np.mean(lit_diff))
+    print_litter_emissions(
+        litter_base_emissions=litter_base_emissions,
+        litter_projection_emissions=litter_projection_emissions,
+        litter_difference=litter_difference,
+        n_years=N_YEARS,
+    )
 
     # fire emissions print
     print("\n\nFIRE EMISSIONS (t CO2)")
@@ -649,15 +710,15 @@ def main(n, arguments):
 
     soil_base_emit = emit_base_emissions - (
         crop_base_emissions
-        + fert_base_emissions
-        + lit_base_emissions
+        + fertiliser_base_emissions
+        + litter_base_emissions
         + fire_base_emissions
         + tree_base_emissions
     )
     soil_proj_emit = emit_proj_emissions - (
         crop_projection_emissions
-        + fert_proj_emissions
-        + lit_proj_emissions
+        + fertiliser_projection_emissions
+        + litter_projection_emissions
         + fire_proj_emissions
         + tree_proj_emissions
     )
@@ -690,8 +751,8 @@ def main(n, arguments):
     print("baseline    project")
 
     print("\nTotal crop difference: ", sum(crop_difference), " t CO2 ha^-1")
-    print("\nTotal fertiliser difference: ", sum(fert_diff), " t CO2 ha^-1")
-    print("\nTotal litter difference: ", sum(lit_diff), " t CO2 ha^-1")
+    print("\nTotal fertiliser difference: ", sum(fertiliser_difference), " t CO2 ha^-1")
+    print("\nTotal litter difference: ", sum(litter_difference), " t CO2 ha^-1")
     print("\nTotal fire difference: ", sum(fire_diff), " t CO2 ha^-1")
     print("\nTotal tree difference: ", sum(tree_diff), " t CO2 ha^-1")
     print("\nTotal Soil difference: ", sum(soil_diff), " t CO2 ha^-1")
@@ -783,10 +844,10 @@ def main(n, arguments):
                 "fire_diff",
                 "lit_base",
                 "lit_proj",
-                "lit_diff",
+                "litter_difference",
                 "fert_base",
                 "fert_proj",
-                "fert_diff",
+                "fertiliser_difference",
                 "crop_base",
                 "crop_projection",
                 "crop_difference",
@@ -807,12 +868,12 @@ def main(n, arguments):
                     fire_base_emissions[i],
                     fire_proj_emissions[i],
                     fire_diff[i],
-                    lit_base_emissions[i],
-                    lit_proj_emissions[i],
-                    lit_diff[i],
-                    fert_base_emissions[i],
-                    fert_proj_emissions[i],
-                    fert_diff[i],
+                    litter_base_emissions[i],
+                    litter_projection_emissions[i],
+                    litter_difference[i],
+                    fertiliser_base_emissions[i],
+                    fertiliser_projection_emissions[i],
+                    fertiliser_difference[i],
                     crop_base_emissions[i],
                     crop_projection_emissions[i],
                     crop_difference[i],
@@ -873,8 +934,8 @@ def main(n, arguments):
 
     return (
         sum(crop_difference),
-        sum(fert_diff),
-        sum(lit_diff),
+        sum(fertiliser_difference),
+        sum(litter_difference),
         sum(fire_diff),
         sum(tree_diff),
         sum(soil_diff),

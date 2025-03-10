@@ -312,7 +312,7 @@ def print_to_stdout(forward_roth_c, no_of_years: int, label: str) -> None:
     print()  # Newline
     print(table_title)
     print("=" * len(table_title))
-    print(tabulate(table_data, headers=headers, floatfmt=".3f", tablefmt="grid"))
+    print(tabulate(table_data, headers=headers, floatfmt=".3f", tablefmt="fancy_grid"))
 
 
 def save(forward_roth_c, no_of_years, file="soil_model_forward.csv"):

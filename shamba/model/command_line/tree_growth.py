@@ -616,7 +616,7 @@ def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):
     print(table_title)
     print(f"Allometric: {tree_growth.allometric_key}")
     print("=" * len(table_title))
-    print(tabulate(table_data, headers=headers, tablefmt="grid"))
+    print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
 
     if fit:
         table_data = [
@@ -632,7 +632,7 @@ def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):
         headers = ["Data", "Exp.", "Hyp.", "Lin.", "Log."]
 
         print()  # Newline
-        print(tabulate(table_data, headers=headers, tablefmt="grid"))
+        print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
 
     if params and mse:
         table_data = [
@@ -662,7 +662,7 @@ def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):
         headers = ["", "Exp.", "Hyp.", "Lin.", "Log."]
 
         print()  # Newline
-        print(tabulate(table_data, headers=headers, tablefmt="grid"))
+        print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
 
 
 def save(tree_growth, file="tree_growth.csv"):
