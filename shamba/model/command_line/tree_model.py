@@ -399,19 +399,20 @@ def plot_balance(tree_model, saveName=None):
     if saveName is not None:
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
+
 def print_biomass(tree_model):
     totalBiomass = np.sum(tree_model.woody_biomass, axis=1)
-    
+
     # Prepare the data for tabulate
     table_data = [
         [year, f"{biomass:.2f}"]  # Format biomass to 2 decimal places
         for year, biomass in enumerate(totalBiomass)
     ]
-    
+
     # Define headers
     headers = ["Year", "Biomass"]
     table_title = "BIOMASS MODEL"
-    
+
     # Print the table using tabulate
     print()  # Newline
     print()  # Newline

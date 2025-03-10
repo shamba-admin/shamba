@@ -30,7 +30,9 @@ def get_arguments_interactively():
 
     # Get user input for allometric choice
     try:
-        allometric_choice = int(input("Choose an allometric option by number: ").strip()) - 1
+        allometric_choice = (
+            int(input("Choose an allometric option by number: ").strip()) - 1
+        )
     except ValueError:
         allometric_choice = -1  # A value that will trigger the default assignment
 

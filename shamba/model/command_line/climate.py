@@ -209,8 +209,18 @@ def print_to_stdout(climate):
     """Print climate data to stdout using tabulate."""
 
     month_names = [
-        "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-        "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+        "JAN",
+        "FEB",
+        "MAR",
+        "APR",
+        "MAY",
+        "JUN",
+        "JUL",
+        "AUG",
+        "SEP",
+        "OCT",
+        "NOV",
+        "DEC",
     ]
 
     table_title = "CLIMATE 2 DATA"
@@ -219,10 +229,7 @@ def print_to_stdout(climate):
     table_data = [
         [month, f"{temp:.2f}", f"{rain:.2f}", f"{evap:.2f}"]
         for month, temp, rain, evap in zip(
-            month_names,
-            climate.temperature,
-            climate.rain,
-            climate.evaporation
+            month_names, climate.temperature, climate.rain, climate.evaporation
         )
     ]
 
@@ -235,6 +242,7 @@ def print_to_stdout(climate):
     print(table_title)
     print("=" * len(table_title))
     print(tabulate(table_data, headers=headers, numalign="center", tablefmt="grid"))
+
 
 # def print_to_stdout(climate):
 #     """Print climate data to stdout."""

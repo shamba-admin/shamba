@@ -272,14 +272,24 @@ def plot(forward_roth_c, legendStr, no_of_years, saveName=None):
     if saveName is not None:
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
-def create_row(year: float, carbon: float, inputs: Optional[List[float]] = None) -> List[float]:
+
+def create_row(
+    year: float, carbon: float, inputs: Optional[List[float]] = None
+) -> List[float]:
     return [year, carbon] + (inputs or [])
 
-def generate_table_data(tot_soc: np.ndarray, soil_iom: float, inputs: List[Tuple[float, float]], years: np.ndarray) -> List[List[float]]:
+
+def generate_table_data(
+    tot_soc: np.ndarray,
+    soil_iom: float,
+    inputs: List[Tuple[float, float]],
+    years: np.ndarray,
+) -> List[List[float]]:
     return [
         create_row(year, soc + soil_iom, list(inputs[i]) if i < len(inputs) else [])
         for i, (year, soc) in enumerate(zip(years, tot_soc))
     ]
+
 
 def print_to_stdout(forward_roth_c, no_of_years: int, label: str) -> None:
     """Print data from forward RothC run to stdout using tabulate with a functional approach."""
@@ -303,6 +313,7 @@ def print_to_stdout(forward_roth_c, no_of_years: int, label: str) -> None:
     print(table_title)
     print("=" * len(table_title))
     print(tabulate(table_data, headers=headers, floatfmt=".3f", tablefmt="grid"))
+
 
 def save(forward_roth_c, no_of_years, file="soil_model_forward.csv"):
     """Save data from forward RothC run to a csv.
