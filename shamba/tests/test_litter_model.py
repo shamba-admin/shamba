@@ -18,7 +18,7 @@ def test_crop_model():
     else:
         fire_base = np.zeros(N_YEARS)
         fire_base[::base_fire_interval] = int(csv_input_data["fire_pres_base"])
-    
+
     proj_fire_interval = int(csv_input_data["fire_int_proj"])
     if proj_fire_interval == 0:
         fire_project = np.zeros(N_YEARS)

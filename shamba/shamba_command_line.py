@@ -683,9 +683,7 @@ def main(n, arguments):
     )
     crop_difference = crop_project_emissions - crop_base_emissions
 
-    print_crop_emissions(
-        crop_base_emissions, crop_project_emissions, crop_difference
-    )
+    print_crop_emissions(crop_base_emissions, crop_project_emissions, crop_difference)
     # =============================================================================
 
     # Fertilizer Emissions
@@ -874,9 +872,7 @@ def main(n, arguments):
         file=plot_name + "_soil_model_proj.csv",
     )
 
-    Emit.save(
-        emit_base_emissions, emit_project_emissions, plot_name + "_emit_proj.csv"
-    )
+    Emit.save(emit_base_emissions, emit_project_emissions, plot_name + "_emit_proj.csv")
 
     with open(
         configuration.OUTPUT_DIR
