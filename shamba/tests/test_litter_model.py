@@ -7,32 +7,44 @@ from model import configuration
 import model.command_line.litter as LitterModel
 
 
-def test_fertiliser_model():
+def test_crop_model():
     file_path = os.path.join(configuration.TESTS_DIR, "fixtures", "WL_input.csv")
     csv_input_data = csv_handler.get_csv_input_data(0, file_path)
     N_YEARS = int(csv_input_data["yrs_proj"])
 
-    synthetic_fertiliser_base = LitterModel.synthetic_fert(
-        freq=int(csv_input_data["base_sf_int"]),
-        qty=float(csv_input_data["base_sf_qty"]),
-        nitrogen=float(csv_input_data["base_sf_n"]),
+    base_fire_interval = int(csv_input_data["fire_int_base"])
+    if base_fire_interval == 0:
+        fire_base = np.zeros(N_YEARS)
+    else:
+        fire_base = np.zeros(N_YEARS)
+        fire_base[::base_fire_interval] = int(csv_input_data["fire_pres_base"])
+    
+    proj_fire_interval = int(csv_input_data["fire_int_proj"])
+    if proj_fire_interval == 0:
+        fire_project = np.zeros(N_YEARS)
+    else:
+        fire_project = np.zeros(N_YEARS)
+        fire_project[::proj_fire_interval] = int(csv_input_data["fire_pres_proj"])
+
+    litter_external_base = LitterModel.from_defaults(
+        litterFreq=int(csv_input_data["base_lit_int"]),
+        litterQty=float(csv_input_data["base_lit_qty"]),
         no_of_years=N_YEARS,
     )
-    synthetic_fertiliser_project = LitterModel.synthetic_fert(
-        freq=int(csv_input_data["proj_sf_int"]),
-        qty=float(csv_input_data["proj_sf_qty"]),
-        nitrogen=float(csv_input_data["proj_sf_n"]),
+    litter_external_project = LitterModel.from_defaults(
+        litterFreq=int(csv_input_data["proj_lit_int"]),
+        litterQty=float(csv_input_data["proj_lit_qty"]),
         no_of_years=N_YEARS,
     )
 
-    fertiliser_base_emissions = Emit.create(
-        no_of_years=N_YEARS, fert=[synthetic_fertiliser_base]
+    litter_base_emissions = Emit.create(
+        no_of_years=N_YEARS, litter=[litter_external_base], fire=fire_base
     )
-    fertiliser_project_emissions = Emit.create(
-        no_of_years=N_YEARS, fert=[synthetic_fertiliser_project]
+    litter_project_emissions = Emit.create(
+        no_of_years=N_YEARS, litter=[litter_external_project], fire=fire_project
     )
 
-    assert fertiliser_base_emissions == pytest.approx(
+    assert litter_base_emissions == pytest.approx(
         [
             0,
             0,
@@ -86,8 +98,7 @@ def test_fertiliser_model():
             0,
         ]
     )
-
-    assert fertiliser_project_emissions == pytest.approx(
+    assert litter_project_emissions == pytest.approx(
         [
             0,
             0,

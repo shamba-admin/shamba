@@ -523,18 +523,18 @@ def main(n, arguments):
         fire_base = np.zeros(N_YEARS)
         fire_base[::base_fire_interval] = int(csv_input_data["fire_pres_base"])
 
-    proj_fire_interval = int(csv_input_data["fire_int_proj"])
-    if proj_fire_interval == 0:
-        fire_proj = np.zeros(N_YEARS)
+    project_fire_interval = int(csv_input_data["fire_int_proj"])
+    if project_fire_interval == 0:
+        fire_project = np.zeros(N_YEARS)
     else:
-        fire_proj = np.zeros(N_YEARS)
-        fire_proj[::proj_fire_interval] = int(csv_input_data["fire_pres_proj"])
+        fire_project = np.zeros(N_YEARS)
+        fire_project[::project_fire_interval] = int(csv_input_data["fire_pres_proj"])
 
     # ----------
     # Litter model
     # ----------
     # baseline external organic inputs
-    l_base = LitterModel.from_defaults(
+    litter_external_base = LitterModel.from_defaults(
         litterFreq=int(csv_input_data["base_lit_int"]),
         litterQty=float(csv_input_data["base_lit_qty"]),
         no_of_years=N_YEARS,
@@ -549,7 +549,7 @@ def main(n, arguments):
     )
 
     # Project external organic inputs
-    l_proj = LitterModel.from_defaults(
+    litter_external_project = LitterModel.from_defaults(
         litterFreq=int(csv_input_data["proj_lit_int"]),
         litterQty=float(csv_input_data["proj_lit_qty"]),
         no_of_years=N_YEARS,
@@ -616,7 +616,7 @@ def main(n, arguments):
         no_of_years=N_YEARS,
         crop=crop_base,
         tree=[tree_base],
-        litter=[l_base],
+        litter=[litter_external_base],
         fire=fire_base,
     )
 
@@ -628,8 +628,8 @@ def main(n, arguments):
         no_of_years=N_YEARS,
         crop=crop_project,
         tree=[tree_proj1, tree_proj2, tree_proj3],
-        litter=[l_proj],
-        fire=fire_proj,
+        litter=[litter_external_project],
+        fire=fire_project,
     )
 
     # Emissions stuff
@@ -638,7 +638,7 @@ def main(n, arguments):
         forRothC=roth_base,
         crop=crop_base,
         tree=[tree_base],
-        litter=[l_base],
+        litter=[litter_external_base],
         fert=[synthetic_fertiliser_base],
         fire=fire_base,
     )
@@ -647,9 +647,9 @@ def main(n, arguments):
         forRothC=roth_proj,
         crop=crop_project,
         tree=[tree_proj1, tree_proj2, tree_proj3],
-        litter=[l_proj],
+        litter=[litter_external_project],
         fert=[synthetic_fertiliser_project],
-        fire=fire_proj,
+        fire=fire_project,
     )
 
     # ----------
@@ -679,7 +679,7 @@ def main(n, arguments):
         no_of_years=N_YEARS, crop=crop_base, fire=fire_base
     )
     crop_project_emissions = Emit.create(
-        no_of_years=N_YEARS, crop=crop_project, fire=fire_proj
+        no_of_years=N_YEARS, crop=crop_project, fire=fire_project
     )
     crop_difference = crop_project_emissions - crop_base_emissions
 
@@ -707,10 +707,10 @@ def main(n, arguments):
 
     # Litter Emissions
     litter_base_emissions = Emit.create(
-        no_of_years=N_YEARS, litter=[l_base], fire=fire_base
+        no_of_years=N_YEARS, litter=[litter_external_base], fire=fire_base
     )
     litter_project_emissions = Emit.create(
-        no_of_years=N_YEARS, litter=[l_proj], fire=fire_proj
+        no_of_years=N_YEARS, litter=[litter_external_project], fire=fire_project
     )
     litter_difference = litter_project_emissions - litter_base_emissions
 
@@ -724,7 +724,7 @@ def main(n, arguments):
 
     # Fire Emissions
     fire_base_emissions = Emit.create(no_of_years=N_YEARS, fire=fire_base)
-    fire_project_emissions = Emit.create(no_of_years=N_YEARS, fire=fire_proj)
+    fire_project_emissions = Emit.create(no_of_years=N_YEARS, fire=fire_project)
     fire_difference = fire_project_emissions - fire_base_emissions
 
     print_fire_emissions(
@@ -742,7 +742,7 @@ def main(n, arguments):
     tree_project_emissions = Emit.create(
         no_of_years=N_YEARS,
         tree=[tree_proj1, tree_proj2, tree_proj3],
-        fire=fire_proj,
+        fire=fire_project,
     )
     tree_difference = tree_project_emissions - tree_base_emissions
 
@@ -902,7 +902,7 @@ def main(n, arguments):
                 "tree_proj",
                 "tree_difference",
                 "fire_base",
-                "fire_proj",
+                "fire_project",
                 "fire_difference",
                 "lit_base",
                 "lit_proj",
