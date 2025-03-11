@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from model.common import csv_handler
 from model import configuration
-from model.command_line.crop_model import get_crop_bases, get_crop_projections
+from model.command_line.crop_model import get_crop_bases, get_crop_projects
 
 
 def test_crop_model():
@@ -15,7 +15,7 @@ def test_crop_model():
     crop_base, _crop_par_base = get_crop_bases(
         input_data=csv_input_data, no_of_years=N_YEARS, start_index=1, end_index=3
     )
-    crop_projection, _crop_par_projection = get_crop_projections(
+    crop_project, _crop_par_project = get_crop_projects(
         input_data=csv_input_data, no_of_years=N_YEARS, start_index=1, end_index=3
     )
 
@@ -25,8 +25,8 @@ def test_crop_model():
     crop_base_emissions = Emit.create(
         no_of_years=N_YEARS, crop=crop_base, fire=fire_base
     )
-    crop_projection_emissions = Emit.create(
-        no_of_years=N_YEARS, crop=crop_projection, fire=fire_proj
+    crop_project_emissions = Emit.create(
+        no_of_years=N_YEARS, crop=crop_project, fire=fire_proj
     )
 
     assert crop_base_emissions == pytest.approx(
@@ -83,7 +83,7 @@ def test_crop_model():
             0.25450498,
         ]
     )
-    assert crop_projection_emissions == pytest.approx(
+    assert crop_project_emissions == pytest.approx(
         [
             0.2223257,
             0.2223257,

@@ -22,7 +22,7 @@ def test_fertiliser_model():
     fertiliser_base_emissions = Emit.create(
         no_of_years=N_YEARS, fert=[synthetic_fertiliser_base]
     )
-    fertiliser_projection_emissions = Emit.create(
+    fertiliser_project_emissions = Emit.create(
         no_of_years=N_YEARS, fert=[synthetic_fertiliser_base]
     )
 
@@ -81,7 +81,7 @@ def test_fertiliser_model():
         ]
     )
 
-    assert fertiliser_projection_emissions == pytest.approx(
+    assert fertiliser_project_emissions == pytest.approx(
         [
             0,
             0,

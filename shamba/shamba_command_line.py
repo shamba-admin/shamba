@@ -84,7 +84,7 @@ def get_growths(csv_input_data, spp_key, input_csv, tree_params, allometric_key)
 
 def print_crop_emissions(
     crop_base_emissions: np.ndarray,
-    crop_projection_emissions: np.ndarray,
+    crop_project_emissions: np.ndarray,
     crop_difference_emissions: np.ndarray,
 ):
     table_data = [
@@ -92,7 +92,7 @@ def print_crop_emissions(
         for year, base, proj in zip(
             range(1, len(crop_base_emissions) + 1),
             crop_base_emissions,
-            crop_projection_emissions,
+            crop_project_emissions,
         )
     ]
 
@@ -119,14 +119,14 @@ def print_crop_emissions(
 
 
 def print_emissions_table(
-    base_emissions, projection_emissions, difference, n_years, title
+    base_emissions, project_emissions, difference, n_years, title
 ):
     """
     Print a tabular representation of emissions data.
 
     Args:
         base_emissions (list): List of baseline emissions values.
-        projection_emissions (list): List of projected emissions values.
+        project_emissions (list): List of projected emissions values.
         difference (list): List of emission differences.
         n_years (int): Number of years.
         title (str): Title of the emissions table.
@@ -135,7 +135,7 @@ def print_emissions_table(
         [
             i + 1,
             f"{base_emissions[i]:.2f}",
-            f"{projection_emissions[i]:.2f}",
+            f"{project_emissions[i]:.2f}",
             f"{difference[i]:.2f}",
         ]
         for i in range(n_years)
@@ -162,11 +162,11 @@ def print_emissions_table(
 
 
 def print_fire_emissions(
-    fire_base_emissions, fire_projection_emissions, fire_difference, n_years
+    fire_base_emissions, fire_project_emissions, fire_difference, n_years
 ):
     print_emissions_table(
         fire_base_emissions,
-        fire_projection_emissions,
+        fire_project_emissions,
         fire_difference,
         n_years,
         "FIRE EMISSIONS (t CO2)",
@@ -175,13 +175,13 @@ def print_fire_emissions(
 
 def print_fertilizer_emissions(
     fertiliser_base_emissions,
-    fertiliser_projection_emissions,
+    fertiliser_project_emissions,
     fertiliser_difference,
     n_years,
 ):
     print_emissions_table(
         fertiliser_base_emissions,
-        fertiliser_projection_emissions,
+        fertiliser_project_emissions,
         fertiliser_difference,
         n_years,
         "FERTILISER EMISSIONS (t CO2)",
@@ -189,11 +189,11 @@ def print_fertilizer_emissions(
 
 
 def print_litter_emissions(
-    litter_base_emissions, litter_projection_emissions, litter_difference, n_years
+    litter_base_emissions, litter_project_emissions, litter_difference, n_years
 ):
     print_emissions_table(
         litter_base_emissions,
-        litter_projection_emissions,
+        litter_project_emissions,
         litter_difference,
         n_years,
         "LITTER EMISSIONS (t CO2)",
@@ -201,11 +201,11 @@ def print_litter_emissions(
 
 
 def print_tree_emissions(
-    tree_base_emissions, tree_projection_emissions, tree_difference, n_years
+    tree_base_emissions, tree_project_emissions, tree_difference, n_years
 ):
     print_emissions_table(
         tree_base_emissions,
-        tree_projection_emissions,
+        tree_project_emissions,
         tree_difference,
         n_years,
         "TREE EMISSIONS (t CO2)",
@@ -213,11 +213,11 @@ def print_tree_emissions(
 
 
 def print_soil_emissions(
-    soil_base_emissions, soil_projection_emissions, soil_difference, n_years
+    soil_base_emissions, soil_project_emissions, soil_difference, n_years
 ):
     print_emissions_table(
         soil_base_emissions,
-        soil_projection_emissions,
+        soil_project_emissions,
         soil_difference,
         n_years,
         "SOIL EMISSIONS (t CO2)",
@@ -225,11 +225,11 @@ def print_soil_emissions(
 
 
 def print_total_emissions(
-    emit_base_emissions, emit_projection_emissions, emit_difference, n_years
+    emit_base_emissions, emit_project_emissions, emit_difference, n_years
 ):
     print_emissions_table(
         emit_base_emissions,
-        emit_projection_emissions,
+        emit_project_emissions,
         emit_difference,
         n_years,
         "TOTAL EMISSIONS (t CO2)",
@@ -576,7 +576,7 @@ def main(n, arguments):
         start_index=1,
         end_index=3,
     )
-    crop_projection, crop_par_projection = CropModel.get_crop_projections(
+    crop_project, crop_par_project = CropModel.get_crop_projects(
         input_data=csv_input_data,
         no_of_years=N_YEARS,
         start_index=1,
@@ -626,7 +626,7 @@ def main(n, arguments):
         cover_proj,
         Ci=forRoth.SOC[-1],
         no_of_years=N_YEARS,
-        crop=crop_projection,
+        crop=crop_project,
         tree=[tree_proj1, tree_proj2, tree_proj3],
         litter=[l_proj],
         fire=fire_proj,
@@ -642,10 +642,10 @@ def main(n, arguments):
         fert=[synthetic_fertiliser_base],
         fire=fire_base,
     )
-    emit_projection_emissions = Emit.create(
+    emit_project_emissions = Emit.create(
         no_of_years=N_YEARS,
         forRothC=roth_proj,
-        crop=crop_projection,
+        crop=crop_project,
         tree=[tree_proj1, tree_proj2, tree_proj3],
         litter=[l_proj],
         fert=[synthetic_fertiliser_project],
@@ -671,20 +671,20 @@ def main(n, arguments):
     TreeModel.print_balance(tree_proj3)
     ForwardRothC.print_to_stdout(forRoth, no_of_years=N_YEARS, label="initialisation")
     ForwardRothC.print_to_stdout(roth_base, no_of_years=N_YEARS, label="baseline")
-    ForwardRothC.print_to_stdout(roth_proj, no_of_years=N_YEARS, label="projection")
+    ForwardRothC.print_to_stdout(roth_proj, no_of_years=N_YEARS, label="project")
     # =============================================================================
 
     # Crop Emissions
     crop_base_emissions = Emit.create(
         no_of_years=N_YEARS, crop=crop_base, fire=fire_base
     )
-    crop_projection_emissions = Emit.create(
-        no_of_years=N_YEARS, crop=crop_projection, fire=fire_proj
+    crop_project_emissions = Emit.create(
+        no_of_years=N_YEARS, crop=crop_project, fire=fire_proj
     )
-    crop_difference = crop_projection_emissions - crop_base_emissions
+    crop_difference = crop_project_emissions - crop_base_emissions
 
     print_crop_emissions(
-        crop_base_emissions, crop_projection_emissions, crop_difference
+        crop_base_emissions, crop_project_emissions, crop_difference
     )
     # =============================================================================
 
@@ -692,14 +692,14 @@ def main(n, arguments):
     fertiliser_base_emissions = Emit.create(
         no_of_years=N_YEARS, fert=[synthetic_fertiliser_base]
     )
-    fertiliser_projection_emissions = Emit.create(
+    fertiliser_project_emissions = Emit.create(
         no_of_years=N_YEARS, fert=[synthetic_fertiliser_project]
     )
-    fertiliser_difference = fertiliser_projection_emissions - fertiliser_base_emissions
+    fertiliser_difference = fertiliser_project_emissions - fertiliser_base_emissions
 
     print_fertilizer_emissions(
         fertiliser_base_emissions=fertiliser_base_emissions,
-        fertiliser_projection_emissions=fertiliser_projection_emissions,
+        fertiliser_project_emissions=fertiliser_project_emissions,
         fertiliser_difference=fertiliser_difference,
         n_years=N_YEARS,
     )
@@ -709,14 +709,14 @@ def main(n, arguments):
     litter_base_emissions = Emit.create(
         no_of_years=N_YEARS, litter=[l_base], fire=fire_base
     )
-    litter_projection_emissions = Emit.create(
+    litter_project_emissions = Emit.create(
         no_of_years=N_YEARS, litter=[l_proj], fire=fire_proj
     )
-    litter_difference = litter_projection_emissions - litter_base_emissions
+    litter_difference = litter_project_emissions - litter_base_emissions
 
     print_litter_emissions(
         litter_base_emissions=litter_base_emissions,
-        litter_projection_emissions=litter_projection_emissions,
+        litter_project_emissions=litter_project_emissions,
         litter_difference=litter_difference,
         n_years=N_YEARS,
     )
@@ -724,12 +724,12 @@ def main(n, arguments):
 
     # Fire Emissions
     fire_base_emissions = Emit.create(no_of_years=N_YEARS, fire=fire_base)
-    fire_projection_emissions = Emit.create(no_of_years=N_YEARS, fire=fire_proj)
-    fire_difference = fire_projection_emissions - fire_base_emissions
+    fire_project_emissions = Emit.create(no_of_years=N_YEARS, fire=fire_proj)
+    fire_difference = fire_project_emissions - fire_base_emissions
 
     print_fire_emissions(
         fire_base_emissions=fire_base_emissions,
-        fire_projection_emissions=fire_projection_emissions,
+        fire_project_emissions=fire_project_emissions,
         fire_difference=fire_difference,
         n_years=N_YEARS,
     )
@@ -739,16 +739,16 @@ def main(n, arguments):
     tree_base_emissions = Emit.create(
         no_of_years=N_YEARS, tree=[tree_base], fire=fire_base
     )
-    tree_projection_emissions = Emit.create(
+    tree_project_emissions = Emit.create(
         no_of_years=N_YEARS,
         tree=[tree_proj1, tree_proj2, tree_proj3],
         fire=fire_proj,
     )
-    tree_difference = tree_projection_emissions - tree_base_emissions
+    tree_difference = tree_project_emissions - tree_base_emissions
 
     print_tree_emissions(
         tree_base_emissions=tree_base_emissions,
-        tree_projection_emissions=tree_projection_emissions,
+        tree_project_emissions=tree_project_emissions,
         tree_difference=tree_difference,
         n_years=N_YEARS,
     )
@@ -762,29 +762,29 @@ def main(n, arguments):
         + fire_base_emissions
         + tree_base_emissions
     )
-    soil_projection_emissions = emit_projection_emissions - (
-        crop_projection_emissions
-        + fertiliser_projection_emissions
-        + litter_projection_emissions
-        + fire_projection_emissions
-        + tree_projection_emissions
+    soil_project_emissions = emit_project_emissions - (
+        crop_project_emissions
+        + fertiliser_project_emissions
+        + litter_project_emissions
+        + fire_project_emissions
+        + tree_project_emissions
     )
-    soil_difference = soil_projection_emissions - soil_base_emissions
+    soil_difference = soil_project_emissions - soil_base_emissions
 
     print_soil_emissions(
         soil_base_emissions=soil_base_emissions,
-        soil_projection_emissions=soil_projection_emissions,
+        soil_project_emissions=soil_project_emissions,
         soil_difference=soil_difference,
         n_years=N_YEARS,
     )
     # =============================================================================
 
     # Total Emissions
-    emit_difference = emit_projection_emissions - emit_base_emissions
+    emit_difference = emit_project_emissions - emit_base_emissions
 
     print_total_emissions(
         emit_base_emissions=emit_base_emissions,
-        emit_projection_emissions=emit_projection_emissions,
+        emit_project_emissions=emit_project_emissions,
         emit_difference=emit_difference,
         n_years=N_YEARS,
     )
@@ -851,11 +851,11 @@ def main(n, arguments):
         )
 
         CropModel.save(
-            crop_projection[i], plot_name + "_crop_model_proj_" + str(i) + ".csv"
+            crop_project[i], plot_name + "_crop_model_proj_" + str(i) + ".csv"
         )
 
         CropParams.save(
-            crop_par_projection[i], plot_name + "_crop_params_proj_" + str(i) + ".csv"
+            crop_par_project[i], plot_name + "_crop_params_proj_" + str(i) + ".csv"
         )
 
     InverseRothC.save(invRoth, plot_name + "_invRoth.csv")
@@ -875,7 +875,7 @@ def main(n, arguments):
     )
 
     Emit.save(
-        emit_base_emissions, emit_projection_emissions, plot_name + "_emit_proj.csv"
+        emit_base_emissions, emit_project_emissions, plot_name + "_emit_proj.csv"
     )
 
     with open(
@@ -893,7 +893,7 @@ def main(n, arguments):
         writer.writerow(
             [
                 "emit_base_emissions",
-                "emit_projection_emissions",
+                "emit_project_emissions",
                 "emit_difference",
                 "soil_base",
                 "soil_proj",
@@ -911,7 +911,7 @@ def main(n, arguments):
                 "fert_proj",
                 "fertiliser_difference",
                 "crop_base",
-                "crop_projection",
+                "crop_project",
                 "crop_difference",
             ]
         )
@@ -919,25 +919,25 @@ def main(n, arguments):
             writer.writerow(
                 [
                     emit_base_emissions[i],
-                    emit_projection_emissions[i],
+                    emit_project_emissions[i],
                     emit_difference[i],
                     soil_base_emissions[i],
-                    soil_projection_emissions[i],
+                    soil_project_emissions[i],
                     soil_difference[i],
                     tree_base_emissions[i],
-                    tree_projection_emissions[i],
+                    tree_project_emissions[i],
                     tree_difference[i],
                     fire_base_emissions[i],
-                    fire_projection_emissions[i],
+                    fire_project_emissions[i],
                     fire_difference[i],
                     litter_base_emissions[i],
-                    litter_projection_emissions[i],
+                    litter_project_emissions[i],
                     litter_difference[i],
                     fertiliser_base_emissions[i],
-                    fertiliser_projection_emissions[i],
+                    fertiliser_project_emissions[i],
                     fertiliser_difference[i],
                     crop_base_emissions[i],
-                    crop_projection_emissions[i],
+                    crop_project_emissions[i],
                     crop_difference[i],
                 ]
             )
@@ -977,7 +977,7 @@ def main(n, arguments):
     plt.close()
 
     Emit.plot(emit_base_emissions, legendStr="baseline")
-    Emit.plot(emit_projection_emissions, legendStr="project")
+    Emit.plot(emit_project_emissions, legendStr="project")
 
     # TODO: what is this? How could `ax` be attached to Emission?
     # Why is it done here instead of in the plot function?
@@ -990,7 +990,7 @@ def main(n, arguments):
 
     Emit.save(
         emit_base_emissions=emit_base_emissions,
-        emit_proj_emissions=emit_projection_emissions,
+        emit_proj_emissions=emit_project_emissions,
         file=plot_name + "_emissions.csv",
     )
 

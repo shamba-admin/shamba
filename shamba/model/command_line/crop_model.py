@@ -149,9 +149,9 @@ def get_crop_bases(input_data, no_of_years, start_index, end_index):
     )
 
 
-def get_crop_projections(input_data, no_of_years, start_index, end_index):
+def get_crop_projects(input_data, no_of_years, start_index, end_index):
     return get_crop_models_and_crop_params(
-        input_data, no_of_years, start_index, end_index, get_crop_projection
+        input_data, no_of_years, start_index, end_index, get_crop_project
     )
 
 
@@ -184,7 +184,7 @@ def get_crop_base(
     return get_crop_data(input_data, no_of_years, "crop_base", index)
 
 
-def get_crop_projection(
+def get_crop_project(
     input_data, no_of_years, index
 ) -> Tuple[CropModelData, CropParamsData]:
     return get_crop_data(input_data, no_of_years, "crop_proj", index)
