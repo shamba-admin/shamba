@@ -246,44 +246,6 @@ def print_to_stdout(climate):
     )
 
 
-# def print_to_stdout(climate):
-#     """Print climate data to stdout."""
-
-#     monthNames = [
-#         "JAN",
-#         "FEB",
-#         "MAR",
-#         "APR",
-#         "MAY",
-#         "JUN",
-#         "JUL",
-#         "AUG",
-#         "SEP",
-#         "OCT",
-#         "NOV",
-#         "DEC",
-#     ]
-
-#     print("\nCLIMATE 2 DATA")
-#     print("============\n")
-#     print("Month   Temp.    Rain     Evap.")
-#     print("        (*C)     (mm)     (mm) ")
-#     print("-------------------------------")
-#     for i in range(12):
-#         print(
-#             (
-#                 " %s    %5.2f   %6.2f   %6.2f"
-#                 % (
-#                     monthNames[i],
-#                     climate.temperature[i],
-#                     climate.rain[i],
-#                     climate.evaporation[i],
-#                 )
-#             )
-#         )
-#     print("")
-
-
 def save(climate, file="climate.csv"):
     """Save climate data to a csv file.
     Default path is in cfg.OUTPUT_DIR with filename 'climate.csv'.

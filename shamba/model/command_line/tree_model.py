@@ -380,6 +380,8 @@ def plot_biomass(tree_model, saveName=None):
     if saveName is not None:
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
 
+    plt.close()
+
 
 def plot_balance(tree_model, saveName=None):
     """Plot the mass balance data."""
@@ -398,6 +400,8 @@ def plot_balance(tree_model, saveName=None):
 
     if saveName is not None:
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
+
+    plt.close()
 
 
 def print_biomass(tree_model):

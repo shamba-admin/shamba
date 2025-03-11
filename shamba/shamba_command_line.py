@@ -64,7 +64,7 @@ _dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(_dir))
 
 
-def get_growths(csv_input_data, spp_key, input_csv, tree_params, allometric_key):
+def get_growth(csv_input_data, spp_key, input_csv, tree_params, allometric_key):
     spp = int(csv_input_data[spp_key])
     if spp == 1:
         growth = TreeGrowth.from_csv1(
@@ -236,6 +236,72 @@ def print_total_emissions(
     )
 
 
+def create_tree_params_from_species_index(csv_input_data, tree_count):
+    return [
+        TreeParams.from_species_index(int(csv_input_data[f"species{i + 1}"]))
+        for i in range(tree_count)
+    ]
+
+
+def create_tree_growths(
+    csv_input_data, input_csv, tree_params, allometric_key, tree_count
+):
+    return [
+        get_growth(
+            csv_input_data,
+            f"species{i + 1}",
+            input_csv,
+            tree_params[i],
+            allometric_key=allometric_key,
+        )
+        for i in range(tree_count)
+    ]
+
+
+def create_tree_projects(
+    csv_input_data,
+    tree_params,
+    growths,
+    thinning_project,
+    thinning_fraction_left_project,
+    mortality_project,
+    mortality_fraction_left_project,
+    no_of_years,
+    tree_count,
+):
+    return [
+        TreeModel.from_defaults(
+            tree_params=tree_params[i],
+            tree_growth=growths[i],
+            yearPlanted=int(csv_input_data[f"proj_plant_yr{i + 1}"]),
+            standDens=int(csv_input_data[f"proj_plant_dens{i + 1}"]),
+            thin=thinning_project,
+            thinFrac=thinning_fraction_left_project,
+            mort=mortality_project,
+            mortFrac=mortality_fraction_left_project,
+            no_of_years=no_of_years,
+        )
+        for i in range(tree_count)
+    ]
+
+
+def print_tree_projects(tree_projects):
+    for project in tree_projects:
+        TreeModel.print_biomass(project)
+        TreeModel.print_balance(project)
+
+
+def save_tree_projects(tree_projects, plot_name):
+    for i in range(len(tree_projects)):
+        TreeModel.save(tree_projects[i], plot_name + f"_tree_proj{i + 1}.csv")
+
+
+def plot_tree_projects(tree_projects, plot_name):
+    for project in tree_projects:
+        TreeModel.plot_biomass(project, saveName=plot_name + "_biomassPools.png")
+        TreeModel.plot_balance(project, saveName=plot_name + "_massBalance.png")
+
+
 def setup_project_directory(project_name, arguments):
     """
     Set up a new project directory with the required input files.
@@ -324,6 +390,7 @@ def main(n, arguments):
     # YEARS = length of tree data. ACCT = years in accounting period
     N_YEARS = int(csv_input_data["yrs_proj"])
     N_ACCT = int(csv_input_data["yrs_acct"])
+    N_TREES = 3  # TODO: parameteris this
 
     # ----------
     # soil equilibrium solve
@@ -349,24 +416,30 @@ def main(n, arguments):
     tree_par2 = TreeParams.from_species_index(int(csv_input_data["species2"]))
     tree_par3 = TreeParams.from_species_index(int(csv_input_data["species3"]))
 
+    tree_params = create_tree_params_from_species_index(csv_input_data, N_TREES)
+
     # linking tree growth
     allometric_key = arguments["allometric-key"]
 
-    growth_base = get_growths(
+    growth_base = get_growth(
         csv_input_data,
         "species_base",
         input_csv,
         tree_par_base,
         allometric_key=allometric_key,
     )
-    growth1 = get_growths(
+    growth1 = get_growth(
         csv_input_data, "species1", input_csv, tree_par1, allometric_key=allometric_key
     )
-    growth2 = get_growths(
+    growth2 = get_growth(
         csv_input_data, "species2", input_csv, tree_par2, allometric_key=allometric_key
     )
-    growth3 = get_growths(
+    growth3 = get_growth(
         csv_input_data, "species3", input_csv, tree_par3, allometric_key=allometric_key
+    )
+
+    tree_growths = create_tree_growths(
+        csv_input_data, input_csv, tree_params, allometric_key, N_TREES
     )
 
     # specify thinning regime and fraction left in field (lif)
@@ -382,25 +455,25 @@ def main(n, arguments):
 
     # project thinning regime
     # (add need line of thinning[yr] = % thinned for each event)
-    thinning_proj = np.zeros(N_YEARS + 1)
-    thinning_proj[int(csv_input_data["thin_proj_yr1"])] = float(
+    thinning_project = np.zeros(N_YEARS + 1)
+    thinning_project[int(csv_input_data["thin_proj_yr1"])] = float(
         csv_input_data["thin_proj_pc1"]
     )
-    thinning_proj[int(csv_input_data["thin_proj_yr2"])] = float(
+    thinning_project[int(csv_input_data["thin_proj_yr2"])] = float(
         csv_input_data["thin_proj_pc2"]
     )
-    thinning_proj[int(csv_input_data["thin_proj_yr3"])] = float(
+    thinning_project[int(csv_input_data["thin_proj_yr3"])] = float(
         csv_input_data["thin_proj_pc3"]
     )
-    thinning_proj[int(csv_input_data["thin_proj_yr4"])] = float(
+    thinning_project[int(csv_input_data["thin_proj_yr4"])] = float(
         csv_input_data["thin_proj_pc4"]
     )
 
     # baseline fraction of thinning left in the field
     # specify vector = array[(leaf,branch,stem,course root,fine root)].
     # 1 = 100% left in field. Leaf and roots assumed 100%.
-    # (can specify for individual years) using above code for thinning_proj.
-    thin_frac_lif_base = np.array(
+    # (can specify for individual years) using above code for thinning_project.
+    thinning_fraction_left_base = np.array(
         [
             1,
             float(csv_input_data["thin_base_br"]),
@@ -413,8 +486,8 @@ def main(n, arguments):
     # project fraction of thinning left in the field
     # specify vector = array[(leaf,branch,stem,course root,fine root)].
     # 1 = 100% left in field. Leaf and roots assumed 100%.
-    # (can specify for individual years) using above code for thinning_proj.
-    thin_frac_lif_proj = np.array(
+    # (can specify for individual years) using above code for thinning_project.
+    thinning_fraction_left_project = np.array(
         [
             1,
             float(csv_input_data["thin_proj_br"]),
@@ -427,16 +500,16 @@ def main(n, arguments):
     # specify mortality regime and fraction left in field (lif)
 
     # baseline yearly mortality
-    mort_base = np.array((N_YEARS + 1) * [float(csv_input_data["base_mort"])])
+    mortality_base = np.array((N_YEARS + 1) * [float(csv_input_data["base_mort"])])
 
     # project yearly mortality
-    mort_proj = np.array((N_YEARS + 1) * [float(csv_input_data["proj_mort"])])
+    mortality_project = np.array((N_YEARS + 1) * [float(csv_input_data["proj_mort"])])
 
     # baseline fraction of dead biomass left in the field
     # specify vector = array[(leaf,branch,stem,course root,fine root)].
     # 1 = 100% left in field. Leaf and roots assumed 100%.
-    # (can specify for individual years) using above code for thinning_proj.
-    mort_frac_lif_base = np.array(
+    # (can specify for individual years) using above code for thinning_project.
+    mortality_fraction_left_base = np.array(
         [
             1,
             float(csv_input_data["mort_base_br"]),
@@ -449,8 +522,8 @@ def main(n, arguments):
     # project fraction of dead biomass left in the field
     # specify vector = array[(leaf,branch,stem,course root,fine root)].
     # 1 = 100% left in field. Leaf and roots assumed 100%.
-    # (can specify for individual years) using above code for thinning_proj.
-    mort_frac_lif_proj = np.array(
+    # (can specify for individual years) using above code for thinning_project.
+    mortality_fraction_left_project = np.array(
         [
             1,
             float(csv_input_data["mort_proj_br"]),
@@ -469,47 +542,22 @@ def main(n, arguments):
         yearPlanted=0,
         standDens=int(csv_input_data["base_plant_dens"]),
         thin=thinning_base,
-        thinFrac=thin_frac_lif_base,
-        mort=mort_base,
-        mortFrac=mort_frac_lif_base,
+        thinFrac=thinning_fraction_left_base,
+        mort=mortality_base,
+        mortFrac=mortality_fraction_left_base,
         no_of_years=N_YEARS,
     )
 
-    # trees planted in project
-    tree_proj1 = TreeModel.from_defaults(
-        tree_params=tree_par1,
-        tree_growth=growth1,
-        yearPlanted=int(csv_input_data["proj_plant_yr1"]),
-        standDens=int(csv_input_data["proj_plant_dens1"]),
-        thin=thinning_proj,
-        thinFrac=thin_frac_lif_proj,
-        mort=mort_proj,
-        mortFrac=mort_frac_lif_proj,
+    tree_projects = create_tree_projects(
+        csv_input_data=csv_input_data,
+        tree_params=tree_params,
+        growths=tree_growths,
+        thinning_project=thinning_project,
+        thinning_fraction_left_project=thinning_fraction_left_project,
+        mortality_project=mortality_project,
+        mortality_fraction_left_project=mortality_fraction_left_project,
         no_of_years=N_YEARS,
-    )
-
-    tree_proj2 = TreeModel.from_defaults(
-        tree_params=tree_par2,
-        tree_growth=growth2,
-        yearPlanted=int(csv_input_data["proj_plant_yr2"]),
-        standDens=int(csv_input_data["proj_plant_dens2"]),
-        thin=thinning_proj,
-        thinFrac=thin_frac_lif_proj,
-        mort=mort_proj,
-        mortFrac=mort_frac_lif_proj,
-        no_of_years=N_YEARS,
-    )
-
-    tree_proj3 = TreeModel.from_defaults(
-        tree_params=tree_par3,
-        tree_growth=growth3,
-        yearPlanted=int(csv_input_data["proj_plant_yr3"]),
-        standDens=int(csv_input_data["proj_plant_dens3"]),
-        thin=thinning_proj,
-        thinFrac=thin_frac_lif_proj,
-        mort=mort_proj,
-        mortFrac=mort_frac_lif_proj,
-        no_of_years=N_YEARS,
+        tree_count=N_TREES,
     )
 
     # ----------
@@ -627,7 +675,7 @@ def main(n, arguments):
         Ci=forRoth.SOC[-1],
         no_of_years=N_YEARS,
         crop=crop_project,
-        tree=[tree_proj1, tree_proj2, tree_proj3],
+        tree=tree_projects,
         litter=[litter_external_project],
         fire=fire_project,
     )
@@ -646,7 +694,7 @@ def main(n, arguments):
         no_of_years=N_YEARS,
         forRothC=roth_proj,
         crop=crop_project,
-        tree=[tree_proj1, tree_proj2, tree_proj3],
+        tree=tree_projects,
         litter=[litter_external_project],
         fert=[synthetic_fertiliser_project],
         fire=fire_project,
@@ -663,12 +711,9 @@ def main(n, arguments):
     TreeGrowth.print_to_stdout(growth1, label="growth1")
     TreeGrowth.print_to_stdout(growth2, label="growth2")
     TreeGrowth.print_to_stdout(growth3, label="growth3")
-    TreeModel.print_biomass(tree_proj1)
-    TreeModel.print_balance(tree_proj1)
-    TreeModel.print_biomass(tree_proj2)
-    TreeModel.print_balance(tree_proj2)
-    TreeModel.print_biomass(tree_proj3)
-    TreeModel.print_balance(tree_proj3)
+
+    print_tree_projects(tree_projects)
+
     ForwardRothC.print_to_stdout(forRoth, no_of_years=N_YEARS, label="initialisation")
     ForwardRothC.print_to_stdout(roth_base, no_of_years=N_YEARS, label="baseline")
     ForwardRothC.print_to_stdout(roth_proj, no_of_years=N_YEARS, label="project")
@@ -739,7 +784,7 @@ def main(n, arguments):
     )
     tree_project_emissions = Emit.create(
         no_of_years=N_YEARS,
-        tree=[tree_proj1, tree_proj2, tree_proj3],
+        tree=tree_projects,
         fire=fire_project,
     )
     tree_difference = tree_project_emissions - tree_base_emissions
@@ -836,9 +881,8 @@ def main(n, arguments):
     TreeGrowth.save(growth1, plot_name + "_growth1.csv")
     TreeGrowth.save(growth2, plot_name + "_growth2.csv")
     TreeGrowth.save(growth3, plot_name + "_growth3.csv")
-    TreeModel.save(tree_proj1, plot_name + "_tree_proj1.csv")
-    TreeModel.save(tree_proj2, plot_name + "_tree_proj2.csv")
-    TreeModel.save(tree_proj3, plot_name + "_tree_proj3.csv")
+
+    save_tree_projects(tree_projects, plot_name=plot_name)
 
     i = 1
     for i in range(len(crop_base)):
@@ -939,25 +983,8 @@ def main(n, arguments):
             )
 
     # Plot stuff
-    TreeGrowth.plot(growth1, saveName=plot_name + "_growthFits.png")
-    plt.close()
+    plot_tree_projects(tree_projects, plot_name)
 
-    TreeModel.plot_biomass(tree_proj1, saveName=plot_name + "_biomassPools.png")
-    plt.close()
-
-    TreeModel.plot_balance(tree_proj1, saveName=plot_name + "_massBalance.png")
-    plt.close()
-
-    TreeModel.plot_biomass(tree_proj2, saveName=plot_name + "_biomassPools.png")
-    plt.close()
-
-    TreeModel.plot_balance(tree_proj2, saveName=plot_name + "_massBalance.png")
-    plt.close()
-
-    TreeModel.plot_biomass(tree_proj3, saveName=plot_name + "_biomassPools.png")
-    plt.close()
-
-    TreeModel.plot_balance(tree_proj3, saveName=plot_name + "_massBalance.png")
     plt.close()
 
     ForwardRothC.plot(forRoth, no_of_years=N_YEARS, legendStr="initialisation")
