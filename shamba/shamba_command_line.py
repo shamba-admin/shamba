@@ -513,7 +513,7 @@ def main(n, arguments):
     )
 
     # ----------
-    # fire model
+    # Fire model
     # ----------
     # return interval of fire, [::2] = 1 is return interval of two years
     base_fire_interval = int(csv_input_data["fire_int_base"])
@@ -531,9 +531,8 @@ def main(n, arguments):
         fire_proj[::proj_fire_interval] = int(csv_input_data["fire_pres_proj"])
 
     # ----------
-    # litter model
+    # Litter model
     # ----------
-
     # baseline external organic inputs
     l_base = LitterModel.from_defaults(
         litterFreq=int(csv_input_data["base_lit_int"]),
@@ -542,7 +541,7 @@ def main(n, arguments):
     )
 
     # baseline synthetic fertiliser additions
-    sf_base = LitterModel.synthetic_fert(
+    synthetic_fertiliser_base = LitterModel.synthetic_fert(
         freq=int(csv_input_data["base_sf_int"]),
         qty=float(csv_input_data["base_sf_qty"]),
         nitrogen=float(csv_input_data["base_sf_n"]),
@@ -557,7 +556,7 @@ def main(n, arguments):
     )
 
     # Project synthetic fertiliser additions
-    sf_proj = LitterModel.synthetic_fert(
+    synthetic_fertiliser_project = LitterModel.synthetic_fert(
         freq=int(csv_input_data["proj_sf_int"]),
         qty=float(csv_input_data["proj_sf_qty"]),
         nitrogen=float(csv_input_data["proj_sf_n"]),
@@ -640,7 +639,7 @@ def main(n, arguments):
         crop=crop_base,
         tree=[tree_base],
         litter=[l_base],
-        fert=[sf_base],
+        fert=[synthetic_fertiliser_base],
         fire=fire_base,
     )
     emit_projection_emissions = Emit.create(
@@ -649,7 +648,7 @@ def main(n, arguments):
         crop=crop_projection,
         tree=[tree_proj1, tree_proj2, tree_proj3],
         litter=[l_proj],
-        fert=[sf_proj],
+        fert=[synthetic_fertiliser_project],
         fire=fire_proj,
     )
 
@@ -690,8 +689,12 @@ def main(n, arguments):
     # =============================================================================
 
     # Fertilizer Emissions
-    fertiliser_base_emissions = Emit.create(no_of_years=N_YEARS, fert=[sf_base])
-    fertiliser_projection_emissions = Emit.create(no_of_years=N_YEARS, fert=[sf_proj])
+    fertiliser_base_emissions = Emit.create(
+        no_of_years=N_YEARS, fert=[synthetic_fertiliser_base]
+    )
+    fertiliser_projection_emissions = Emit.create(
+        no_of_years=N_YEARS, fert=[synthetic_fertiliser_project]
+    )
     fertiliser_difference = fertiliser_projection_emissions - fertiliser_base_emissions
 
     print_fertilizer_emissions(

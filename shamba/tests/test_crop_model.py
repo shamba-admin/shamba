@@ -12,8 +12,6 @@ def test_crop_model():
     csv_input_data = csv_handler.get_csv_input_data(0, file_path)
     N_YEARS = int(csv_input_data["yrs_proj"])
 
-    print("N_YEARS", N_YEARS)
-
     crop_base, _crop_par_base = get_crop_bases(
         input_data=csv_input_data, no_of_years=N_YEARS, start_index=1, end_index=3
     )
@@ -27,7 +25,7 @@ def test_crop_model():
     crop_base_emissions = Emit.create(
         no_of_years=N_YEARS, crop=crop_base, fire=fire_base
     )
-    crop_proj_emissions = Emit.create(
+    crop_projection_emissions = Emit.create(
         no_of_years=N_YEARS, crop=crop_projection, fire=fire_proj
     )
 
@@ -85,7 +83,7 @@ def test_crop_model():
             0.25450498,
         ]
     )
-    assert crop_proj_emissions == pytest.approx(
+    assert crop_projection_emissions == pytest.approx(
         [
             0.2223257,
             0.2223257,
