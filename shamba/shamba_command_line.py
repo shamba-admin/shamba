@@ -303,6 +303,29 @@ def plot_tree_projects(tree_projects, plot_name):
         TreeModel.plot_balance(project, saveName=plot_name + "_massBalance.png")
 
 
+def print_tree_growths(tree_growths):
+    for i in range(len(tree_growths)):
+        TreeGrowth.print_to_stdout(tree_growths[i], label=f"growth{i+1}")
+
+
+def save_tree_growths(tree_growths, plot_name):
+    for i in range(len(tree_growths)):
+        TreeGrowth.save(tree_growths[i], plot_name + f"_growth{i+1}.csv")
+
+
+def save_crop_data(base_data, project_data, plot_name, model_type):
+    for i, (base, project) in enumerate(zip(base_data, project_data), 1):
+        base_filename = f"{plot_name}_{model_type}_base_{i}.csv"
+        project_filename = f"{plot_name}_{model_type}_proj_{i}.csv"
+
+        if model_type == "crop_model":
+            CropModel.save(base, str(base_filename))
+            CropModel.save(project, str(project_filename))
+        elif model_type == "crop_params":
+            CropParams.save(base, str(base_filename))
+            CropParams.save(project, str(project_filename))
+
+
 def write_emissions_csv(configuration, mod_run, n, st, data):
     # Define the output directory and file name
     output_dir = Path(configuration.OUTPUT_DIR + f"_{mod_run}/plot_{n+st}")
@@ -453,9 +476,7 @@ def main(n, arguments):
 
     # linking tree cohort parameteres
     tree_par_base = TreeParams.from_species_index(int(csv_input_data["species_base"]))
-    tree_par1 = TreeParams.from_species_index(int(csv_input_data["species1"]))
-    tree_par2 = TreeParams.from_species_index(int(csv_input_data["species2"]))
-    tree_par3 = TreeParams.from_species_index(int(csv_input_data["species3"]))
+    tree_params_1 = TreeParams.from_species_index(int(csv_input_data["species1"]))
 
     tree_params = create_tree_params_from_species_index(csv_input_data, N_TREES)
 
@@ -468,15 +489,6 @@ def main(n, arguments):
         input_csv,
         tree_par_base,
         allometric_key=allometric_key,
-    )
-    growth1 = get_growth(
-        csv_input_data, "species1", input_csv, tree_par1, allometric_key=allometric_key
-    )
-    growth2 = get_growth(
-        csv_input_data, "species2", input_csv, tree_par2, allometric_key=allometric_key
-    )
-    growth3 = get_growth(
-        csv_input_data, "species3", input_csv, tree_par3, allometric_key=allometric_key
     )
 
     tree_growths = create_tree_growths(
@@ -578,7 +590,7 @@ def main(n, arguments):
 
     # trees planted in baseline (standDens must be at least 1)
     tree_base = TreeModel.from_defaults(
-        tree_params=tree_par1,
+        tree_params=tree_params_1,
         tree_growth=growth_base,
         yearPlanted=0,
         standDens=int(csv_input_data["base_plant_dens"]),
@@ -685,7 +697,7 @@ def main(n, arguments):
     ] = int(csv_input_data["proj_cvr_pres"])
 
     # Solve to y=0
-    forRoth = ForwardRothC.create(
+    for_roth = ForwardRothC.create(
         soil,
         climate,
         cover_base,
@@ -701,7 +713,7 @@ def main(n, arguments):
         soil=soil,
         climate=climate,
         cover=cover_base,
-        Ci=forRoth.SOC[-1],
+        Ci=for_roth.SOC[-1],
         no_of_years=N_YEARS,
         crop=crop_base,
         tree=[tree_base],
@@ -713,7 +725,7 @@ def main(n, arguments):
         soil,
         climate,
         cover_proj,
-        Ci=forRoth.SOC[-1],
+        Ci=for_roth.SOC[-1],
         no_of_years=N_YEARS,
         crop=crop_project,
         tree=tree_projects,
@@ -749,13 +761,12 @@ def main(n, arguments):
     print("location: ", loc)
     Climate.print_to_stdout(climate)
     SoilParams.print_to_stdout(soil)
-    TreeGrowth.print_to_stdout(growth1, label="growth1")
-    TreeGrowth.print_to_stdout(growth2, label="growth2")
-    TreeGrowth.print_to_stdout(growth3, label="growth3")
+
+    print_tree_growths(tree_growths)
 
     print_tree_projects(tree_projects)
 
-    ForwardRothC.print_to_stdout(forRoth, no_of_years=N_YEARS, label="initialisation")
+    ForwardRothC.print_to_stdout(for_roth, no_of_years=N_YEARS, label="initialisation")
     ForwardRothC.print_to_stdout(roth_base, no_of_years=N_YEARS, label="baseline")
     ForwardRothC.print_to_stdout(roth_proj, no_of_years=N_YEARS, label="project")
     # =============================================================================
@@ -919,31 +930,17 @@ def main(n, arguments):
     Climate.save(climate, plot_name + "_climate.csv")
 
     SoilParams.save(soil, plot_name + "_soil.csv")
-    TreeGrowth.save(growth1, plot_name + "_growth1.csv")
-    TreeGrowth.save(growth2, plot_name + "_growth2.csv")
-    TreeGrowth.save(growth3, plot_name + "_growth3.csv")
+
+    save_tree_growths(tree_growths, plot_name)
 
     save_tree_projects(tree_projects, plot_name=plot_name)
 
-    i = 1
-    for i in range(len(crop_base)):
-        CropModel.save(crop_base[i], plot_name + "_crop_model_base_" + str(i) + ".csv")
-
-        CropParams.save(
-            crop_par_base[i], plot_name + "_crop_params_base_" + str(i) + ".csv"
-        )
-
-        CropModel.save(
-            crop_project[i], plot_name + "_crop_model_proj_" + str(i) + ".csv"
-        )
-
-        CropParams.save(
-            crop_par_project[i], plot_name + "_crop_params_proj_" + str(i) + ".csv"
-        )
+    save_crop_data(crop_base, crop_project, plot_name, "crop_model")
+    save_crop_data(crop_par_base, crop_par_project, plot_name, "crop_params")
 
     InverseRothC.save(invRoth, plot_name + "_invRoth.csv")
     ForwardRothC.save(
-        forward_roth_c=forRoth, no_of_years=N_YEARS, file=plot_name + "_forRoth.csv"
+        forward_roth_c=for_roth, no_of_years=N_YEARS, file=plot_name + "_forRoth.csv"
     )
 
     ForwardRothC.save(
@@ -990,7 +987,7 @@ def main(n, arguments):
 
     plt.close()
 
-    ForwardRothC.plot(forRoth, no_of_years=N_YEARS, legendStr="initialisation")
+    ForwardRothC.plot(for_roth, no_of_years=N_YEARS, legendStr="initialisation")
 
     ForwardRothC.plot(roth_base, no_of_years=N_YEARS, legendStr="baseline")
 
