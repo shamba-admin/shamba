@@ -40,6 +40,7 @@ import csv
 import os
 import shutil
 import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -300,6 +301,46 @@ def plot_tree_projects(tree_projects, plot_name):
     for project in tree_projects:
         TreeModel.plot_biomass(project, saveName=plot_name + "_biomassPools.png")
         TreeModel.plot_balance(project, saveName=plot_name + "_massBalance.png")
+
+
+def write_emissions_csv(configuration, mod_run, n, st, data):
+    # Define the output directory and file name
+    output_dir = Path(configuration.OUTPUT_DIR + f"_{mod_run}/plot_{n+st}")
+    output_file = output_dir / f"plot_{n+st}_emissions_all_pools_per_year.csv"
+
+    # Ensure the directory exists
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Define the header and data rows
+    header = [
+        "emit_base_emissions",
+        "emit_project_emissions",
+        "emit_difference",
+        "soil_base",
+        "soil_proj",
+        "soil_difference",
+        "tree_base",
+        "tree_proj",
+        "tree_difference",
+        "fire_base",
+        "fire_project",
+        "fire_difference",
+        "lit_base",
+        "lit_proj",
+        "litter_difference",
+        "fert_base",
+        "fert_proj",
+        "fertiliser_difference",
+        "crop_base",
+        "crop_project",
+        "crop_difference",
+    ]
+
+    # Write the CSV file
+    with open(output_file, "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(header)
+        writer.writerows(zip(*data.values()))
 
 
 def setup_project_directory(project_name, arguments):
@@ -918,69 +959,31 @@ def main(n, arguments):
 
     Emit.save(emit_base_emissions, emit_project_emissions, plot_name + "_emit_proj.csv")
 
-    with open(
-        configuration.OUTPUT_DIR
-        + "_"
-        + mod_run
-        + "\plot_"
-        + str(n + st)
-        + "\plot_"
-        + str(n + st)
-        + "_emissions_all_pools_per_year.csv",
-        "w+",
-    ) as csvfile:
-        writer = csv.writer(csvfile, delimiter=",")
-        writer.writerow(
-            [
-                "emit_base_emissions",
-                "emit_project_emissions",
-                "emit_difference",
-                "soil_base",
-                "soil_proj",
-                "soil_difference",
-                "tree_base",
-                "tree_proj",
-                "tree_difference",
-                "fire_base",
-                "fire_project",
-                "fire_difference",
-                "lit_base",
-                "lit_proj",
-                "litter_difference",
-                "fert_base",
-                "fert_proj",
-                "fertiliser_difference",
-                "crop_base",
-                "crop_project",
-                "crop_difference",
-            ]
-        )
-        for i in range(len(emit_base_emissions)):
-            writer.writerow(
-                [
-                    emit_base_emissions[i],
-                    emit_project_emissions[i],
-                    emit_difference[i],
-                    soil_base_emissions[i],
-                    soil_project_emissions[i],
-                    soil_difference[i],
-                    tree_base_emissions[i],
-                    tree_project_emissions[i],
-                    tree_difference[i],
-                    fire_base_emissions[i],
-                    fire_project_emissions[i],
-                    fire_difference[i],
-                    litter_base_emissions[i],
-                    litter_project_emissions[i],
-                    litter_difference[i],
-                    fertiliser_base_emissions[i],
-                    fertiliser_project_emissions[i],
-                    fertiliser_difference[i],
-                    crop_base_emissions[i],
-                    crop_project_emissions[i],
-                    crop_difference[i],
-                ]
-            )
+    data = {
+        "emit_base_emissions": emit_base_emissions,
+        "emit_project_emissions": emit_project_emissions,
+        "emit_difference": emit_difference,
+        "soil_base_emissions": soil_base_emissions,
+        "soil_project_emissions": soil_project_emissions,
+        "soil_difference": soil_difference,
+        "tree_base_emissions": tree_base_emissions,
+        "tree_project_emissions": tree_project_emissions,
+        "tree_difference": tree_difference,
+        "fire_base_emissions": fire_base_emissions,
+        "fire_project_emissions": fire_project_emissions,
+        "fire_difference": fire_difference,
+        "litter_base_emissions": litter_base_emissions,
+        "litter_project_emissions": litter_project_emissions,
+        "litter_difference": litter_difference,
+        "fertiliser_base_emissions": fertiliser_base_emissions,
+        "fertiliser_project_emissions": fertiliser_project_emissions,
+        "fertiliser_difference": fertiliser_difference,
+        "crop_base_emissions": crop_base_emissions,
+        "crop_project_emissions": crop_project_emissions,
+        "crop_difference": crop_difference,
+    }
+
+    write_emissions_csv(configuration, mod_run, n, st, data)
 
     # Plot stuff
     plot_tree_projects(tree_projects, plot_name)
