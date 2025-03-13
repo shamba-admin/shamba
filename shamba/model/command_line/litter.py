@@ -43,7 +43,9 @@ class LitterDataSchema(Schema):
         return LitterModelData(**data)
 
 
-def create(litter_params, litterFreq, litterQty, no_of_years, litterVector=None) -> LitterModelData:
+def create(
+    litter_params, litterFreq, litterQty, no_of_years, litterVector=None
+) -> LitterModelData:
     """Initialise litter object.
 
     Args:

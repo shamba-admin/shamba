@@ -139,7 +139,9 @@ def from_location(location) -> ClimateData:
     return schema.load(params)
 
 
-def from_csv(filename="climate.csv", order=("temp", "rain", "evap"), isEvap=True) -> ClimateData:
+def from_csv(
+    filename="climate.csv", order=("temp", "rain", "evap"), isEvap=True
+) -> ClimateData:
     """Construct Climate object from a csv file.
 
     Args:
