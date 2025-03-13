@@ -100,7 +100,7 @@ class TreeParamsSchema(Schema):
         return TreeParamsData(**data)
 
 
-def create(tree_params):
+def create(tree_params) -> TreeParamsData:
     """Initialise tree data.
 
     Args:

@@ -189,7 +189,7 @@ def get_biomass(tree_diameter, allometric_key, tree_params):
     )
 
 
-def create(tree_params, growth_params, allom="chave dry"):
+def create(tree_params, growth_params, allom="chave dry") -> TreeGrowth:
     """Initialise tree growth data.
 
     Args:

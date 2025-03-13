@@ -92,7 +92,7 @@ def create(
     initialStandDens=0,  # Should initialStandDens be 200?
     thin=None,
     mort=None,
-):
+) -> TreeModel:
     """Intialise TreeModel object (run biomass model, essentially).
 
     Args:

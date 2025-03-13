@@ -58,7 +58,7 @@ class SoilParamsSchema(Schema):
         return SoilParamsData(**data)
 
 
-def create(soil_params):
+def create(soil_params) -> SoilParamsData:
     """Initialise soil data.
 
     Args:

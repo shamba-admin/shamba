@@ -71,7 +71,7 @@ class ClimateDataSchema(Schema):
         return ClimateData(**data)
 
 
-def from_location(location):
+def from_location(location) -> ClimateData:
     """Construct Climate object using CRU-TS
     dataset for a given location.
 
@@ -139,7 +139,7 @@ def from_location(location):
     return schema.load(params)
 
 
-def from_csv(filename="climate.csv", order=("temp", "rain", "evap"), isEvap=True):
+def from_csv(filename="climate.csv", order=("temp", "rain", "evap"), isEvap=True) -> ClimateData:
     """Construct Climate object from a csv file.
 
     Args:
