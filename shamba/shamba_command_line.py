@@ -65,24 +65,6 @@ _dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(_dir))
 
 
-def get_growth(csv_input_data, spp_key, input_csv, tree_params, allometric_key):
-    spp = int(csv_input_data[spp_key])
-    if spp == 1:
-        growth = TreeGrowth.from_csv1(
-            tree_params, n, allometric_key=allometric_key, filename=input_csv
-        )
-    elif spp == 2:
-        growth = TreeGrowth.from_csv2(
-            tree_params, n, allometric_key=allometric_key, filename=input_csv
-        )
-    else:
-        growth = TreeGrowth.from_csv3(
-            tree_params, n, allometric_key=allometric_key, filename=input_csv
-        )
-
-    return growth
-
-
 def print_crop_emissions(
     crop_base_emissions: np.ndarray,
     crop_project_emissions: np.ndarray,
@@ -235,55 +217,6 @@ def print_total_emissions(
         n_years,
         "TOTAL EMISSIONS (t CO2)",
     )
-
-
-def create_tree_params_from_species_index(csv_input_data, tree_count):
-    return [
-        TreeParams.from_species_index(int(csv_input_data[f"species{i + 1}"]))
-        for i in range(tree_count)
-    ]
-
-
-def create_tree_growths(
-    csv_input_data, input_csv, tree_params, allometric_key, tree_count
-):
-    return [
-        get_growth(
-            csv_input_data,
-            f"species{i + 1}",
-            input_csv,
-            tree_params[i],
-            allometric_key=allometric_key,
-        )
-        for i in range(tree_count)
-    ]
-
-
-def create_tree_projects(
-    csv_input_data,
-    tree_params,
-    growths,
-    thinning_project,
-    thinning_fraction_left_project,
-    mortality_project,
-    mortality_fraction_left_project,
-    no_of_years,
-    tree_count,
-):
-    return [
-        TreeModel.from_defaults(
-            tree_params=tree_params[i],
-            tree_growth=growths[i],
-            yearPlanted=int(csv_input_data[f"proj_plant_yr{i + 1}"]),
-            standDens=int(csv_input_data[f"proj_plant_dens{i + 1}"]),
-            thin=thinning_project,
-            thinFrac=thinning_fraction_left_project,
-            mort=mortality_project,
-            mortFrac=mortality_fraction_left_project,
-            no_of_years=no_of_years,
-        )
-        for i in range(tree_count)
-    ]
 
 
 def print_tree_projects(tree_projects):
@@ -478,21 +411,22 @@ def main(n, arguments):
     tree_par_base = TreeParams.from_species_index(int(csv_input_data["species_base"]))
     tree_params_1 = TreeParams.from_species_index(int(csv_input_data["species1"]))
 
-    tree_params = create_tree_params_from_species_index(csv_input_data, N_TREES)
+    tree_params = TreeParams.create_tree_params_from_species_index(
+        csv_input_data, N_TREES
+    )
 
     # linking tree growth
     allometric_key = arguments["allometric-key"]
 
-    growth_base = get_growth(
+    growth_base = TreeGrowth.get_growth(
         csv_input_data,
         "species_base",
-        input_csv,
         tree_par_base,
         allometric_key=allometric_key,
     )
 
-    tree_growths = create_tree_growths(
-        csv_input_data, input_csv, tree_params, allometric_key, N_TREES
+    tree_growths = TreeGrowth.create_tree_growths(
+        csv_input_data, tree_params, allometric_key, N_TREES
     )
 
     # specify thinning regime and fraction left in field (lif)
@@ -601,7 +535,7 @@ def main(n, arguments):
         no_of_years=N_YEARS,
     )
 
-    tree_projects = create_tree_projects(
+    tree_projects = TreeModel.create_tree_projects(
         csv_input_data=csv_input_data,
         tree_params=tree_params,
         growths=tree_growths,

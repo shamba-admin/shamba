@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 from model.common import csv_handler
 from model import configuration
-import model.command_line.litter as LitterModel
 
 
 def test_crop_model():

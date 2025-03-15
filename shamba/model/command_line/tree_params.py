@@ -239,3 +239,10 @@ def save(tree_params, file="tree_params.csv"):
         "dens",
     ]
     csv_handler.print_csv(file, data, col_names=cols)
+
+
+def create_tree_params_from_species_index(csv_input_data, tree_count):
+    return [
+        from_species_index(int(csv_input_data[f"species{i + 1}"]))
+        for i in range(tree_count)
+    ]

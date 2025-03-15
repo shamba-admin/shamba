@@ -245,9 +245,8 @@ def create(tree_params, growth_params, allom="chave dry") -> TreeGrowth:
 
 def from_csv1(
     tree_params,
-    n,
     allometric_key,
-    filename="growth_measurements.csv",
+    csv_input_data,
     isBiomass=False,
 ):
     """Construct Growth object using data in a csv file.
@@ -267,19 +266,15 @@ def from_csv1(
 
     """
 
-    data = pd.read_csv(configuration.INPUT_DIR + "/" + filename, sep=",")
-    reader = data.loc[n]
-    dictionary = reader.to_dict()
-
     age_input = ["age1", "age2", "age3", "age4", "age5", "age6"]
-    age = {key: dictionary[key] for key in age_input}
+    age = {key: csv_input_data[key] for key in age_input}
     age = np.array(list(age.values())).astype(
         float
     )  # https://stackoverflow.com/questions/45957968/float-arguments-and-dict-values-with-numpy
     age = np.array(sorted(age, key=int))
 
     diam_input = ["diam1", "diam2", "diam3", "diam4", "diam5", "diam6"]
-    diam = {key: dictionary[key] for key in diam_input}
+    diam = {key: csv_input_data[key] for key in diam_input}
     diam = np.array(list(diam.values())).astype(float)
 
     params = {
@@ -287,26 +282,20 @@ def from_csv1(
         "diam": diam,
     }
 
-    try:
-        params = {
-            "age": age,
-            "diam": diam,
-        }
+    params = {
+        "age": age,
+        "diam": diam,
+    }
 
-        growth = create(tree_params, params, allometric_key)
-
-    except IndexError:
-        log.exception("Can't read growth data from %s " % filename)
-        sys.exit(1)
+    growth = create(tree_params, params, allometric_key)
 
     return growth
 
 
 def from_csv2(
     tree_params,
-    n,
     allometric_key,
-    filename="growth_measurements.csv",
+    csv_input_data,
     isBiomass=False,
 ):
     """Construct Growth object using data in a csv file.
@@ -325,10 +314,6 @@ def from_csv2(
         IndexError: if file isn't the right format
 
     """
-
-    data = pd.read_csv(configuration.INPUT_DIR + "/" + filename, sep=",")
-    reader = data.loc[n]
-    dictionary = reader.to_dict()
 
     age_input = [
         "sp2_age1",
@@ -338,7 +323,7 @@ def from_csv2(
         "sp2_age5",
         "sp2_age6",
     ]
-    age = {key: dictionary[key] for key in age_input}
+    age = {key: csv_input_data[key] for key in age_input}
     age = np.array(list(age.values())).astype(float)
     age = np.array(sorted(age, key=int))
 
@@ -350,7 +335,7 @@ def from_csv2(
         "sp2_diam5",
         "sp2_diam6",
     ]
-    diam = {key: dictionary[key] for key in diam_input}
+    diam = {key: csv_input_data[key] for key in diam_input}
     diam = np.array(list(diam.values())).astype(float)
 
     params = {
@@ -358,26 +343,20 @@ def from_csv2(
         "diam": diam,
     }
 
-    try:
-        params = {
-            "age": age,
-            "diam": diam,
-        }
+    params = {
+        "age": age,
+        "diam": diam,
+    }
 
-        growth = create(tree_params, params, allometric_key)
-
-    except IndexError:
-        log.exception("Can't read growth data from %s " % filename)
-        sys.exit(1)
+    growth = create(tree_params, params, allometric_key)
 
     return growth
 
 
 def from_csv3(
     tree_params,
-    n,
     allometric_key,
-    filename="growth_measurements.csv",
+    csv_input_data,
     isBiomass=False,
 ):
     """Construct Growth object using data in a csv file.
@@ -397,10 +376,6 @@ def from_csv3(
 
     """
 
-    data = pd.read_csv(configuration.INPUT_DIR + "/" + filename, sep=",")
-    reader = data.loc[n]
-    dictionary = reader.to_dict()
-
     age_input = [
         "sp3_age1",
         "sp3_age2",
@@ -409,7 +384,7 @@ def from_csv3(
         "sp3_age5",
         "sp3_age6",
     ]
-    age = {key: dictionary[key] for key in age_input}
+    age = {key: csv_input_data[key] for key in age_input}
     age = np.array(list(age.values())).astype(float)
     age = np.array(sorted(age, key=int))
 
@@ -421,7 +396,7 @@ def from_csv3(
         "sp3_diam5",
         "sp3_diam6",
     ]
-    diam = {key: dictionary[key] for key in diam_input}
+    diam = {key: csv_input_data[key] for key in diam_input}
     diam = np.array(list(diam.values())).astype(float)
 
     params = {
@@ -429,17 +404,12 @@ def from_csv3(
         "diam": diam,
     }
 
-    try:
-        params = {
-            "age": age,
-            "diam": diam,
-        }
+    params = {
+        "age": age,
+        "diam": diam,
+    }
 
-        growth = create(tree_params, params, allometric_key)
-
-    except IndexError:
-        log.exception("Can't read growth data from %s " % filename)
-        sys.exit(1)
+    growth = create(tree_params, params, allometric_key)
 
     return growth
 
@@ -821,3 +791,33 @@ allometric = {
     "chave wet": chave_wet,
     "log_allom": log_allom,
 }
+
+
+def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
+    spp = int(csv_input_data[spp_key])
+    if spp == 1:
+        growth = from_csv1(
+            tree_params, allometric_key=allometric_key, csv_input_data=csv_input_data
+        )
+    elif spp == 2:
+        growth = from_csv2(
+            tree_params, allometric_key=allometric_key, csv_input_data=csv_input_data
+        )
+    else:
+        growth = from_csv3(
+            tree_params, allometric_key=allometric_key, csv_input_data=csv_input_data
+        )
+
+    return growth
+
+
+def create_tree_growths(csv_input_data, tree_params, allometric_key, tree_count):
+    return [
+        get_growth(
+            csv_input_data,
+            f"species{i + 1}",
+            tree_params[i],
+            allometric_key=allometric_key,
+        )
+        for i in range(tree_count)
+    ]

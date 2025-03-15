@@ -461,3 +461,30 @@ def save(tree_model, file="tree_model.csv"):
         print_total=True,
         print_years=True,
     )
+
+
+def create_tree_projects(
+    csv_input_data,
+    tree_params,
+    growths,
+    thinning_project,
+    thinning_fraction_left_project,
+    mortality_project,
+    mortality_fraction_left_project,
+    no_of_years,
+    tree_count,
+):
+    return [
+        from_defaults(
+            tree_params=tree_params[i],
+            tree_growth=growths[i],
+            yearPlanted=int(csv_input_data[f"proj_plant_yr{i + 1}"]),
+            standDens=int(csv_input_data[f"proj_plant_dens{i + 1}"]),
+            thin=thinning_project,
+            thinFrac=thinning_fraction_left_project,
+            mort=mortality_project,
+            mortFrac=mortality_fraction_left_project,
+            no_of_years=no_of_years,
+        )
+        for i in range(tree_count)
+    ]
