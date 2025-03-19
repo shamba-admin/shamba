@@ -1,35 +1,57 @@
 {
-	"name": "shamba-client",
-	"private": true,
-	"version": "0.0.0",
-	"type": "module",
-	"scripts": {
-		"dev": "vite",
-		"build": "tsc -b && vite build",
-		"format": "biome format --write ./src",
-		"preview": "vite preview"
-	},
-	"dependencies": {
-		"@radix-ui/react-menubar": "^1.1.6",
-		"@radix-ui/react-slot": "^1.1.2",
-		"@tailwindcss/vite": "^4.0.14",
-		"class-variance-authority": "^0.7.1",
-		"clsx": "^2.1.1",
-		"lucide-react": "^0.482.0",
-		"react": "^19.0.0",
-		"react-dom": "^19.0.0",
-		"tailwind-merge": "^3.0.2",
-		"tailwindcss": "^4.0.14",
-		"tailwindcss-animate": "^1.0.7"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
-		"@types/node": "^22.13.10",
-		"@types/react": "^19.0.10",
-		"@types/react-dom": "^19.0.4",
-		"@vitejs/plugin-react-swc": "^3.8.0",
-		"globals": "^15.15.0",
-		"typescript": "~5.7.2",
-		"vite": "^6.2.0"
-	}
+  "name": "shamba-client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build:production": "dotenvx run --env-file=.env.production -- node esbuild.mjs",
+    "build": "dotenvx run -f .env.local -- node esbuild.mjs",
+    "format": "npx biome format --write ./src",
+    "lint": "npx biome check .",
+    "styles": "npx tailwindcss --postcss -i ./public/css/main.css -o ../server/static/css/main.css",
+    "styles:watch": "npx tailwindcss --postcss -i ./public/css/main.css -o ../server/static/css/main.css --watch",
+    "test": "node --loader @esbuild-kit/esm-loader src/_common/utils/helpers.test.js",
+    "watch": "dotenvx run --env-file=.env.local -- node esbuild.mjs --watch"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.39.0",
+    "@heroicons/react": "^2.2.0",
+    "@reduxjs/toolkit": "^2.6.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
+    "esbuild-envfile-plugin": "^1.0.7",
+    "i18next": "^24.2.3",
+    "notistack": "^3.0.2",
+    "preact": "^10.26.4",
+    "react-hook-form": "^7.54.2",
+    "react-i18next": "^15.4.1",
+    "react-redux": "^9.2.0",
+    "redux-first-router": "^2.1.5",
+    "redux-first-router-link": "^2.1.1",
+    "redux-observable": "3.0.0-rc.2",
+    "redux-persist": "^6.0.0",
+    "rudy-history": "^1.0.0",
+    "rxjs": "^7.8.2",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@danielx/civet": "^0.10.0",
+    "@ngneat/falso": "^7.3.0",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "autoprefixer": "^10.4.21",
+    "esbuild": "^0.25.1",
+    "postcss-cli": "^11.0.1",
+    "postcss-import": "^16.1.0",
+    "postcss-nesting": "^13.0.1",
+    "tailwindcss": "^4.0.14",
+    "tape": "^5.9.0",
+    "tape-describe": "^1.0.3"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": ["esbuild"],
+    "onlyBuiltDependencies": ["esbuild"]
+  }
 }
