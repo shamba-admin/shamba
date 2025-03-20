@@ -1,0 +1,24 @@
+{ SnackbarProvider } from notistack
+* as R from ramda
+{ connect } from react-redux
+
+* as components from ./routeComponents.civet
+
+mapStateToProps := (state) => ({
+  page: R.view(R.lensProp("page"), state),
+});
+
+mapDispatchToProps := R.always({});
+
+App := ({ page: { name = "Dashboard", props: pageProps }, token }) => {
+  Component := components[name];
+
+  (
+    <div className="container m-auto">
+      <SnackbarProvider />
+      <Component {...pageProps} />
+    </div>
+  );
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)

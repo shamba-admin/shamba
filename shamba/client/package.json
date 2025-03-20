@@ -21,9 +21,11 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "esbuild-envfile-plugin": "^1.0.7",
+    "fp-ts": "^2.16.9",
     "i18next": "^24.2.3",
     "notistack": "^3.0.2",
     "preact": "^10.26.4",
+    "ramda": "^0.30.1",
     "react-hook-form": "^7.54.2",
     "react-i18next": "^15.4.1",
     "react-redux": "^9.2.0",
@@ -51,7 +53,11 @@
     "tape-describe": "^1.0.3"
   },
   "pnpm": {
-    "ignoredBuiltDependencies": ["esbuild"],
-    "onlyBuiltDependencies": ["esbuild"]
+    "ignoredBuiltDependencies": [
+      "esbuild"
+    ],
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
