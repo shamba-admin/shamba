@@ -1,0 +1,12 @@
+* as R from ramda
+
+{ gotProjects } from ../actions.civet
+{ projectsLens } from ../lenses.civet
+
+INITIAL_STATE := {}
+
+export default (state = INITIAL_STATE, action) =>
+  switch action.type
+    when gotProjects.type then R.set(projectsLens, R.prepend(action.payload))(state)
+    else
+      state

@@ -10,13 +10,12 @@ import { PersistGate } from "redux-persist/integration/react";
 import storage from "redux-persist/lib/storage";
 import createHistory from "rudy-history/createHashHistory";
 
-import "~/_common/i18n/translations";
-import App from "~/main/components/App";
-import rootEpic from "~/main/epics/epics";
-import { createPhoenixSocketMiddleware } from "~/main/middleware/phoenix";
-import mainReducer from "~/main/reducers/mainReducer";
-import pageReducer from "~/main/reducers/pageReducer";
-import { routesMap } from "~/main/routesMap";
+import "~/i18n/translations";
+import App from "./components/App.civet";
+import rootEpic from "./epics/index.civet";
+import mainReducer from "./reducers/mainReducer.civet";
+import pageReducer from "./reducers/pagesReducer.civet";
+import routesMap from "./routesMap.civet";
 
 const firstRouter = connectRoutes(routesMap, {
   querySerializer: queryString,
@@ -25,12 +24,10 @@ const firstRouter = connectRoutes(routesMap, {
 });
 
 const epicMiddleware = createEpicMiddleware();
-const phoenixSocketMiddleware = createPhoenixSocketMiddleware("/socket");
 
 const statePersistConfig = {
   key: "state",
-  storage: storage.default,
-  whitelist: ["user", "token"],
+  storage,
 };
 
 const store = configureStore({
@@ -42,7 +39,6 @@ const store = configureStore({
   middleware: () => [
     epicMiddleware,
     firstRouter.middleware,
-    phoenixSocketMiddleware,
   ],
   enhancers: (getDefaultEnhancers) =>
     getDefaultEnhancers().concat(firstRouter.enhancer),

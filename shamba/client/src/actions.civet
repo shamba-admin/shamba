@@ -1,0 +1,14 @@
+export type Action = {
+  type: string,
+  payload: any,
+};
+
+export createAction = (name) =>
+  type: name,
+  fire: (payload: any) => ({
+    type: name,
+    payload,
+  })
+
+export getProjects := createAction("get-projects")
+export gotProjects := createAction("got-projects")

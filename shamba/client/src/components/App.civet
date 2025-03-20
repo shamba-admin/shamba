@@ -13,12 +13,9 @@ mapDispatchToProps := R.always({});
 App := ({ page: { name = "Dashboard", props: pageProps }, token }) => {
   Component := components[name];
 
-  (
-    <div className="container m-auto">
-      <SnackbarProvider />
-      <Component {...pageProps} />
-    </div>
-  );
+  <div className="container m-auto">
+    <SnackbarProvider />
+    <Component {...pageProps} />
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(App)

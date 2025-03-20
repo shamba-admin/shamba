@@ -3,7 +3,7 @@ import * as esbuild from "esbuild";
 import envFilePlugin from "esbuild-envfile-plugin";
 
 const config = {
-  entryPoints: ["./src"],
+  entryPoints: ["./src/index.tsx"],
   jsxFactory: "h",
   jsxFragment: "Fragment",
   jsx: "automatic",
@@ -19,9 +19,6 @@ const config = {
   plugins: [
     envFilePlugin,
     civetPlugin({
-      // Options and their defaults:
-      // dts: false,                     // generate .d.ts files?
-      // outputExtension: '.civet.tsx',  // replaces .civet in output
       js: true, // use Civet's TS -> JS transpiler?
     }),
   ],

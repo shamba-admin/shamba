@@ -1,0 +1,27 @@
+"civet coffeeInterpolation"
+
+* as R from ramda
+{ enqueueSnackbar } from notistack
+{ combineEpics } from redux-observable
+{ ofType } from redux-observable
+{ ignoreElements, tap } from rxjs/operators
+
+{ getProjects } from ../actions.civet
+
+getProjectsEpic := (action$) =>
+  action$.pipe(
+    ofType(getProjects.type),
+    tap(({ payload }) =>
+      enqueueSnackbar(payload?.message, {
+        preventDuplicate: true,
+        variant: payload?.variant ?? "info",
+        anchorOrigin: { horizontal: "center", vertical: "top" },
+        style: { fontSize: "1.5rem" }
+      })
+    ),
+    ignoreElements(),
+  )
+
+export default combineEpics(
+  getProjectsEpic,
+)

@@ -1,0 +1,3 @@
+* as R from ramda
+
+export projectsLens := R.lensPath(["projects"])
