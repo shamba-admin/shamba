@@ -4,9 +4,8 @@
 
 * as components from ./routeComponents.civet
 
-mapStateToProps := (state) => ({
-  page: R.view(R.lensProp("page"), state),
-});
+mapStateToProps := (state) =>
+  page: R.view(R.lensProp("page"), state)
 
 mapDispatchToProps := R.always({});
 

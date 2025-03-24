@@ -3,7 +3,7 @@ import * as esbuild from "esbuild";
 import envFilePlugin from "esbuild-envfile-plugin";
 
 const config = {
-  entryPoints: ["./src/index.tsx"],
+  entryPoints: ["./src/main.tsx"],
   jsxFactory: "h",
   jsxFragment: "Fragment",
   jsx: "automatic",

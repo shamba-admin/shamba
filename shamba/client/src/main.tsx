@@ -27,7 +27,7 @@ const epicMiddleware = createEpicMiddleware();
 
 const statePersistConfig = {
   key: "state",
-  storage,
+  storage: storage.default,
 };
 
 const store = configureStore({
@@ -36,10 +36,7 @@ const store = configureStore({
     location: firstRouter.reducer,
     page: pageReducer,
   },
-  middleware: () => [
-    epicMiddleware,
-    firstRouter.middleware,
-  ],
+  middleware: () => [epicMiddleware, firstRouter.middleware],
   enhancers: (getDefaultEnhancers) =>
     getDefaultEnhancers().concat(firstRouter.enhancer),
 });
