@@ -1,21 +1,27 @@
 Projects := ({ children }) => {
   (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col p-4 bg-base-100 gap-6">
       {/* Top section */}
-      <header className="w-full bg-primary text-primary-foreground p-4">
-        <h1 className="text-2xl font-bold">Header
+      <header className="navbar bg-base-100 shadow-sm">
+        <div className="flex-1">
+          <a className="btn btn-ghost text-xl">SHAMBA
+        <div className="flex-none">
+          <button className="btn btn-square btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block h-5 w-5 stroke-current"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path> </svg>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 gap-4">
         {/* Side menu */}
-        <nav className="w-1/4 max-w-xs bg-secondary p-4">
-          <ul className="menu bg-base-200 rounded-box w-56">
-            <li><a href="#">Home</a></li>
-            <li><a href="#">Account</a></li>
-            <li><a href="#">Notifications</a></li>
+        <ul className="menu bg-base-200 rounded-box w-56">
+          <li><a href="#">Home</a></li>
+          <li><a href="#">Account</a></li>
+          <li><a href="#">Notifications</a></li>
 
         {/* Main content area */}
-        <main className="flex-1 p-4">
-          <button class="btn">Default
+        <main className="flex-1">
+          <div role="tablist" className="tabs tabs-box">
+            <a role="tab" className="tab">Tab 1
+            <a role="tab" className="tab tab-active">Tab 2
+            <a role="tab" className="tab">Tab 3
           {children}
   )
 }
