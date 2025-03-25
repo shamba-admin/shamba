@@ -1,4 +1,15 @@
-Projects := ({ children }) => {
+* as R from ramda
+{ connect } from react-redux
+
+Datatable from "./Datatable.civet"
+
+mapStateToProps := (state) =>
+  projects: R.view(R.lensPath(["state", "projects"]), state)
+
+mapDispatchToProps := R.always({});
+
+Projects := ({ projects, children }) => {
+  console.log({projects})
   (
     <div className="min-h-screen flex flex-col p-4 bg-base-100 gap-6">
       {/* Top section */}
@@ -11,19 +22,24 @@ Projects := ({ children }) => {
 
       <div className="flex flex-1 gap-4">
         {/* Side menu */}
-        <ul className="menu bg-base-200 rounded-box w-56">
+        <ul className="menu bg-base-200 rounded-box w-56 border border-secondary">
           <li><a href="#">Home</a></li>
           <li><a href="#">Account</a></li>
           <li><a href="#">Notifications</a></li>
 
         {/* Main content area */}
-        <main className="flex-1">
-          <div role="tablist" className="tabs tabs-box">
-            <a role="tab" className="tab">Tab 1
-            <a role="tab" className="tab tab-active">Tab 2
-            <a role="tab" className="tab">Tab 3
+        <main className="flex flex-col flex-1 gap-4">
+          <div role="tablist" className="tabs tabs-box bg-base-200 border border-base-300">
+            <a role="tab" className="tab">Inputs
+            <a role="tab" className="tab tab-active">Results
+          <div role="tablist" className="tabs tabs-lift">
+            <a role="tab" className="tab">Climate
+            <a role="tab" className="tab tab-active">Crop IPCC
+            <a role="tab" className="tab">Soil Info
+            <a role="tab" className="tab">Other Data
+          <Datatable />
           {children}
   )
 }
 
-export default Projects
+export default connect(mapStateToProps, mapDispatchToProps)(Projects)

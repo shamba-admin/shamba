@@ -1,0 +1,18 @@
+{ DataGrid } from react-data-grid
+
+columns := [
+  { key: 'id', name: 'ID' },
+  { key: 'title', name: 'Title' }
+]
+
+rows := [
+  { id: 0, title: 'Example' },
+  { id: 1, title: 'Demo' }
+]
+
+function Datatable() {
+  <div className="max-w-full overflow-x-auto">
+    <DataGrid columns={columns} rows={rows} />
+}
+
+export default Datatable

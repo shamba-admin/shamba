@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "react-data-grid/lib/styles.css";
+
 @plugin "daisyui" {
-  themes: light --default, dark --prefersdark, nord;
+  themes: light --default, dark --prefersdark, emerald, corporate, bumblebee;
 }

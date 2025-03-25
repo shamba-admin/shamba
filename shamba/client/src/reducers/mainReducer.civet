@@ -2,8 +2,18 @@
 
 { gotProjects } from ../actions.civet
 { projectsLens } from ../lenses.civet
+{ climateData, cropIpccData, soilInfo, inputs } from ../defaultData
 
-INITIAL_STATE := {}
+INITIAL_STATE := {
+  projects: [
+    { name: "Example", id: 1, description: "An example project", data: {
+      climate: climateData,
+      cropIpcc: cropIpccData,
+      soilInfo: soilInfo,
+      inputs: inputs,
+    } },
+  ]
+}
 
 export default (state = INITIAL_STATE, action) =>
   switch action.type
