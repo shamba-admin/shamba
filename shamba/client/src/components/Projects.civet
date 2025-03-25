@@ -1,3 +1,5 @@
+{ useState } from preact/hooks
+clsx from "clsx"
 * as R from ramda
 { connect } from react-redux
 
@@ -8,7 +10,14 @@ mapStateToProps := (state) =>
 
 mapDispatchToProps := R.always({});
 
+enum OuterTab {
+  Inputs,
+  Results,
+}
+
 Projects := ({ projects, children }) => {
+  [outerTabState, setOuterTabState] := useState<OuterTab>(OuterTab.Inputs)
+
   console.log({projects})
   (
     <div className="min-h-screen flex flex-col p-4 bg-base-100 gap-6">
@@ -29,15 +38,25 @@ Projects := ({ projects, children }) => {
 
         {/* Main content area */}
         <main className="flex flex-col flex-1 gap-4">
-          <div role="tablist" className="tabs tabs-box bg-base-200 border border-base-300">
-            <a role="tab" className="tab">Inputs
-            <a role="tab" className="tab tab-active">Results
-          <div role="tablist" className="tabs tabs-lift">
-            <a role="tab" className="tab">Climate
-            <a role="tab" className="tab tab-active">Crop IPCC
-            <a role="tab" className="tab">Soil Info
-            <a role="tab" className="tab">Other Data
-          <Datatable />
+          <div className="tabs as-two-lists tabs-box">
+            <input type="radio" name="inner-tabs" className="tab" aria-label="Climate" defaultChecked />
+            <div className="tab-content p-4"><Datatable />
+
+            <input type="radio" name="inner-tabs" className="tab" aria-label="Crop IPCC" />
+            <div className="tab-content p-4"><Datatable />
+
+            <input type="radio" name="inner-tabs" className="tab" aria-label="Soil Info" />
+            <div className="tab-content p-4"><Datatable />
+
+            <input type="radio" name="inner-tabs" className="tab" aria-label="Other Data" />
+            <div className="tab-content p-4"><Datatable />
+
+            <!-- Dummy element to fill the remaining space -->
+            <div className="grow-7"/>
+
+            <input type="radio" name="inner-tabs" className="tab" aria-label="Results" />
+            <div className="tab-content p-4"><Datatable />
+
           {children}
   )
 }

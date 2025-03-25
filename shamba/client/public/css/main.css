@@ -4,3 +4,24 @@
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark, emerald, corporate, bumblebee;
 }
+
+/* New styles to align the last tab to the opposite end */
+.tabs.as-two-lists {
+  justify-content: flex-start;
+}
+
+.tabs.as-two-lists > *:last-of-type {
+  flex-grow: 1;
+  text-align: right;
+  justify-content: flex-end;
+}
+
+.tabs.as-two-lists > *:last-of-type {
+  flex-grow: 1;
+  text-align: right;
+  justify-content: flex-end;
+}
+
+.tabs.as-two-lists .tab {
+  justify-content: center;
+}
