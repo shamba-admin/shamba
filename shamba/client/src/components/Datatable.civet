@@ -1,18 +1,15 @@
 { DataGrid } from react-data-grid
+* as R from ramda
 
-columns := [
-  { key: 'id', name: 'ID' },
-  { key: 'title', name: 'Title' }
-]
+export transformDataToGrid := (data) =>
+  columns := R.compose(R.map((key) => ({ key, name: key})), R.keys)(R.head(data) ?? {})
+  rows := R.map((row) => R.fromPairs(R.map(({ key }) => [key, row[key]], columns)), data)
 
-rows := [
-  { id: 0, title: 'Example' },
-  { id: 1, title: 'Demo' }
-]
+  { columns, rows }
 
-function Datatable() {
-  <div className="max-w-full overflow-x-auto">
+
+Datatable := ({ rows, columns }) =>
+  <div className="max-w-[65vw] overflow-x-auto">
     <DataGrid columns={columns} rows={rows} />
-}
 
 export default Datatable

@@ -3,22 +3,20 @@ clsx from "clsx"
 * as R from ramda
 { connect } from react-redux
 
-Datatable from "./Datatable.civet"
+Datatable, { transformDataToGrid } from "./Datatable.civet"
 
 mapStateToProps := (state) =>
   projects: R.view(R.lensPath(["state", "projects"]), state)
 
 mapDispatchToProps := R.always({});
 
-enum OuterTab {
-  Inputs,
-  Results,
-}
+
 
 Projects := ({ projects, children }) => {
-  [outerTabState, setOuterTabState] := useState<OuterTab>(OuterTab.Inputs)
+  [selectedProject, setSelectedProject] := useState(R.head(projects) ?? undefined)
 
-  console.log({projects})
+  console.log({projects, selectedProject})
+  contentClassName := "tab-content py-4"
   (
     <div className="min-h-screen flex flex-col p-4 bg-base-100 gap-6">
       {/* Top section */}
@@ -32,30 +30,41 @@ Projects := ({ projects, children }) => {
       <div className="flex flex-1 gap-4">
         {/* Side menu */}
         <ul className="menu bg-base-200 rounded-box w-56 border border-secondary">
-          <li><a href="#">Home</a></li>
-          <li><a href="#">Account</a></li>
-          <li><a href="#">Notifications</a></li>
+          >for project of projects
+            <li>
+              <a
+                className=clsx("cursor-pointer", {"menu-active": project.id == selectedProject.id})
+                onClick={() => setSelectedProject(project)}
+                onKeyPress={() => setSelectedProject(project)}>{project.name}</a>
 
         {/* Main content area */}
         <main className="flex flex-col flex-1 gap-4">
-          <div className="tabs as-two-lists tabs-box">
+          <div className="tabs as-two-lists tabs-box p-2 h-full">
             <input type="radio" name="inner-tabs" className="tab" aria-label="Climate" defaultChecked />
-            <div className="tab-content p-4"><Datatable />
+            <div className=contentClassName>
+              >if selectedProject
+                <Datatable ...transformDataToGrid(selectedProject.data.climate) />
 
             <input type="radio" name="inner-tabs" className="tab" aria-label="Crop IPCC" />
-            <div className="tab-content p-4"><Datatable />
+            <div className=contentClassName>
+              >if selectedProject
+                <Datatable ...transformDataToGrid(selectedProject.data.cropIpcc) />
 
             <input type="radio" name="inner-tabs" className="tab" aria-label="Soil Info" />
-            <div className="tab-content p-4"><Datatable />
+            <div className=contentClassName>
+              >if selectedProject
+                <Datatable ...transformDataToGrid(selectedProject.data.soilInfo) />
 
             <input type="radio" name="inner-tabs" className="tab" aria-label="Other Data" />
-            <div className="tab-content p-4"><Datatable />
+            <div className=contentClassName>
+              >if selectedProject
+                <Datatable ...transformDataToGrid(selectedProject.data.inputs) />
 
             <!-- Dummy element to fill the remaining space -->
             <div className="grow-7"/>
 
             <input type="radio" name="inner-tabs" className="tab" aria-label="Results" />
-            <div className="tab-content p-4"><Datatable />
+            <div className=contentClassName>TT
 
           {children}
   )

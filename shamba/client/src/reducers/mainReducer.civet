@@ -6,12 +6,16 @@
 
 INITIAL_STATE := {
   projects: [
-    { name: "Example", id: 1, description: "An example project", data: {
-      climate: climateData,
-      cropIpcc: cropIpccData,
-      soilInfo: soilInfo,
-      inputs: inputs,
-    } },
+    { name: "Example",
+      id: 1,
+      description: "An example project",
+      data: {
+        climate: climateData,
+        cropIpcc: cropIpccData,
+        soilInfo: soilInfo,
+        inputs: inputs,
+      } 
+    },
   ]
 }
 
