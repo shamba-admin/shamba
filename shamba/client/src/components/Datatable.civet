@@ -9,7 +9,7 @@ export transformDataToGrid := (data) =>
 
 
 Datatable := ({ rows, columns }) =>
-  <div className="max-w-[65vw] overflow-x-auto">
+  <div className="main-area-content overflow-x-auto">
     <DataGrid columns={columns} rows={rows} />
 
 export default Datatable

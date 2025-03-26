@@ -19,3 +19,7 @@
   color: var(--color-secondary-content);
   justify-content: center;
 }
+
+.main-area-content {
+  width: calc(100% - 2rem); /* 100% of the parent's width minus 2 rem */
+}

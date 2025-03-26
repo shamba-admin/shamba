@@ -1,4 +1,5 @@
 { useState } from preact/hooks
+{ PlayIcon } from @heroicons/react/24/outline
 clsx from "clsx"
 * as R from ramda
 { connect } from react-redux
@@ -27,7 +28,7 @@ Projects := ({ projects, children }) => {
           <button className="btn btn-square btn-ghost">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block h-5 w-5 stroke-current"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path> </svg>
 
-      <div className="flex flex-1 gap-4">
+      <div className="flex flex-1 gap-4 w-full">
         {/* Side menu */}
         <ul className="menu bg-base-200 rounded-box w-56 border border-secondary">
           >for project of projects
@@ -35,36 +36,43 @@ Projects := ({ projects, children }) => {
               <a
                 className=clsx("cursor-pointer", {"menu-active": project.id == selectedProject.id})
                 onClick={() => setSelectedProject(project)}
-                onKeyPress={() => setSelectedProject(project)}>{project.name}</a>
+                onKeyPress={() => setSelectedProject(project)}>{project.name}
 
         {/* Main content area */}
-        <main className="flex flex-col flex-1 gap-4">
+        <main className="flex flex-col flex-1 gap-4 w-[80%]">
           <div className="tabs as-two-lists tabs-box p-2 h-full">
             <input type="radio" name="inner-tabs" className="tab" aria-label="Climate" defaultChecked />
             <div className=contentClassName>
               >if selectedProject
-                <Datatable ...transformDataToGrid(selectedProject.data.climate) />
+                <div className="grid justify-items-center">
+                  <Datatable ...transformDataToGrid(selectedProject.data.climate) />
 
             <input type="radio" name="inner-tabs" className="tab" aria-label="Crop IPCC" />
             <div className=contentClassName>
               >if selectedProject
-                <Datatable ...transformDataToGrid(selectedProject.data.cropIpcc) />
+                <div className="grid justify-items-center">
+                  <Datatable ...transformDataToGrid(selectedProject.data.cropIpcc) />
 
             <input type="radio" name="inner-tabs" className="tab" aria-label="Soil Info" />
             <div className=contentClassName>
               >if selectedProject
-                <Datatable ...transformDataToGrid(selectedProject.data.soilInfo) />
+                <div className="grid justify-items-center">
+                  <Datatable ...transformDataToGrid(selectedProject.data.soilInfo) />
 
             <input type="radio" name="inner-tabs" className="tab" aria-label="Other Data" />
             <div className=contentClassName>
               >if selectedProject
-                <Datatable ...transformDataToGrid(selectedProject.data.inputs) />
+                <div className="grid justify-items-center">
+                  <Datatable ...transformDataToGrid(selectedProject.data.inputs) />
 
             <!-- Dummy element to fill the remaining space -->
             <div className="grow-7"/>
 
             <input type="radio" name="inner-tabs" className="tab" aria-label="Results" />
             <div className=contentClassName>TT
+          
+          <button class="btn btn-primary">
+            Run <PlayIcon className="size-6 text-blue-500" />
 
           {children}
   )
