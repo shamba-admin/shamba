@@ -4,9 +4,19 @@
 { enqueueSnackbar } from notistack
 { combineEpics } from redux-observable
 { ofType } from redux-observable
-{ ignoreElements, tap } from rxjs/operators
+{ ajax } from rxjs/ajax
+{ of } from rxjs
+{
+  ignoreElements,
+  tap,
+  catchError,
+  switchMap,
+  withLatestFrom,
+  map,
+  mergeWith,
+} from rxjs/operators
 
-{ getProjects } from ../actions.civet
+{ getProjects, getDryRun, gotDryRun } from ../actions.civet
 
 getProjectsEpic := (action$) =>
   action$.pipe(
@@ -22,6 +32,28 @@ getProjectsEpic := (action$) =>
     ignoreElements(),
   )
 
+getDryRunEpic := (action$, state$) =>
+  action$.pipe(
+    ofType(getDryRun.type),
+    withLatestFrom(state$),
+    switchMap(([{ payload }, state]) =>
+      ajax({
+        url: `/dry-run`,
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: payload
+      }).pipe(map((result) => gotDryRun.fire(result)))
+    ),
+    // catchError((error, caught) => of(addError(error)).pipe(mergeWith(caught))),
+    catchError((error, caught) => {
+      console.log(error)
+      return []
+    }),
+  )
+
 export default combineEpics(
   getProjectsEpic,
+  getDryRunEpic,
 )

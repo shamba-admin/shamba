@@ -12,3 +12,6 @@ export createAction = (name) =>
 
 export getProjects := createAction("get-projects")
 export gotProjects := createAction("got-projects")
+
+export getDryRun := createAction("get-dry-run")
+export gotDryRun := createAction("got-dry-run")

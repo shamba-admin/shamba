@@ -1,2 +1,3 @@
-def run(project_name):
-    return f"hello {project_name}"
+def run(data):
+    print("XXX", data)
+    return f"hello data"

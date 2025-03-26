@@ -15,7 +15,7 @@ eval $(poetry env activate)
 
 ### Run Server
 
-Run the server in _development_ mode: `poetry run uvicorn server.main:app --reload`
+From the `./server` directory, run the server in _development_ mode: `poetry run fastapi dev main.py`
 
 ### Format Files
 ```sh
