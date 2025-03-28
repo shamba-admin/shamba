@@ -1,4 +1,4 @@
-from typing import Dict, Union, Tuple, List
+from typing import Dict, Union, Tuple, List, NamedTuple
 from toolz import get, compose
 import numpy as np
 
@@ -112,6 +112,10 @@ def populate_thinning_array(
 # ----------
 # TREE MODEL
 # ----------
+class GetTreeModelReturnData(NamedTuple):
+    tree_base: TreeModel.TreeModel
+    tree_projects: List[TreeModel.TreeModel]
+
 def get_tree_model_data(
     intervention_input: Dict[str, Union[float, int]],
     no_of_years: int,
@@ -258,12 +262,17 @@ def get_tree_model_data(
         tree_count=no_of_trees,
     )
 
-    return tree_base, tree_projects
+    return GetTreeModelReturnData(tree_base=tree_base, tree_projects=tree_projects)
 
 
 # ----------
 # FIRE MODEL
 # ----------
+class GetFireModelReturnData(NamedTuple):
+    fire_base: np.ndarray
+    fire_project: np.ndarray
+
+
 def get_fire_model_data(
     intervention_input: Dict[str, Union[float, int]], no_of_years: int
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -285,18 +294,19 @@ def get_fire_model_data(
         fire_project[::project_fire_interval] = get_int(
             FIRE_PRES_PROJECT_KEY, intervention_input
         )
+    return GetFireModelReturnData(fire_base=fire_base, fire_project=fire_project)
 
-    return fire_base, fire_project
+
+class GetLitterModelReturnData(NamedTuple):
+    litter_external_base: LitterModel.LitterModelData
+    litter_external_project: LitterModel.LitterModelData
+    synthetic_fertiliser_base: LitterModel.LitterModelData
+    synthetic_fertiliser_project: LitterModel.LitterModelData
 
 
 def get_litter_model_data(
     intervention_input: Dict[str, Union[float, int]], no_of_years: int
-) -> Tuple[
-    LitterModel.LitterModelData,
-    LitterModel.LitterModelData,
-    LitterModel.LitterModelData,
-    LitterModel.LitterModelData,
-]:
+) -> GetLitterModelReturnData:
     # baseline external organic inputs
     litter_external_base = LitterModel.from_defaults(
         litterFreq=get_int(BASE_LITTER_INTERVAL_KEY, intervention_input),
@@ -327,17 +337,24 @@ def get_litter_model_data(
         no_of_years=no_of_years,
     )
 
-    return (
-        litter_external_base,
-        litter_external_project,
-        synthetic_fertiliser_base,
-        synthetic_fertiliser_project,
+    return GetLitterModelReturnData(
+        litter_external_base=litter_external_base,
+        litter_external_project=litter_external_project,
+        synthetic_fertiliser_base=synthetic_fertiliser_base,
+        synthetic_fertiliser_project=synthetic_fertiliser_project,
     )
+
+
+class GetCropModelReturnData(NamedTuple):
+    crop_base: np.ndarray
+    crop_par_base: np.ndarray
+    crop_project: np.ndarray
+    crop_par_project: np.ndarray
 
 
 def get_crop_model_data(
     intervention_input: Dict[str, Union[float, int]], no_of_years: int
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> GetCropModelReturnData:
     crop_base, crop_par_base = CropModel.get_crop_bases(
         input_data=intervention_input,
         no_of_years=no_of_years,
@@ -351,7 +368,17 @@ def get_crop_model_data(
         end_index=3,
     )
 
-    return crop_base, crop_par_base, crop_project, crop_par_project
+    return GetCropModelReturnData(
+        crop_base=crop_base,
+        crop_par_base=crop_par_base,
+        crop_project=crop_project,
+        crop_par_project=crop_par_project,
+    )
+
+
+class GetSoilCarbonReturnData(NamedTuple):
+    roth_base: ForwardRothC.ForwardRothCData
+    roth_project: ForwardRothC.ForwardRothCData
 
 
 def get_soil_carbon_data(
@@ -369,7 +396,7 @@ def get_soil_carbon_data(
     tree_projects: List[TreeModel.TreeModel],
     litter_external_base: LitterModel.LitterModelData,
     litter_external_project: LitterModel.LitterModelData,
-) -> Tuple[ForwardRothC.ForwardRothCData, ForwardRothC.ForwardRothCData]:
+) -> GetSoilCarbonReturnData:
     # soil cover for baseline
     cover_base = np.zeros(12)
     cover_base[
@@ -424,7 +451,12 @@ def get_soil_carbon_data(
         fire=fire_project,
     )
 
-    return roth_base, roth_project
+    return GetSoilCarbonReturnData(roth_base=roth_base, roth_project=roth_project)
+
+
+class GetEmissionsReturnData(NamedTuple):
+    emit_base_emissions: np.ndarray
+    emit_project_emissions: np.ndarray
 
 
 def get_emissions_data(
@@ -441,7 +473,7 @@ def get_emissions_data(
     synthetic_fertiliser_project: LitterModel.LitterModelData,
     fire_base: np.ndarray,
     fire_project: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> GetEmissionsReturnData:
     # Emissions stuff
     emit_base_emissions = Emit.create(
         no_of_years=no_of_years,
@@ -462,7 +494,10 @@ def get_emissions_data(
         fire=fire_project,
     )
 
-    return emit_base_emissions, emit_project_emissions
+    return GetEmissionsReturnData(
+        emit_base_emissions=emit_base_emissions,
+        emit_project_emissions=emit_project_emissions,
+    )
 
 
 def handle_intervention(
