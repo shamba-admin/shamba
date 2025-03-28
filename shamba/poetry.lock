@@ -1982,6 +1982,18 @@ files = [
 ]
 
 [[package]]
+name = "toolz"
+version = "1.0.0"
+description = "List processing tools and functional utilities"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "toolz-1.0.0-py3-none-any.whl", hash = "sha256:292c8f1c4e7516bf9086f8850935c799a874039c8bcf959d47b600e4c44a6236"},
+    {file = "toolz-1.0.0.tar.gz", hash = "sha256:2c86e3d9a04798ac556793bced838816296a2f085017664e4995cb40a1047a02"},
+]
+
+[[package]]
 name = "typer"
 version = "0.15.2"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
@@ -2269,4 +2281,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "==3.10.16"
-content-hash = "e97255ab464757d2047939342087de8137f0f35e169fb73853c4272a67dbca61"
+content-hash = "116904fb181043dcb2db27eb330905c5b683627e8344abea1d005d918ab98fe1"

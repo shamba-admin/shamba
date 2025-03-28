@@ -372,7 +372,6 @@ def main(n, arguments):
     # key
 
     ## getting plot anlaysis number to name output
-
     st = int(csv_input_data["analysis_no"])
 
     # ----------
@@ -485,7 +484,6 @@ def main(n, arguments):
     )
 
     # specify mortality regime and fraction left in field (lif)
-
     # baseline yearly mortality
     mortality_base = np.array((N_YEARS + 1) * [float(csv_input_data["base_mort"])])
 

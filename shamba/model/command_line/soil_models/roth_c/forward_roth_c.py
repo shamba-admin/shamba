@@ -68,7 +68,7 @@ def create(
     litter=[],
     fire=[],
     solveToValue=False,
-):
+) -> ForwardRothCData:
     """Initialise ForwardRothC.
 
     Args:
