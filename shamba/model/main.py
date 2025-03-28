@@ -11,6 +11,7 @@ import model.command_line.soil_params as SoilParams
 import model.command_line.tree_growth as TreeGrowth
 import model.command_line.tree_model as TreeModel
 import model.command_line.tree_params as TreeParams
+import model.command_line.emit as Emit
 
 get_float = compose(float, get)
 get_int = compose(int, get)
@@ -290,7 +291,12 @@ def get_fire_model_data(
 
 def get_litter_model_data(
     intervention_input: Dict[str, Union[float, int]], no_of_years: int
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> Tuple[
+    LitterModel.LitterModelData,
+    LitterModel.LitterModelData,
+    LitterModel.LitterModelData,
+    LitterModel.LitterModelData,
+]:
     # baseline external organic inputs
     litter_external_base = LitterModel.from_defaults(
         litterFreq=get_int(BASE_LITTER_INTERVAL_KEY, intervention_input),
@@ -359,10 +365,10 @@ def get_soil_carbon_data(
     fire_project: np.ndarray,
     crop_base: np.ndarray,
     crop_project: np.ndarray,
-    tree_base: np.ndarray,
-    tree_projects: np.ndarray,
-    litter_external_base: np.ndarray,
-    litter_external_project: np.ndarray,
+    tree_base: TreeModel.TreeModel,
+    tree_projects: List[TreeModel.TreeModel],
+    litter_external_base: LitterModel.LitterModelData,
+    litter_external_project: LitterModel.LitterModelData,
 ) -> Tuple[ForwardRothC.ForwardRothCData, ForwardRothC.ForwardRothCData]:
     # soil cover for baseline
     cover_base = np.zeros(12)
@@ -422,8 +428,20 @@ def get_soil_carbon_data(
 
 
 def get_emissions_data(
-    intervention_input: Dict[str, Union[float, int]], no_of_years: int
-):
+    no_of_years: int,
+    roth_base: ForwardRothC.ForwardRothCData,
+    roth_project: ForwardRothC.ForwardRothCData,
+    crop_base: np.ndarray,
+    crop_project: np.ndarray,
+    tree_base: TreeModel.TreeModel,
+    tree_projects: List[TreeModel.TreeModel],
+    litter_external_base: LitterModel.LitterModelData,
+    litter_external_project: LitterModel.LitterModelData,
+    synthetic_fertiliser_base: LitterModel.LitterModelData,
+    synthetic_fertiliser_project: LitterModel.LitterModelData,
+    fire_base: np.ndarray,
+    fire_project: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray]:
     # Emissions stuff
     emit_base_emissions = Emit.create(
         no_of_years=no_of_years,
@@ -436,13 +454,15 @@ def get_emissions_data(
     )
     emit_project_emissions = Emit.create(
         no_of_years=no_of_years,
-        forRothC=roth_proj,
+        forRothC=roth_project,
         crop=crop_project,
         tree=tree_projects,
         litter=[litter_external_project],
         fert=[synthetic_fertiliser_project],
         fire=fire_project,
     )
+
+    return emit_base_emissions, emit_project_emissions
 
 
 def handle_intervention(
