@@ -87,6 +87,7 @@ PROJECT_COVER_MONTH_END_KEY = "proj_cvr_mth_en"
 PROJECT_COVER_PRES_KEY = "proj_cvr_pres"
 # ----------
 DEFAULT_NO_OF_TREES = 3
+DEFAULT_ALLOMORPHY = "chave dry"
 
 
 def get_location(year_input):
@@ -116,12 +117,13 @@ class GetTreeModelReturnData(NamedTuple):
     tree_base: TreeModel.TreeModel
     tree_projects: List[TreeModel.TreeModel]
 
+
 def get_tree_model_data(
     intervention_input: Dict[str, Union[float, int]],
     no_of_years: int,
     no_of_trees: int,
     allometry: str,
-) -> Tuple[TreeModel.TreeModel, List[TreeModel.TreeModel]]:
+) -> GetTreeModelReturnData:
     # Linking tree cohort parameteres
     tree_par_base = TreeParams.from_species_index(
         get_int(SPECIES_BASE_KEY, intervention_input)
@@ -275,7 +277,7 @@ class GetFireModelReturnData(NamedTuple):
 
 def get_fire_model_data(
     intervention_input: Dict[str, Union[float, int]], no_of_years: int
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> GetFireModelReturnData:
     # Return interval of fire, [::2] = 1 is return interval of two years
     base_fire_interval = get_int(FIRE_INTERNAL_BASE_KEY, intervention_input)
     if base_fire_interval == 0:
@@ -387,7 +389,6 @@ def get_soil_carbon_data(
     climate: Climate.ClimateData,
     soil: np.ndarray,
     inverse_roth: np.ndarray,
-    for_roth: np.ndarray,
     fire_base: np.ndarray,
     fire_project: np.ndarray,
     crop_base: np.ndarray,
@@ -500,8 +501,118 @@ def get_emissions_data(
     )
 
 
+class GetEmissionsWithDifferenceReturnData(NamedTuple):
+    base_emissions: np.ndarray
+    project_emissions: np.ndarray
+    difference: np.ndarray
+
+
+def get_crop_emissions(
+    no_of_years: int,
+    crop_base: np.ndarray,
+    crop_project: np.ndarray,
+    fire_base: np.ndarray,
+    fire_project: np.ndarray,
+) -> GetEmissionsWithDifferenceReturnData:
+    crop_base_emissions = Emit.create(
+        no_of_years=no_of_years, crop=crop_base, fire=fire_base
+    )
+    crop_project_emissions = Emit.create(
+        no_of_years=no_of_years, crop=crop_project, fire=fire_project
+    )
+    crop_difference = crop_project_emissions - crop_base_emissions
+
+    return GetEmissionsWithDifferenceReturnData(
+        base_emissions=crop_base_emissions,
+        project_emissions=crop_project_emissions,
+        difference=crop_difference,
+    )
+
+
+def get_fertiliser_emissions(
+    no_of_years: int,
+    synthetic_fertiliser_base: LitterModel.LitterModelData,
+    synthetic_fertiliser_project: LitterModel.LitterModelData,
+) -> GetEmissionsWithDifferenceReturnData:
+    fertiliser_base_emissions = Emit.create(
+        no_of_years=no_of_years, fert=[synthetic_fertiliser_base]
+    )
+    fertiliser_project_emissions = Emit.create(
+        no_of_years=no_of_years, fert=[synthetic_fertiliser_project]
+    )
+    fertiliser_difference = fertiliser_project_emissions - fertiliser_base_emissions
+
+    return GetEmissionsWithDifferenceReturnData(
+        base_emissions=fertiliser_base_emissions,
+        project_emissions=fertiliser_project_emissions,
+        difference=fertiliser_difference,
+    )
+
+
+def get_litter_emissions(
+    no_of_years: int,
+    fire_base: np.ndarray,
+    fire_project: np.ndarray,
+    litter_external_base: LitterModel.LitterModelData,
+    litter_external_project: LitterModel.LitterModelData,
+) -> GetEmissionsWithDifferenceReturnData:
+    litter_base_emissions = Emit.create(
+        no_of_years=no_of_years, litter=[litter_external_base], fire=fire_base
+    )
+    litter_project_emissions = Emit.create(
+        no_of_years=no_of_years, litter=[litter_external_project], fire=fire_project
+    )
+    litter_difference = litter_project_emissions - litter_base_emissions
+
+    return GetEmissionsWithDifferenceReturnData(
+        base_emissions=litter_base_emissions,
+        project_emissions=litter_project_emissions,
+        difference=litter_difference,
+    )
+
+
+def get_fire_emissions(
+    no_of_years: int, fire_base: np.ndarray, fire_project: np.ndarray
+) -> GetEmissionsWithDifferenceReturnData:
+    fire_base_emissions = Emit.create(no_of_years=no_of_years, fire=fire_base)
+    fire_project_emissions = Emit.create(no_of_years=no_of_years, fire=fire_project)
+    fire_difference = fire_project_emissions - fire_base_emissions
+
+    return GetEmissionsWithDifferenceReturnData(
+        base_emissions=fire_base_emissions,
+        project_emissions=fire_project_emissions,
+        difference=fire_difference,
+    )
+
+
+def get_tree_emissions(
+    no_of_years: int,
+    fire_base: np.ndarray,
+    fire_project: np.ndarray,
+    tree_base: TreeModel.TreeModel,
+    tree_projects: List[TreeModel.TreeModel],
+) -> GetEmissionsWithDifferenceReturnData:
+    tree_base_emissions = Emit.create(
+        no_of_years=no_of_years, tree=[tree_base], fire=fire_base
+    )
+    tree_project_emissions = Emit.create(
+        no_of_years=no_of_years,
+        tree=tree_projects,
+        fire=fire_project,
+    )
+    tree_difference = tree_project_emissions - tree_base_emissions
+
+    return GetEmissionsWithDifferenceReturnData(
+        base_emissions=tree_base_emissions,
+        project_emissions=tree_project_emissions,
+        difference=tree_difference,
+    )
+
+
 def handle_intervention(
-    intervention_input: Dict[str, Union[float, int]], no_of_trees: int, allometry: str
+    intervention_input: Dict[str, Union[float, int]],
+    allometry: str = DEFAULT_ALLOMORPHY,
+    no_of_trees: int = DEFAULT_NO_OF_TREES,
 ):
     no_of_years = get_int(NO_OF_YEARS_KEY, intervention_input)
 
@@ -517,7 +628,130 @@ def handle_intervention(
     soil = SoilParams.from_location(location)
     inverse_roth = InverseRothC.create(soil, climate)
 
-    print("XXXXXX", vars(climate))
+    # ----------
+    # MODEL DATA
+    # ----------
+    crop_model_data = get_crop_model_data(
+        no_of_years=no_of_years,
+        intervention_input=intervention_input,
+    )
+
+    fire_model_data = get_fire_model_data(
+        no_of_years=no_of_years,
+        intervention_input=intervention_input,
+    )
+
+    litter_model_data = get_litter_model_data(
+        no_of_years=no_of_years, intervention_input=intervention_input
+    )
+
+    tree_model_data = get_tree_model_data(
+        no_of_years=no_of_years,
+        intervention_input=intervention_input,
+        no_of_trees=no_of_trees,
+        allometry=allometry,
+    )
+
+    # ----------
+    # EMISSIONS
+    # ----------
+    crop_emissions = get_crop_emissions(
+        no_of_years=no_of_years,
+        crop_base=crop_model_data.crop_base,
+        crop_project=crop_model_data.crop_project,
+        fire_base=fire_model_data.fire_base,
+        fire_project=fire_model_data.fire_project,
+    )
+
+    fertiliser_emissions = get_fertiliser_emissions(
+        no_of_years=no_of_years,
+        synthetic_fertiliser_base=litter_model_data.synthetic_fertiliser_base,
+        synthetic_fertiliser_project=litter_model_data.synthetic_fertiliser_project,
+    )
+
+    litter_emissions = get_litter_emissions(
+        no_of_years=no_of_years,
+        fire_base=fire_model_data.fire_base,
+        fire_project=fire_model_data.fire_project,
+        litter_external_base=litter_model_data.litter_external_base,
+        litter_external_project=litter_model_data.litter_external_project,
+    )
+
+    fire_emissions = get_fire_emissions(
+        no_of_years=no_of_years,
+        fire_base=fire_model_data.fire_base,
+        fire_project=fire_model_data.fire_project,
+    )
+
+    tree_emissions = get_tree_emissions(
+        no_of_years=no_of_years,
+        fire_base=fire_model_data.fire_base,
+        fire_project=fire_model_data.fire_project,
+        tree_base=tree_model_data.tree_base,
+        tree_projects=tree_model_data.tree_projects,
+    )
+
+    # ----------
+    # SOIL EMISSIONS
+    # ----------
+    soil_carbon_data = get_soil_carbon_data(
+        intervention_input=intervention_input,
+        no_of_years=no_of_years,
+        climate=climate,
+        soil=soil,
+        inverse_roth=inverse_roth,
+        fire_base=fire_model_data.fire_base,
+        fire_project=fire_model_data.fire_project,
+        crop_base=crop_model_data.crop_base,
+        crop_project=crop_model_data.crop_project,
+        tree_base=tree_model_data.tree_base,
+        tree_projects=tree_model_data.tree_projects,
+        litter_external_base=litter_model_data.litter_external_base,
+        litter_external_project=litter_model_data.litter_external_project,
+    )
+
+    emissions = get_emissions_data(
+        no_of_years=no_of_years,
+        roth_base=soil_carbon_data.roth_base,
+        roth_project=soil_carbon_data.roth_project,
+        crop_base=crop_model_data.crop_base,
+        crop_project=crop_model_data.crop_project,
+        tree_base=tree_model_data.tree_base,
+        tree_projects=tree_model_data.tree_projects,
+        litter_external_base=litter_model_data.litter_external_base,
+        litter_external_project=litter_model_data.litter_external_project,
+        synthetic_fertiliser_base=litter_model_data.synthetic_fertiliser_base,
+        synthetic_fertiliser_project=litter_model_data.synthetic_fertiliser_project,
+        fire_base=fire_model_data.fire_base,
+        fire_project=fire_model_data.fire_project,
+    )
+
+    soil_base_emissions = emissions.emit_base_emissions - (
+        crop_emissions.base_emissions
+        + fertiliser_emissions.base_emissions
+        + litter_emissions.base_emissions
+        + fire_emissions.base_emissions
+        + tree_emissions.base_emissions
+    )
+
+    soil_project_emissions = emissions.emit_project_emissions - (
+        crop_emissions.project_emissions
+        + fertiliser_emissions.project_emissions
+        + litter_emissions.project_emissions
+        + fire_emissions.project_emissions
+        + tree_emissions.project_emissions
+    )
+
+    soil_difference = soil_project_emissions - soil_base_emissions
+
+    rerult = {
+        "soil_base_emissions": soil_base_emissions,
+        "soil_project_emissions": soil_project_emissions,
+        "soil_difference": soil_difference,
+    }
+    print("XXXXXX", rerult)
+
+    return rerult
 
 
 def run(project_name, data):
@@ -525,7 +759,6 @@ def run(project_name, data):
     no_of_trees = get_int(NO_OF_TREES_KEY, data, DEFAULT_NO_OF_TREES)
     allometry = get(ALLOMETRY_KEY, data, None)
 
-    extra_param_value = ...  # Define this value as needed based on your logic
     interventions = list(
         map(
             lambda input_item: handle_intervention(input_item, no_of_trees, allometry),
