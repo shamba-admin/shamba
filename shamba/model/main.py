@@ -132,6 +132,8 @@ def get_tree_model_data(
         get_int(SPECIES_1_KEY, intervention_input)
     )
 
+    print("PPPPPP", no_of_trees)
+
     tree_params = TreeParams.create_tree_params_from_species_index(
         intervention_input, no_of_trees
     )
@@ -749,7 +751,6 @@ def handle_intervention(
         "soil_project_emissions": soil_project_emissions,
         "soil_difference": soil_difference,
     }
-    print("XXXXXX", rerult)
 
     return rerult
 
@@ -757,13 +758,13 @@ def handle_intervention(
 def run(project_name, data):
     inputs = get("inputs", data, None)
     no_of_trees = get_int(NO_OF_TREES_KEY, data, DEFAULT_NO_OF_TREES)
-    allometry = get(ALLOMETRY_KEY, data, None)
+    allometry = get(ALLOMETRY_KEY, data, "chave dry")
 
     interventions = list(
         map(
-            lambda input_item: handle_intervention(input_item, no_of_trees, allometry),
+            lambda intervention_input: handle_intervention(intervention_input=intervention_input, no_of_trees=no_of_trees, allometry=allometry),
             inputs,
         )
     )
 
-    return f"hello data"
+    return interventions
