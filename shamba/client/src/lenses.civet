@@ -1,3 +1,5 @@
 * as R from ramda
 
 export projectsLens := R.lensPath(["projects"])
+export projectLens := (projectId: number) => R.lensPath(["projects", projectId])
+export projectDryRunLens := (projectId: number) => R.lensPath(["projects", projectId, "dryRunResults"])

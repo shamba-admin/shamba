@@ -746,13 +746,13 @@ def handle_intervention(
 
     soil_difference = soil_project_emissions - soil_base_emissions
 
-    rerult = {
+    result = {
         "soil_base_emissions": soil_base_emissions,
         "soil_project_emissions": soil_project_emissions,
         "soil_difference": soil_difference,
     }
 
-    return rerult
+    return result
 
 
 def run(project_name, data):

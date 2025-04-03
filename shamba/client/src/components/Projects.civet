@@ -4,7 +4,7 @@ clsx from "clsx"
 * as R from ramda
 { connect } from react-redux
 
-Datatable, { transformDataToGrid } from "./Datatable.civet"
+Datatable, { transformDataToGrid, transformDryRunResultsToGrid } from "./Datatable.civet"
 { getDryRun } from "../actions.civet"
 
 mapStateToProps := (state) =>
@@ -13,12 +13,13 @@ mapStateToProps := (state) =>
 mapDispatchToProps :=
   dryRun: getDryRun.fire
 
-Projects := ({ projects, dryRun, children }) => {
+Projects := ({ projects: projectsObject, dryRun, children }) => {
+  projects := R.values(projectsObject)
   [selectedProject, setSelectedProject] := useState(R.head(projects) ?? undefined)
 
-  console.log({projects, selectedProject})
   getResults := () => dryRun(selectedProject)
   contentClassName := "tab-content py-4"
+
   (
     <div className="min-h-screen flex flex-col p-4 bg-base-100 gap-6">
       {/* Top section */}
@@ -70,7 +71,10 @@ Projects := ({ projects, dryRun, children }) => {
             <div className="grow-7"/>
 
             <input type="radio" name="inner-tabs" className="tab" aria-label="Results" />
-            <div className=contentClassName>TT
+            <div className=contentClassName>
+              >if selectedProject
+                <div className="grid justify-items-center">
+                  <Datatable ...transformDryRunResultsToGrid(selectedProject.dryRunResults) />
           
           <button className="btn btn-primary" onClick={getResults}>
             Run <PlayIcon className="size-6 text-blue-500" />

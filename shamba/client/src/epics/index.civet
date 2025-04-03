@@ -36,6 +36,7 @@ getDryRunEpic := (action$, state$) =>
   action$.pipe(
     ofType(getDryRun.type),
     withLatestFrom(state$),
+    tap((payload) => console.log(payload)),
     switchMap(([{ payload }, state]) =>
       ajax({
         url: `/dry-run`,
@@ -44,7 +45,7 @@ getDryRunEpic := (action$, state$) =>
           'Content-Type': 'application/json'
         },
         body: payload
-      }).pipe(map((result) => gotDryRun.fire(result)))
+      }).pipe(map((results) => gotDryRun.fire({projectId: payload.id, dryRunResults: results.response})))
     ),
     // catchError((error, caught) => of(addError(error)).pipe(mergeWith(caught))),
     catchError((error, caught) => {
