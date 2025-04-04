@@ -1,17 +1,11 @@
 #!/usr/bin/python
 
 """Module containing Soil class."""
-
-import logging as log
-import os
-import sys
-
 import numpy as np
 from marshmallow import Schema, fields, post_load
-from osgeo import gdal
 
 from model.common import csv_handler
-from rasters import soil as soil_raster
+from model.common.data_sources.soil import get_soil_data
 
 """
 Object to hold soil parameter information.
@@ -106,31 +100,14 @@ def from_location(location):
 
     """
 
-    mu_global = get_identifier(location)
-    result = get_data_from_identifier(mu_global)
+    result = get_soil_data(location)
 
     if result is None:
-        log.error("COULD NOT FIND %d IN HWSD_DATA.csv", mu_global)
         raise
 
     Cy0, clay = result
     params = {"Cy0": Cy0, "clay": clay}
     return create(params)
-
-
-def sanitize_params(params):
-    """Check that provided soil data makes sense.
-
-    Args:
-        params: soil params dict with keys 'Cy0' and 'clay'
-    """
-
-    Cy0 = params["Cy0"]
-    clay = params["clay"]
-
-    if clay < 0 or clay > 100 or Cy0 < 0 or Cy0 > 10000:
-        log.warning("Unusual soil parameters. Please check.")
-
 
 def print_to_stdout(soil_params):
     """Print soil information to stdout."""
@@ -164,116 +141,3 @@ def save(soil_params, file="soil_params.csv"):
     )
     cols = ["Cy0", "clay", "Ceq", "iom", "depth"]
     csv_handler.print_csv(file, data, col_names=cols)
-
-
-def get_identifier(location):
-    """Find MU_GLOBAL for given location from the HWSD .bil raster."""
-
-    y = location[0]  # lat
-    x = location[1]  # long
-
-    # gdal setup
-    gdal.AllRegister()
-    driver = gdal.GetDriverByName("HFA")
-    driver.Register()
-    gdal.UseExceptions()
-
-    # open file
-    try:
-        filename = os.path.join(
-            os.path.dirname(os.path.abspath(soil_raster.__file__)), "hwsd.bil"
-        )
-        ds = gdal.Open(filename)
-    except RuntimeError:
-        raise csv_handler.FileOpenError("hwsd.bil")
-
-    # TODO: check if these are needed
-    # cols = ds.RasterXSize
-    # rows = ds.RasterYSize
-    # bands = ds.RasterCount
-
-    # georeference info
-    transform = ds.GetGeoTransform()
-    xOrigin = transform[0]
-    yOrigin = transform[3]
-    width = transform[1]  # x resolution
-    height = transform[5]  # y resolution
-
-    # FIND VALUES
-    # cast as ints
-    xInt = int((x - xOrigin) / width)
-    yInt = int((y - yOrigin) / height)
-    band = ds.GetRasterBand(1)  # one-indexed
-
-    data = band.ReadAsArray(xInt, yInt, 1, 1)
-    value = data[0, 0]  # MU_GLOBAL for input to HWSD_data.csv
-
-    return value
-
-
-def get_data_from_identifier(mu):
-    """Get soil data from csv given MU_GLOBAL from the raster."""
-
-    filename = os.path.join(
-        os.path.dirname(os.path.abspath(soil_raster.__file__)), "HWSD_data.csv"
-    )
-
-    soilTable = csv_handler.read_mixed_csv(
-        filename,
-        cols=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
-        types=(
-            int,
-            int,
-            float,
-            int,
-            "|S25",
-            float,
-            float,
-            float,
-            "|S15",
-            float,
-            float,
-            float,
-            float,
-        ),
-    )
-
-    # Find rows with mu in the MU_GLOBAL column (column 1)
-    muRows = []  # rows we want as list of records
-    for row in soilTable:
-        if row[1] == mu:
-            muRows.append(row)
-    if not muRows:
-        log.warning("COULD NOT FIND %d IN HWSD_DATA.csv", mu)
-        return None
-
-    # Weighted sum of SOC and clay
-    cy0 = 0
-    clay = 0
-    for row in muRows:
-        # weighted sum of SOC and clay
-        cy0 += row[12] * row[2]
-        clay += row[7] * row[2]
-    cy0 /= 100  # account for percentages
-    clay /= 100
-
-    return cy0, clay
-
-
-# TODO: confirm this isn't being used. The Soil model exists in `project_model.py` and is used in the GUI.
-# This module should not depend on that module I think?
-# if __name__ == "__main__":
-#     data = csv_handler.read_csv(
-#         os.path.join(
-#             configuration.SHAMBA_DIR, "rasters", "soil", "muGlobalTestValues.csv"
-#         )
-#     )
-#     long = data[:, 1]
-#     lat = data[:, 2]
-#     mu = data[:, 3]
-
-#     for i in range(len(mu)):
-#         a = Soil((lat[i], int[i]))
-#         print("\nlocation = %f, %f " % (lat[i], int[i]))
-#         print("mu actual= %d" % mu[i])
-#         print("mu python= %d" % a.mu_global)
