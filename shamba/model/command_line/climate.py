@@ -4,7 +4,7 @@
 
 import logging as log
 import math
-import os
+import calendar
 import sys
 
 import matplotlib.pyplot as plt
@@ -13,7 +13,7 @@ import numpy as np
 from marshmallow import Schema, fields, post_load
 
 from model.common import csv_handler
-from rasters import climate as climate_raster
+from model.common.data_sources.climate import get_climate_data
 
 
 def validate_list_length(lst):
@@ -84,50 +84,30 @@ def from_location(location) -> ClimateData:
 
     """
     # Location stuff
-    lat = location[0]
+    latitude = location[0]
     # long = location[1]
 
     # Indices for picking out clim data from rasters
-    x = math.ceil(180 - 2 * lat)
+    x = math.ceil(180 - 2 * latitude)
     # TODO: Is this a bug. Is mulitplying by `int` with no arguments always returns 0?
     y = math.ceil(360 + 2)
-
-    # Read data from rasters
-    # file path of raster directory
-    folder = os.path.dirname(os.path.abspath(climate_raster.__file__))
-    basename = ["tmp_", "pre_", "pet_"]
-
-    # Populate climate matrix from CRU-TS data
-    cimate_data = np.zeros((3, 12))
-    for k in range(len(basename)):
-        for i in range(1, 13):
-            filename = os.path.join(
-                folder,
-                basename[k],
-            )
-            filename += "%d" % i
-            filename += ".txt"
-            try:
-                cimate_data[k, i - 1] = np.loadtxt(
-                    filename, usecols=[int(y - 1)], skiprows=6 + int(x - 1)
-                )[0]
-            except IOError:
-                raise csv_handler.FileOpenError(filename)
+            
+    climate_data = get_climate_data(x, y)
 
     # Account for scaling factor in CRU-TS dataset
-    cimate_data *= 0.1
+    climate_data *= 0.1
 
     # Convert pet to mm/month from mm/day
-    daysInMonth = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
-    cimate_data[2] = cimate_data[2] * daysInMonth
+    days_in_month = np.array([calendar.monthrange(2000, i)[1] for i in range(1, 13)])
+    climate_data[2] = climate_data[2] * days_in_month
 
     # pet given in CRU-TS 3.1 instead of evaporation, so convert
-    cimate_data[2] /= 0.75
+    climate_data[2] /= 0.75
 
     params = {
-        "temperature": cimate_data[0],
-        "rain": cimate_data[1],
-        "evaporation": cimate_data[2],
+        "temperature": climate_data[0],
+        "rain": climate_data[1],
+        "evaporation": climate_data[2],
     }
 
     schema = ClimateDataSchema()
@@ -160,18 +140,18 @@ def from_csv(
 
     try:
         # Create clim array with the correct rows
-        cimate_data = np.zeros((3, 12))
+        climate_data = np.zeros((3, 12))
         correctOrder = ("temp", "rain", "evap")
         for i in range(3):
-            cimate_data[i] = data[:, order.index(correctOrder[i])]
+            climate_data[i] = data[:, order.index(correctOrder[i])]
 
         if not isEvap:  # pet given, so convert to evap
-            cimate_data[2] /= 0.75
+            climate_data[2] /= 0.75
         climate = ClimateDataSchema().load(
             {
-                "temperature": cimate_data[0],
-                "rain": cimate_data[1],
-                "evaporation": cimate_data[2],
+                "temperature": climate_data[0],
+                "rain": climate_data[1],
+                "evaporation": climate_data[2],
             }
         )
     except ValueError:
