@@ -762,7 +762,11 @@ def run(project_name, data):
 
     interventions = list(
         map(
-            lambda intervention_input: handle_intervention(intervention_input=intervention_input, no_of_trees=no_of_trees, allometry=allometry),
+            lambda intervention_input: handle_intervention(
+                intervention_input=intervention_input,
+                no_of_trees=no_of_trees,
+                allometry=allometry,
+            ),
             inputs,
         )
     )

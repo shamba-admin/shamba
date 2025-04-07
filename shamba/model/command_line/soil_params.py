@@ -109,6 +109,7 @@ def from_location(location):
     params = {"Cy0": Cy0, "clay": clay}
     return create(params)
 
+
 def print_to_stdout(soil_params):
     """Print soil information to stdout."""
     print("\nSOIL INFORMATION")

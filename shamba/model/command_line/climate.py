@@ -91,7 +91,7 @@ def from_location(location) -> ClimateData:
     x = math.ceil(180 - 2 * latitude)
     # TODO: Is this a bug. Is mulitplying by `int` with no arguments always returns 0?
     y = math.ceil(360 + 2)
-            
+
     climate_data = get_climate_data(x, y)
 
     # Account for scaling factor in CRU-TS dataset
