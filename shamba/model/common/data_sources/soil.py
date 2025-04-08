@@ -1,10 +1,12 @@
 import os
 from osgeo import gdal
-from typing import Tuple, List, Optional, NamedTuple, Any
+from typing import Tuple, List, Optional, NamedTuple, Any, Dict
 import logging as log
 from toolz import compose
 import requests
 from enum import Enum
+from copy import deepcopy
+from statistics import mean
 
 from model.common import csv_handler
 from rasters import soil as soil_raster
@@ -101,7 +103,21 @@ def get_data_from_identifier(mu: int) -> Optional[Tuple[float, float]]:
 
 
 def get_soil_data(localtion) -> Optional[Tuple[float, float]]:
-    return compose(get_data_from_identifier, get_identifier)(localtion)
+    """Get soil data from soilgrids api.
+    If data is not available, get data from local csv file.
+    """
+    api_response = get_properties_from_soilgrids_api(
+        location=Point(localtion[1], localtion[0])
+    )
+
+    if api_response is None:
+        return compose(get_data_from_identifier, get_identifier)(localtion)
+
+    return compose(
+        get_soc_and_clay,
+        process_data,
+        convert_units_in_api_response,
+    )(api_response)
 
 
 API_URL = "https://rest.isric.org/soilgrids/v2.0/"
@@ -131,12 +147,10 @@ class SoilProperty(Enum):
 
 
 DEFAULT_SOIL_PROPERTIES = [
-    SoilProperty.BULK_DENSITY_OF_FINE_FRACTION,
-    SoilProperty.VOLUMETRIC_FRACTION_OF_COARSE_FRACTION,
     SoilProperty.PROPORTION_OF_CLAY_IN_FINE_FRACTION,
-    SoilProperty.PROPORTION_OF_SAND_IN_FINE_FRACTION,
-    SoilProperty.PROPORTION_OF_SILT_IN_FINE_FRACTION,
     SoilProperty.SOIL_ORGANIC_CARBON_CONTENT_IN_FINE_FRACTION,
+    SoilProperty.PROPORTION_OF_SILT_IN_FINE_FRACTION,
+    SoilProperty.PROPORTION_OF_SAND_IN_FINE_FRACTION,
 ]
 
 
@@ -160,8 +174,6 @@ DEFAULT_DEPTHS = [
     Depth.ZERO_TO_FIVE_CM,
     Depth.FIVE_TO_FIFTEEN_CM,
     Depth.FIFTEEN_TO_THIRTY_CM,
-    Depth.THIRTY_TO_SIXTY_CM,
-    Depth.SIXTY_TO_HUNDRED_CM,
 ]
 
 
@@ -255,3 +267,52 @@ def get_properties_from_soilgrids_api(
     else:
         print(f"Request failed with status code {response.status_code}")
         return None
+
+
+def get_soc_and_clay(api_response: List[Tuple[str, float]]) -> Tuple[float, float]:
+    return next((value for name, value in api_response if name == "soc"), 0.0), next(
+        (value for name, value in api_response if name == "clay"), 0.0
+    )
+
+
+def process_data(api_response: Dict[str, Any]) -> List[Tuple[str, float]]:
+    data = api_response["properties"]["layers"]
+    return [
+        (layer["name"], mean(depth["values"]["mean"] for depth in layer["depths"]))
+        for layer in data
+    ]
+
+
+def convert_value(value: float, conversion_factor: float) -> float:
+    return value / conversion_factor if value != 0 else value
+
+
+def convert_units_in_api_response(api_response: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Convert units in the Soil Grids API response using predefined conversion factors.
+
+    This function creates a new dictionary by applying unit conversions to soil property
+    values based on predefined conversion factors.
+
+    https://www.isric.org/explore/soilgrids/faq-soilgrids (properties table)
+
+    Args:
+        d (dict): The Soil Grids API response containing soil property data with unit-dependent values.
+
+    Returns:
+        dict: A new dictionary with converted values.
+    """
+    result = deepcopy(api_response)
+    layers = result.get("properties", {}).get("layers", [])
+
+    for layer in layers:
+        name_enum = SoilProperty(layer.get("name", ""))
+        conversion_factor = UNIT_CONVERSIONS.get(name_enum, 1)
+
+        for depth in layer.get("depths", []):
+            depth["values"] = {
+                k: convert_value(v, conversion_factor)
+                for k, v in depth.get("values", {}).items()
+            }
+
+    return result
