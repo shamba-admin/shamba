@@ -85,21 +85,17 @@ def from_location(location) -> ClimateData:
     """
     # Location stuff
     latitude = location[0]
-    # long = location[1]
+    longitude = location[1]
 
-    # Indices for picking out clim data from rasters
-    x = math.ceil(180 - 2 * latitude)
-    # TODO: Is this a bug. Is mulitplying by `int` with no arguments always returns 0?
-    y = math.ceil(360 + 2)
-
-    climate_data = get_climate_data(x, y)
+    climate_data = get_climate_data(latitude=latitude, longitude=longitude)
 
     # Account for scaling factor in CRU-TS dataset
     climate_data *= 0.1
 
+    # Get the number of days in every month
+    days_in_months = np.array([calendar.monthrange(2000, i)[1] for i in range(1, 13)])
     # Convert pet to mm/month from mm/day
-    days_in_month = np.array([calendar.monthrange(2000, i)[1] for i in range(1, 13)])
-    climate_data[2] = climate_data[2] * days_in_month
+    climate_data[2] = climate_data[2] * days_in_months
 
     # pet given in CRU-TS 3.1 instead of evaporation, so convert
     climate_data[2] /= 0.75

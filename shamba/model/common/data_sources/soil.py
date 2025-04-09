@@ -4,12 +4,14 @@ from typing import Tuple, List, Optional, NamedTuple, Any, Dict
 import logging as log
 from toolz import compose
 import requests
+import socket
 from enum import Enum
 from copy import deepcopy
 from statistics import mean
 
 from model.common import csv_handler
 from rasters import soil as soil_raster
+from model.common.data_sources.helpers import return_none_on_exception
 
 CSV_FILENAME = os.path.join(
     os.path.dirname(os.path.abspath(soil_raster.__file__)), "HWSD_data.csv"
@@ -17,6 +19,8 @@ CSV_FILENAME = os.path.join(
 BIL_FILENAME = os.path.join(
     os.path.dirname(os.path.abspath(soil_raster.__file__)), "hwsd.bil"
 )
+
+API_URL = "https://rest.isric.org/soilgrids/v2.0/"
 
 
 def open_raster(filename: str) -> gdal.Dataset:
@@ -120,9 +124,6 @@ def get_soil_data(localtion) -> Optional[Tuple[float, float]]:
     )(api_response)
 
 
-API_URL = "https://rest.isric.org/soilgrids/v2.0/"
-
-
 class SoilProperty(Enum):
     """Enum for Soil Grids soil properties.
 
@@ -223,6 +224,7 @@ class Point(NamedTuple):
     latitude: float
 
 
+@return_none_on_exception(requests.RequestException, socket.gaierror)
 def get_properties_from_soilgrids_api(
     location: Point,
     soil_properties: list[SoilProperty] = DEFAULT_SOIL_PROPERTIES,
@@ -261,12 +263,7 @@ def get_properties_from_soilgrids_api(
     }
     headers = {"accept": "application/json"}
     response = requests.get(query_url, params=params, headers=headers)
-    if response.status_code == 200:
-        data = response.json()
-        return data
-    else:
-        print(f"Request failed with status code {response.status_code}")
-        return None
+    return response.json()
 
 
 def get_soc_and_clay(api_response: List[Tuple[str, float]]) -> Tuple[float, float]:
