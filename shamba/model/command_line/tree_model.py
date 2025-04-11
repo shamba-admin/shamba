@@ -154,7 +154,7 @@ def create(
     if errors != {}:
         print(f"Errors in tree model: {errors}")
 
-    return schema.load(params)
+    return schema.load(params)  # type: ignore
 
 
 def from_defaults(
@@ -162,7 +162,7 @@ def from_defaults(
     tree_growth,
     no_of_years,
     yearPlanted=0,
-    standDens=100,  # Should standDens be 200?
+    standard_density=100,  # Should standard_density be 200?
     thin=None,
     thinFrac=None,
     mort=None,
@@ -204,7 +204,7 @@ def from_defaults(
         pool_params=params,
         no_of_years=no_of_years,
         yearPlanted=yearPlanted,
-        initialStandDens=standDens,
+        initialStandDens=standard_density,
         thin=thin,
         mort=mort,
     )
@@ -250,10 +250,10 @@ def get_inputs(
     print(yp)
     print(initial_stand_dens)
 
-    standDens = np.zeros(no_of_years + 1)
-    standDens[yp] = initial_stand_dens
-    print("standDens:")
-    print(standDens)
+    standard_density = np.zeros(no_of_years + 1)
+    standard_density[yp] = initial_stand_dens
+    print("standard_density:")
+    print(standard_density)
 
     inputParams = {
         "live": np.array((no_of_years + 1) * [turnover]),
@@ -281,7 +281,7 @@ def get_inputs(
 
     # set woody_biomass[0] to initial (allocated appropriately)
     pools[yp] = initial_biomass * alloc
-    woody_biomass[yp] = pools[yp] * standDens[yp]
+    woody_biomass[yp] = pools[yp] * standard_density[yp]
     for s in inputs:
         flux[s][yp] = woody_biomass[yp] * inputParams[s][yp]
 
@@ -299,10 +299,10 @@ def get_inputs(
 
         # Growth for one tree
         tNPP[i] = derivative_functions[tree_growth.best](tree_growth.fit_params, agb)
-        biomGrowth[i] = tNPP[i] * alloc * standDens[i - 1]
+        biomGrowth[i] = tNPP[i] * alloc * standard_density[i - 1]
 
         for s in inputs:
-            flux[s][i] = inputParams[s][i] * pools[i - 1] * standDens[i - 1]
+            flux[s][i] = inputParams[s][i] * pools[i - 1] * standard_density[i - 1]
             inputs[s][i] = retainedFrac[s] * flux[s][i]
             exports[s][i] = (1 - retainedFrac[s]) * flux[s][i]
 
@@ -314,12 +314,12 @@ def get_inputs(
         woody_biomass[i] += biomGrowth[i]
         woody_biomass[i] -= sum(flux.values())[i]
 
-        standDens[i] = standDens[i - 1]
-        standDens[i] *= 1 - (inputParams["dead"][i] + inputParams["thin"][i])
-        if standDens[i] < 1:
+        standard_density[i] = standard_density[i - 1]
+        standard_density[i] *= 1 - (inputParams["dead"][i] + inputParams["thin"][i])
+        if standard_density[i] < 1:
             print("SD [i] is less than 1, end of this tree cohort...")
             break
-        pools[i] = woody_biomass[i] / standDens[i]
+        pools[i] = woody_biomass[i] / standard_density[i]
 
         # Balance stuff
 
@@ -479,7 +479,7 @@ def create_tree_projects(
             tree_params=tree_params[i],
             tree_growth=growths[i],
             yearPlanted=int(csv_input_data[f"proj_plant_yr{i + 1}"]),
-            standDens=int(csv_input_data[f"proj_plant_dens{i + 1}"]),
+            standard_density=int(csv_input_data[f"proj_plant_dens{i + 1}"]),
             thin=thinning_project,
             thinFrac=thinning_fraction_left_project,
             mort=mortality_project,

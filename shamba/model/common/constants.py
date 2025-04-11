@@ -1,3 +1,5 @@
+from datetime import datetime
+
 LOCATION_LATITIUDE_KEY = "lat"
 LOCATION_LONGITUDE_KEY = "lon"
 NO_OF_YEARS_KEY = "yrs_proj"
@@ -70,3 +72,7 @@ PROJECT_COVER_PRES_KEY = "proj_cvr_pres"
 # ----------
 DEFAULT_NO_OF_TREES = 3
 DEFAULT_ALLOMORPHY = "chave dry"
+# ----------
+DEFAULT_TREE_STANDARD_DENSITY = 100
+DEFAULT_YEAR = datetime.now().year
+DEFAULT_NO_OF_YEARS = 10

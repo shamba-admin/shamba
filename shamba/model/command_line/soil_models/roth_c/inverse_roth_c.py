@@ -41,7 +41,7 @@ class InverseRothCSchema(RothCSchema):
         return InverseRothCData(**inverse_data, **roth_c_data)
 
 
-def create(soil, climate, cover=np.ones(12)):
+def create(soil, climate, cover=np.ones(12)) -> InverseRothCData:
     """Initialise inverse rothc object.
 
     Args:
@@ -70,7 +70,7 @@ def create(soil, climate, cover=np.ones(12)):
     if errors != {}:
         print(f"Errors in InverseRothC data: {str(errors)}")
 
-    return schema.load(params)
+    return schema.load(params)  # type: ignore
 
 
 def solver(roth_c):

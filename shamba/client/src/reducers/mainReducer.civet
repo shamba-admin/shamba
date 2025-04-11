@@ -14,7 +14,7 @@ INITIAL_STATE := {
         cropIpcc: cropIpccData,
         soilInfo: soilInfo,
         inputs: inputs,
-      } 
+      }
     }
   }
 }

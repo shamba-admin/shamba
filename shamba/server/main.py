@@ -10,11 +10,6 @@ app = FastAPI(debug=True)
 app.mount("/main", StaticFiles(directory="static", html=True), name="static")
 
 
-@app.get("/test")
-def read_root():
-    return "Hello World"
-
-
 class SoilEmissions(BaseModel):
     soil_base_emissions: List[float]
     soil_project_emissions: List[float]

@@ -1,5 +1,5 @@
-from typing import Dict, Union, List, NamedTuple, Tuple
-from toolz import get, compose
+from typing import Dict, Union, List, NamedTuple, Tuple, Any, Callable
+from toolz import get, compose  # type: ignore
 import numpy as np
 
 import model.command_line.climate as Climate
@@ -11,14 +11,16 @@ import model.command_line.soil_params as SoilParams
 import model.command_line.tree_growth as TreeGrowth
 import model.command_line.tree_model as TreeModel
 import model.command_line.tree_params as TreeParams
+import model.command_line.crop_params as CropParams
 import model.command_line.emit as Emit
 import model.common.constants as CONSTANTS
 
-get_float = compose(float, get)
-get_int = compose(int, get)
+get_float: Callable[[str, Dict[str, Any]], float] = compose(float, get)  # type: ignore
+get_int: Callable[[str, Dict[str, Any]], int] = compose(int, get)  # type: ignore
 
 
-def get_location(year_input):
+def get_location(year_input: Dict[str, Any]) -> Tuple[float, float]:
+    print("LLLLLL", get_float(CONSTANTS.LOCATION_LATITIUDE_KEY, year_input))
     return (
         get_float(CONSTANTS.LOCATION_LATITIUDE_KEY, year_input),
         get_float(CONSTANTS.LOCATION_LONGITUDE_KEY, year_input),
@@ -59,8 +61,6 @@ def get_tree_model_data(
     tree_params_1 = TreeParams.from_species_index(
         get_int(CONSTANTS.SPECIES_1_KEY, intervention_input)
     )
-
-    print("PPPPPP", no_of_trees)
 
     tree_params = TreeParams.create_tree_params_from_species_index(
         intervention_input, no_of_trees
@@ -176,7 +176,8 @@ def get_tree_model_data(
         tree_params=tree_params_1,
         tree_growth=growth_base,
         yearPlanted=0,
-        standDens=get_int(CONSTANTS.BASE_PLANT_DENSITY_KEY, intervention_input),
+        standard_density=get_int(CONSTANTS.BASE_PLANT_DENSITY_KEY, intervention_input)
+        or CONSTANTS.DEFAULT_TREE_STANDARD_DENSITY,
         thin=thinning_base,
         thinFrac=thinning_fraction_left_base,
         mort=mortality_base,
@@ -294,10 +295,10 @@ def get_litter_model_data(
 
 
 class GetCropModelReturnData(NamedTuple):
-    crop_base: np.ndarray
-    crop_par_base: np.ndarray
-    crop_project: np.ndarray
-    crop_par_project: np.ndarray
+    crop_base: List[CropModel.CropModelData]
+    crop_par_base: List[CropParams.CropParamsData]
+    crop_project: List[CropModel.CropModelData]
+    crop_par_project: List[CropParams.CropParamsData]
 
 
 def get_crop_model_data(
@@ -333,12 +334,12 @@ def get_soil_carbon_data(
     intervention_input: Dict[str, Union[float, int]],
     no_of_years: int,
     climate: Climate.ClimateData,
-    soil: np.ndarray,
-    inverse_roth: np.ndarray,
+    soil: SoilParams.SoilParamsData,
+    inverse_roth: InverseRothC.InverseRothCData,
     fire_base: np.ndarray,
     fire_project: np.ndarray,
-    crop_base: np.ndarray,
-    crop_project: np.ndarray,
+    crop_base: List[CropModel.CropModelData],
+    crop_project: List[CropModel.CropModelData],
     tree_base: TreeModel.TreeModel,
     tree_projects: List[TreeModel.TreeModel],
     litter_external_base: LitterModel.LitterModelData,
@@ -410,8 +411,8 @@ def get_emissions_data(
     no_of_years: int,
     roth_base: ForwardRothC.ForwardRothCData,
     roth_project: ForwardRothC.ForwardRothCData,
-    crop_base: np.ndarray,
-    crop_project: np.ndarray,
+    crop_base: List[CropModel.CropModelData],
+    crop_project: List[CropModel.CropModelData],
     tree_base: TreeModel.TreeModel,
     tree_projects: List[TreeModel.TreeModel],
     litter_external_base: LitterModel.LitterModelData,
@@ -455,8 +456,8 @@ class GetEmissionsWithDifferenceReturnData(NamedTuple):
 
 def get_crop_emissions(
     no_of_years: int,
-    crop_base: np.ndarray,
-    crop_project: np.ndarray,
+    crop_base: List[CropModel.CropModelData],
+    crop_project: List[CropModel.CropModelData],
     fire_base: np.ndarray,
     fire_project: np.ndarray,
 ) -> GetEmissionsWithDifferenceReturnData:
@@ -560,7 +561,10 @@ def handle_intervention(
     allometry: str = CONSTANTS.DEFAULT_ALLOMORPHY,
     no_of_trees: int = CONSTANTS.DEFAULT_NO_OF_TREES,
 ):
-    no_of_years = get_int(CONSTANTS.NO_OF_YEARS_KEY, intervention_input)
+    no_of_years = (
+        get_int(CONSTANTS.NO_OF_YEARS_KEY, intervention_input)
+        or CONSTANTS.DEFAULT_NO_OF_YEARS
+    )
 
     # ----------
     # LOCATION INFORMATION

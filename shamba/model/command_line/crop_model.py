@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """Module holding Crop class for the crop model."""
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 from marshmallow import Schema, fields, post_load
@@ -65,7 +65,7 @@ def create(crop_params, no_of_years, crop_yield, left_in_field) -> CropModelData
     if errors != {}:
         print(f"Errors in crop model data: {str(errors)}")
 
-    return schema.load(raw_crop_model_data)
+    return schema.load(raw_crop_model_data)  # type: ignore
 
 
 def get_inputs(crop_params, no_of_years, crop_yield, left_in_field):
@@ -143,13 +143,17 @@ def get_crop_models_and_crop_params(
     return list(crop_models), list(crop_params)
 
 
-def get_crop_bases(input_data, no_of_years, start_index, end_index):
+def get_crop_bases(
+    input_data, no_of_years, start_index, end_index
+) -> Tuple[List[CropModelData], List[CropParamsData]]:
     return get_crop_models_and_crop_params(
         input_data, no_of_years, start_index, end_index, get_crop_base
     )
 
 
-def get_crop_projects(input_data, no_of_years, start_index, end_index):
+def get_crop_projects(
+    input_data, no_of_years, start_index, end_index
+) -> Tuple[List[CropModelData], List[CropParamsData]]:
     return get_crop_models_and_crop_params(
         input_data, no_of_years, start_index, end_index, get_crop_project
     )
