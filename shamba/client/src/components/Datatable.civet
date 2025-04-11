@@ -3,7 +3,8 @@
 
 indexedMap := R.addIndex(R.map)
 
-export convertDryRunToColumnFirstData := (data) =>
+export convertDryRunToColumnFirstData := (data = []) =>
+  return [] if R.isEmpty(data)
   singleIntervention := R.head(data)
   columns := R.keys(singleIntervention)
   dataPoints := R.compose((lengths) => R.max(...lengths), R.map(R.length), R.values)(singleIntervention ?? {})

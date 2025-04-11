@@ -36,7 +36,6 @@ getDryRunEpic := (action$, state$) =>
   action$.pipe(
     ofType(getDryRun.type),
     withLatestFrom(state$),
-    tap((payload) => console.log(payload)),
     switchMap(([{ payload }, state]) =>
       ajax({
         url: `/dry-run`,
