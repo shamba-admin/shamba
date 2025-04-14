@@ -1,12 +1,12 @@
 import os  # Add the parent directory to the Python path
-import model.command_line.emit as Emit
+import model.emit as Emit
 import numpy as np
 import pytest
 from model.common import csv_handler
 from model import configuration
-import model.command_line.tree_model as TreeModel
-import model.command_line.tree_params as TreeParams
-import model.command_line.tree_growth as TreeGrowth
+import model.tree_model as TreeModel
+import model.tree_params as TreeParams
+import model.tree_growth as TreeGrowth
 
 
 def test_crop_model():

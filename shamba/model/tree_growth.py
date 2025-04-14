@@ -10,18 +10,16 @@ def ryan      allometric function based on C. Ryan biotropica paper (2010)
 import logging as log
 import math
 import os
-import sys
 from typing import Dict, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from marshmallow import Schema, fields, post_load
 from scipy import optimize
 from tabulate import tabulate
 
-from .. import configuration
-from ..common import csv_handler
+from . import configuration
+from .common import csv_handler
 
 
 # Functions to fit to

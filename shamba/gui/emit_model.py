@@ -4,9 +4,9 @@ import os
 
 import numpy as np
 
-import model.command_line.emit as Emit
+import model.emit as Emit
 from model import configuration
-from model.command_line.soil_model import ForwardRothC, InverseRothC
+from model.soil_model import ForwardRothC, InverseRothC
 
 
 class Emissions(object):

@@ -2,17 +2,17 @@ from typing import Dict, Union, List, NamedTuple, Tuple, Any, Callable
 from toolz import get, compose  # type: ignore
 import numpy as np
 
-import model.command_line.climate as Climate
-import model.command_line.crop_model as CropModel
-import model.command_line.litter as LitterModel
-import model.command_line.soil_models.roth_c.forward_roth_c as ForwardRothC
-import model.command_line.soil_models.roth_c.inverse_roth_c as InverseRothC
-import model.command_line.soil_params as SoilParams
-import model.command_line.tree_growth as TreeGrowth
-import model.command_line.tree_model as TreeModel
-import model.command_line.tree_params as TreeParams
-import model.command_line.crop_params as CropParams
-import model.command_line.emit as Emit
+import model.climate as Climate
+import model.crop_model as CropModel
+import model.litter as LitterModel
+import model.soil_models.roth_c.forward_roth_c as ForwardRothC
+import model.soil_models.roth_c.inverse_roth_c as InverseRothC
+import model.soil_params as SoilParams
+import model.tree_growth as TreeGrowth
+import model.tree_model as TreeModel
+import model.tree_params as TreeParams
+import model.crop_params as CropParams
+import model.emit as Emit
 import model.common.constants as CONSTANTS
 
 get_float: Callable[[str, Dict[str, Any]], float] = compose(float, get)  # type: ignore

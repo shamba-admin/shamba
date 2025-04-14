@@ -2,10 +2,10 @@ import logging as log
 import sys
 
 import numpy as np
-from marshmallow import Schema, fields, post_load
+from marshmallow import Schema, fields
 
-from ....command_line.climate import ClimateDataSchema
-from ....command_line.soil_params import SoilParamsSchema
+from ...climate import ClimateDataSchema
+from ...soil_params import SoilParamsSchema
 
 """
 Object for RothC soil models.

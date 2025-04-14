@@ -8,9 +8,8 @@ from scipy import integrate
 from tabulate import tabulate
 from typing import List, Tuple, Optional
 
-from .... import configuration
-from ....command_line import emit
-from ....common import csv_handler
+from ... import configuration, emit
+from ...common import csv_handler
 from .roth_c import RothCSchema
 from .roth_c import create as create_roth_c
 from .roth_c import dC_dt

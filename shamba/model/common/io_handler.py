@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 
 from model import configuration
-from model.command_line.tree_growth import allometric
+from model.tree_growth import allometric
 
 
 def get_arguments_interactively():

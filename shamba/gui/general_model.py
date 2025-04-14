@@ -16,7 +16,7 @@ import shutil
 import numpy as np
 from PyQt5 import QtCore, QtGui
 
-import model.command_line.climate as Climate
+import model.climate as Climate
 from model import configuration
 
 

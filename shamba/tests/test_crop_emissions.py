@@ -1,10 +1,10 @@
 import os  # Add the parent directory to the Python path
-import model.command_line.emit as Emit
+import model.emit as Emit
 import numpy as np
 import pytest
 from model.common import csv_handler
 from model import configuration
-from model.command_line.crop_model import get_crop_bases, get_crop_projects
+from model.crop_model import get_crop_bases, get_crop_projects
 
 
 def test_crop_model():

@@ -16,14 +16,14 @@ import shutil
 import numpy as np
 from PyQt5 import QtCore, QtGui
 
-import model.command_line.litter as LitterModel
-import model.command_line.soil_params as SoilParams
-import model.command_line.tree_params as TreeParams
+import model.litter as LitterModel
+import model.soil_params as SoilParams
+import model.tree_params as TreeParams
 from model import configuration, emit
-from model.command_line.crop_model import CropModel
-from model.command_line.crop_params import CropParams
-from model.command_line.tree_growth import TreeGrowth
-from model.command_line.tree_model import TreeModel
+from model.crop_model import CropModel
+from model.crop_params import CropParams
+from model.tree_growth import TreeGrowth
+from model.tree_model import TreeModel
 
 
 class ProjectModel(object):

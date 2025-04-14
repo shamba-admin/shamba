@@ -48,17 +48,17 @@ from tabulate import tabulate
 
 from model.common import csv_handler, io_handler
 
-import model.command_line.climate as Climate
-import model.command_line.crop_model as CropModel
-import model.command_line.crop_params as CropParams
-import model.command_line.emit as Emit
-import model.command_line.litter as LitterModel
-import model.command_line.soil_models.roth_c.forward_roth_c as ForwardRothC
-import model.command_line.soil_models.roth_c.inverse_roth_c as InverseRothC
-import model.command_line.soil_params as SoilParams
-import model.command_line.tree_growth as TreeGrowth
-import model.command_line.tree_model as TreeModel
-import model.command_line.tree_params as TreeParams
+import model.climate as Climate
+import model.crop_model as CropModel
+import model.crop_params as CropParams
+import model.emit as Emit
+import model.litter as LitterModel
+import model.soil_models.roth_c.forward_roth_c as ForwardRothC
+import model.soil_models.roth_c.inverse_roth_c as InverseRothC
+import model.soil_params as SoilParams
+import model.tree_growth as TreeGrowth
+import model.tree_model as TreeModel
+import model.tree_params as TreeParams
 from model import configuration
 
 _dir = os.path.dirname(os.path.abspath(__file__))
@@ -525,7 +525,7 @@ def main(n, arguments):
         tree_params=tree_params_1,
         tree_growth=growth_base,
         yearPlanted=0,
-        standDens=int(csv_input_data["base_plant_dens"]),
+        standard_density=int(csv_input_data["base_plant_dens"]),
         thin=thinning_base,
         thinFrac=thinning_fraction_left_base,
         mort=mortality_base,
