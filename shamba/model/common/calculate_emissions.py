@@ -176,8 +176,7 @@ def get_tree_model_data(
         tree_params=tree_params_1,
         tree_growth=growth_base,
         yearPlanted=0,
-        standard_density=get_int(CONSTANTS.BASE_PLANT_DENSITY_KEY, intervention_input)
-        or CONSTANTS.DEFAULT_TREE_STANDARD_DENSITY,
+        standard_density=get_int(CONSTANTS.BASE_PLANT_DENSITY_KEY, intervention_input),
         thin=thinning_base,
         thinFrac=thinning_fraction_left_base,
         mort=mortality_base,
