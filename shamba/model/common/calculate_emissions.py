@@ -45,6 +45,7 @@ def populate_thinning_array(
 class GetTreeModelReturnData(NamedTuple):
     tree_base: TreeModel.TreeModel
     tree_projects: List[TreeModel.TreeModel]
+    tree_growths: List[TreeGrowth.TreeGrowth]
 
 
 def get_tree_model_data(
@@ -196,7 +197,9 @@ def get_tree_model_data(
         tree_count=no_of_trees,
     )
 
-    return GetTreeModelReturnData(tree_base=tree_base, tree_projects=tree_projects)
+    return GetTreeModelReturnData(
+        tree_base=tree_base, tree_projects=tree_projects, tree_growths=tree_growths
+    )
 
 
 # ----------
@@ -327,6 +330,7 @@ def get_crop_model_data(
 class GetSoilCarbonReturnData(NamedTuple):
     roth_base: ForwardRothC.ForwardRothCData
     roth_project: ForwardRothC.ForwardRothCData
+    for_roth: ForwardRothC.ForwardRothCData
 
 
 def get_soil_carbon_data(
@@ -374,6 +378,7 @@ def get_soil_carbon_data(
     )
 
     # Soil carbon for baseline and project
+    # TODO: check this one
     roth_base = ForwardRothC.create(
         soil=soil,
         climate=climate,
@@ -398,7 +403,9 @@ def get_soil_carbon_data(
         fire=fire_project,
     )
 
-    return GetSoilCarbonReturnData(roth_base=roth_base, roth_project=roth_project)
+    return GetSoilCarbonReturnData(
+        roth_base=roth_base, roth_project=roth_project, for_roth=for_roth
+    )
 
 
 class GetEmissionsReturnData(NamedTuple):
@@ -555,6 +562,41 @@ def get_tree_emissions(
     )
 
 
+class InterventionReturnData(NamedTuple):
+    soil_base_emissions: np.ndarray
+    soil_project_emissions: np.ndarray
+    soil_difference: np.ndarray
+    tree_base_emissions: np.ndarray
+    tree_project_emissions: np.ndarray
+    tree_difference: np.ndarray
+    fire_base_emissions: np.ndarray
+    fire_project_emissions: np.ndarray
+    fire_difference: np.ndarray
+    litter_base_emissions: np.ndarray
+    litter_project_emissions: np.ndarray
+    litter_difference: np.ndarray
+    fertiliser_base_emissions: np.ndarray
+    fertiliser_project_emissions: np.ndarray
+    fertiliser_difference: np.ndarray
+    crop_base_emissions: np.ndarray
+    crop_project_emissions: np.ndarray
+    crop_difference: np.ndarray
+    soil: SoilParams.SoilParamsData
+    climate: Climate.ClimateData
+    tree_growths: List[TreeGrowth.TreeGrowth]
+    tree_projects: List[TreeModel.TreeModel]
+    crop_base: List[CropModel.CropModelData]
+    crop_project: List[CropModel.CropModelData]
+    crop_par_base: List[CropParams.CropParamsData]
+    crop_par_project: List[CropParams.CropParamsData]
+    emit_base_emissions: np.ndarray
+    emit_project_emissions: np.ndarray
+    for_roth: ForwardRothC.ForwardRothCData
+    roth_base: ForwardRothC.ForwardRothCData
+    roth_project: ForwardRothC.ForwardRothCData
+    inverse_roth: InverseRothC.InverseRothCData
+
+
 def handle_intervention(
     intervention_input: Dict[str, Union[float, int]],
     allometry: str = CONSTANTS.DEFAULT_ALLOMORPHY,
@@ -693,10 +735,39 @@ def handle_intervention(
 
     soil_difference = soil_project_emissions - soil_base_emissions
 
-    result = {
-        "soil_base_emissions": soil_base_emissions,
-        "soil_project_emissions": soil_project_emissions,
-        "soil_difference": soil_difference,
-    }
+    result = InterventionReturnData(
+        climate=climate,
+        crop_base_emissions=crop_emissions.base_emissions,
+        crop_base=crop_model_data.crop_base,
+        crop_difference=crop_emissions.difference,
+        crop_par_base=crop_model_data.crop_par_base,
+        crop_par_project=crop_model_data.crop_par_project,
+        crop_project_emissions=crop_emissions.project_emissions,
+        crop_project=crop_model_data.crop_project,
+        emit_base_emissions=emissions.emit_base_emissions,
+        emit_project_emissions=emissions.emit_project_emissions,
+        fertiliser_base_emissions=fertiliser_emissions.base_emissions,
+        fertiliser_difference=fertiliser_emissions.difference,
+        fertiliser_project_emissions=fertiliser_emissions.project_emissions,
+        fire_base_emissions=fire_emissions.base_emissions,
+        fire_difference=fire_emissions.difference,
+        fire_project_emissions=fire_emissions.project_emissions,
+        for_roth=soil_carbon_data.for_roth,
+        inverse_roth=inverse_roth,
+        litter_base_emissions=litter_emissions.base_emissions,
+        litter_difference=litter_emissions.difference,
+        litter_project_emissions=litter_emissions.project_emissions,
+        roth_base=soil_carbon_data.roth_base,
+        roth_project=soil_carbon_data.roth_project,
+        soil_base_emissions=soil_base_emissions,
+        soil_difference=soil_difference,
+        soil_project_emissions=soil_project_emissions,
+        soil=soil,
+        tree_base_emissions=tree_emissions.base_emissions,
+        tree_difference=tree_emissions.difference,
+        tree_growths=tree_model_data.tree_growths,
+        tree_project_emissions=tree_emissions.project_emissions,
+        tree_projects=tree_model_data.tree_projects,
+    )
 
     return result

@@ -60,6 +60,7 @@ import model.tree_growth as TreeGrowth
 import model.tree_model as TreeModel
 import model.tree_params as TreeParams
 from model import configuration
+from model.common.calculate_emissions import handle_intervention
 
 _dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(_dir))
@@ -378,311 +379,315 @@ def main(n, arguments):
     # location information
     # ----------
     loc = (float(csv_input_data["lat"]), float(csv_input_data["lon"]))
-    climate = Climate.from_location(loc)
+    # climate = Climate.from_location(loc)
 
     # ----------
     # project length
     # ----------
     # YEARS = length of tree data. ACCT = years in accounting period
     N_YEARS = int(csv_input_data["yrs_proj"])
-    N_ACCT = int(csv_input_data["yrs_acct"])
     N_TREES = 3  # TODO: parameteris this
 
-    # ----------
-    # soil equilibrium solve
-    # ----------
-    soil = SoilParams.from_location(loc)
-    invRoth = InverseRothC.create(soil, climate)
+    # # ----------
+    # # soil equilibrium solve
+    # # ----------
+    # soil = SoilParams.from_location(loc)
+    # invRoth = InverseRothC.create(soil, climate)
 
-    # ----------
-    # tree model
-    # ----------
+    # # ----------
+    # # tree model
+    # # ----------
 
-    """
-    If nitrogen allocations, carbon, root/shoot and/or wood density attributes
-    differ between tree cohorts, add a new row specifying these tree parametres
-    to the the tree_defaults.csv at shamba/default_input folder and make sure the 
-    '_input.csv' file correctly attributes each tree cohort to the relevant 
-    parametres under 'trees in baseline' and 'trees in project'
-    """
+    # """
+    # If nitrogen allocations, carbon, root/shoot and/or wood density attributes
+    # differ between tree cohorts, add a new row specifying these tree parametres
+    # to the the tree_defaults.csv at shamba/default_input folder and make sure the
+    # '_input.csv' file correctly attributes each tree cohort to the relevant
+    # parametres under 'trees in baseline' and 'trees in project'
+    # """
 
-    # linking tree cohort parameteres
-    tree_par_base = TreeParams.from_species_index(int(csv_input_data["species_base"]))
-    tree_params_1 = TreeParams.from_species_index(int(csv_input_data["species1"]))
+    # # linking tree cohort parameteres
+    # tree_par_base = TreeParams.from_species_index(int(csv_input_data["species_base"]))
+    # tree_params_1 = TreeParams.from_species_index(int(csv_input_data["species1"]))
 
-    tree_params = TreeParams.create_tree_params_from_species_index(
-        csv_input_data, N_TREES
-    )
+    # tree_params = TreeParams.create_tree_params_from_species_index(
+    #     csv_input_data, N_TREES
+    # )
 
-    # linking tree growth
+    # # linking tree growth
+
+    # growth_base = TreeGrowth.get_growth(
+    #     csv_input_data,
+    #     "species_base",
+    #     tree_par_base,
+    #     allometric_key=allometric_key,
+    # )
+
+    # tree_growths = TreeGrowth.create_tree_growths(
+    #     csv_input_data, tree_params, allometric_key, N_TREES
+    # )
+
+    # # specify thinning regime and fraction left in field (lif)
+    # # baseline thinning regime
+    # # (add line of thinning[yr] = % thinned for each event)
+    # thinning_base = np.zeros(N_YEARS + 1)
+    # thinning_base[int(csv_input_data["thin_base_yr1"])] = float(
+    #     csv_input_data["thin_base_pc1"]
+    # )
+    # thinning_base[int(csv_input_data["thin_base_yr2"])] = float(
+    #     csv_input_data["thin_base_pc2"]
+    # )
+
+    # # project thinning regime
+    # # (add need line of thinning[yr] = % thinned for each event)
+    # thinning_project = np.zeros(N_YEARS + 1)
+    # thinning_project[int(csv_input_data["thin_proj_yr1"])] = float(
+    #     csv_input_data["thin_proj_pc1"]
+    # )
+    # thinning_project[int(csv_input_data["thin_proj_yr2"])] = float(
+    #     csv_input_data["thin_proj_pc2"]
+    # )
+    # thinning_project[int(csv_input_data["thin_proj_yr3"])] = float(
+    #     csv_input_data["thin_proj_pc3"]
+    # )
+    # thinning_project[int(csv_input_data["thin_proj_yr4"])] = float(
+    #     csv_input_data["thin_proj_pc4"]
+    # )
+
+    # # baseline fraction of thinning left in the field
+    # # specify vector = array[(leaf,branch,stem,course root,fine root)].
+    # # 1 = 100% left in field. Leaf and roots assumed 100%.
+    # # (can specify for individual years) using above code for thinning_project.
+    # thinning_fraction_left_base = np.array(
+    #     [
+    #         1,
+    #         float(csv_input_data["thin_base_br"]),
+    #         float(csv_input_data["thin_base_st"]),
+    #         1,
+    #         1,
+    #     ]
+    # )
+
+    # # project fraction of thinning left in the field
+    # # specify vector = array[(leaf,branch,stem,course root,fine root)].
+    # # 1 = 100% left in field. Leaf and roots assumed 100%.
+    # # (can specify for individual years) using above code for thinning_project.
+    # thinning_fraction_left_project = np.array(
+    #     [
+    #         1,
+    #         float(csv_input_data["thin_proj_br"]),
+    #         float(csv_input_data["thin_proj_st"]),
+    #         1,
+    #         1,
+    #     ]
+    # )
+
+    # # specify mortality regime and fraction left in field (lif)
+    # # baseline yearly mortality
+    # mortality_base = np.array((N_YEARS + 1) * [float(csv_input_data["base_mort"])])
+
+    # # project yearly mortality
+    # mortality_project = np.array((N_YEARS + 1) * [float(csv_input_data["proj_mort"])])
+
+    # # baseline fraction of dead biomass left in the field
+    # # specify vector = array[(leaf,branch,stem,course root,fine root)].
+    # # 1 = 100% left in field. Leaf and roots assumed 100%.
+    # # (can specify for individual years) using above code for thinning_project.
+    # mortality_fraction_left_base = np.array(
+    #     [
+    #         1,
+    #         float(csv_input_data["mort_base_br"]),
+    #         float(csv_input_data["mort_base_st"]),
+    #         1,
+    #         1,
+    #     ]
+    # )
+
+    # # project fraction of dead biomass left in the field
+    # # specify vector = array[(leaf,branch,stem,course root,fine root)].
+    # # 1 = 100% left in field. Leaf and roots assumed 100%.
+    # # (can specify for individual years) using above code for thinning_project.
+    # mortality_fraction_left_project = np.array(
+    #     [
+    #         1,
+    #         float(csv_input_data["mort_proj_br"]),
+    #         float(csv_input_data["mort_proj_st"]),
+    #         1,
+    #         1,
+    #     ]
+    # )
+
+    # # run tree model
+
+    # # trees planted in baseline (standDens must be at least 1)
+    # tree_base = TreeModel.from_defaults(
+    #     tree_params=tree_params_1,
+    #     tree_growth=growth_base,
+    #     yearPlanted=0,
+    #     standard_density=int(csv_input_data["base_plant_dens"]),
+    #     thin=thinning_base,
+    #     thinFrac=thinning_fraction_left_base,
+    #     mort=mortality_base,
+    #     mortFrac=mortality_fraction_left_base,
+    #     no_of_years=N_YEARS,
+    # )
+
+    # tree_projects = TreeModel.create_tree_projects(
+    #     csv_input_data=csv_input_data,
+    #     tree_params=tree_params,
+    #     growths=tree_growths,
+    #     thinning_project=thinning_project,
+    #     thinning_fraction_left_project=thinning_fraction_left_project,
+    #     mortality_project=mortality_project,
+    #     mortality_fraction_left_project=mortality_fraction_left_project,
+    #     no_of_years=N_YEARS,
+    #     tree_count=N_TREES,
+    # )
+
+    # # ----------
+    # # Fire model
+    # # ----------
+    # # return interval of fire, [::2] = 1 is return interval of two years
+    # base_fire_interval = int(csv_input_data["fire_int_base"])
+    # if base_fire_interval == 0:
+    #     fire_base = np.zeros(N_YEARS)
+    # else:
+    #     fire_base = np.zeros(N_YEARS)
+    #     fire_base[::base_fire_interval] = int(csv_input_data["fire_pres_base"])
+
+    # project_fire_interval = int(csv_input_data["fire_int_proj"])
+    # if project_fire_interval == 0:
+    #     fire_project = np.zeros(N_YEARS)
+    # else:
+    #     fire_project = np.zeros(N_YEARS)
+    #     fire_project[::project_fire_interval] = int(csv_input_data["fire_pres_proj"])
+
+    # # ----------
+    # # Litter model
+    # # ----------
+    # # baseline external organic inputs
+    # litter_external_base = LitterModel.from_defaults(
+    #     litterFreq=int(csv_input_data["base_lit_int"]),
+    #     litterQty=float(csv_input_data["base_lit_qty"]),
+    #     no_of_years=N_YEARS,
+    # )
+
+    # # baseline synthetic fertiliser additions
+    # synthetic_fertiliser_base = LitterModel.synthetic_fert(
+    #     freq=int(csv_input_data["base_sf_int"]),
+    #     qty=float(csv_input_data["base_sf_qty"]),
+    #     nitrogen=float(csv_input_data["base_sf_n"]),
+    #     no_of_years=N_YEARS,
+    # )
+
+    # # Project external organic inputs
+    # litter_external_project = LitterModel.from_defaults(
+    #     litterFreq=int(csv_input_data["proj_lit_int"]),
+    #     litterQty=float(csv_input_data["proj_lit_qty"]),
+    #     no_of_years=N_YEARS,
+    # )
+
+    # # Project synthetic fertiliser additions
+    # synthetic_fertiliser_project = LitterModel.synthetic_fert(
+    #     freq=int(csv_input_data["proj_sf_int"]),
+    #     qty=float(csv_input_data["proj_sf_qty"]),
+    #     nitrogen=float(csv_input_data["proj_sf_n"]),
+    #     no_of_years=N_YEARS,
+    # )
+
+    # # ----------
+    # # Crop model
+    # # ----------
+    # # Baseline specify crop, yield, and % left in field in csv file
+    # cropPar = csv_handler.read_csv(input_csv)
+    # cropPar = np.atleast_2d(cropPar)
+
+    # crop_base, crop_par_base = CropModel.get_crop_bases(
+    #     input_data=csv_input_data,
+    #     no_of_years=N_YEARS,
+    #     start_index=1,
+    #     end_index=3,
+    # )
+    # crop_project, crop_par_project = CropModel.get_crop_projects(
+    #     input_data=csv_input_data,
+    #     no_of_years=N_YEARS,
+    #     start_index=1,
+    #     end_index=3,
+    # )
+
+    # # soil cover for baseline
+    # cover_base = np.zeros(12)
+    # cover_base[
+    #     int(csv_input_data["base_cvr_mth_st"]) : int(csv_input_data["base_cvr_mth_en"])
+    # ] = int(csv_input_data["base_cvr_pres"])
+
+    # # soil cover for project
+    # cover_proj = np.zeros(12)
+    # cover_proj[
+    #     int(csv_input_data["proj_cvr_mth_st"]) : int(csv_input_data["proj_cvr_mth_en"])
+    # ] = int(csv_input_data["proj_cvr_pres"])
+
+    # # Solve to y=0
+    # for_roth = ForwardRothC.create(
+    #     soil,
+    #     climate,
+    #     cover_base,
+    #     no_of_years=N_YEARS,
+    #     Ci=invRoth.eqC,
+    #     crop=crop_base,
+    #     fire=fire_base,
+    #     solveToValue=True,
+    # )
+
+    # # Soil carbon for baseline and project
+    # roth_base = ForwardRothC.create(
+    #     soil=soil,
+    #     climate=climate,
+    #     cover=cover_base,
+    #     Ci=for_roth.SOC[-1],
+    #     no_of_years=N_YEARS,
+    #     crop=crop_base,
+    #     tree=[tree_base],
+    #     litter=[litter_external_base],
+    #     fire=fire_base,
+    # )
+
+    # roth_proj = ForwardRothC.create(
+    #     soil,
+    #     climate,
+    #     cover_proj,
+    #     Ci=for_roth.SOC[-1],
+    #     no_of_years=N_YEARS,
+    #     crop=crop_project,
+    #     tree=tree_projects,
+    #     litter=[litter_external_project],
+    #     fire=fire_project,
+    # )
+
+    # # Emissions stuff
+    # emit_base_emissions = Emit.create(
+    #     no_of_years=N_YEARS,
+    #     forRothC=roth_base,
+    #     crop=crop_base,
+    #     tree=[tree_base],
+    #     litter=[litter_external_base],
+    #     fert=[synthetic_fertiliser_base],
+    #     fire=fire_base,
+    # )
+    # emit_project_emissions = Emit.create(
+    #     no_of_years=N_YEARS,
+    #     forRothC=roth_proj,
+    #     crop=crop_project,
+    #     tree=tree_projects,
+    #     litter=[litter_external_project],
+    #     fert=[synthetic_fertiliser_project],
+    #     fire=fire_project,
+    # )
+
     allometric_key = arguments["allometric-key"]
 
-    growth_base = TreeGrowth.get_growth(
-        csv_input_data,
-        "species_base",
-        tree_par_base,
-        allometric_key=allometric_key,
-    )
-
-    tree_growths = TreeGrowth.create_tree_growths(
-        csv_input_data, tree_params, allometric_key, N_TREES
-    )
-
-    # specify thinning regime and fraction left in field (lif)
-    # baseline thinning regime
-    # (add line of thinning[yr] = % thinned for each event)
-    thinning_base = np.zeros(N_YEARS + 1)
-    thinning_base[int(csv_input_data["thin_base_yr1"])] = float(
-        csv_input_data["thin_base_pc1"]
-    )
-    thinning_base[int(csv_input_data["thin_base_yr2"])] = float(
-        csv_input_data["thin_base_pc2"]
-    )
-
-    # project thinning regime
-    # (add need line of thinning[yr] = % thinned for each event)
-    thinning_project = np.zeros(N_YEARS + 1)
-    thinning_project[int(csv_input_data["thin_proj_yr1"])] = float(
-        csv_input_data["thin_proj_pc1"]
-    )
-    thinning_project[int(csv_input_data["thin_proj_yr2"])] = float(
-        csv_input_data["thin_proj_pc2"]
-    )
-    thinning_project[int(csv_input_data["thin_proj_yr3"])] = float(
-        csv_input_data["thin_proj_pc3"]
-    )
-    thinning_project[int(csv_input_data["thin_proj_yr4"])] = float(
-        csv_input_data["thin_proj_pc4"]
-    )
-
-    # baseline fraction of thinning left in the field
-    # specify vector = array[(leaf,branch,stem,course root,fine root)].
-    # 1 = 100% left in field. Leaf and roots assumed 100%.
-    # (can specify for individual years) using above code for thinning_project.
-    thinning_fraction_left_base = np.array(
-        [
-            1,
-            float(csv_input_data["thin_base_br"]),
-            float(csv_input_data["thin_base_st"]),
-            1,
-            1,
-        ]
-    )
-
-    # project fraction of thinning left in the field
-    # specify vector = array[(leaf,branch,stem,course root,fine root)].
-    # 1 = 100% left in field. Leaf and roots assumed 100%.
-    # (can specify for individual years) using above code for thinning_project.
-    thinning_fraction_left_project = np.array(
-        [
-            1,
-            float(csv_input_data["thin_proj_br"]),
-            float(csv_input_data["thin_proj_st"]),
-            1,
-            1,
-        ]
-    )
-
-    # specify mortality regime and fraction left in field (lif)
-    # baseline yearly mortality
-    mortality_base = np.array((N_YEARS + 1) * [float(csv_input_data["base_mort"])])
-
-    # project yearly mortality
-    mortality_project = np.array((N_YEARS + 1) * [float(csv_input_data["proj_mort"])])
-
-    # baseline fraction of dead biomass left in the field
-    # specify vector = array[(leaf,branch,stem,course root,fine root)].
-    # 1 = 100% left in field. Leaf and roots assumed 100%.
-    # (can specify for individual years) using above code for thinning_project.
-    mortality_fraction_left_base = np.array(
-        [
-            1,
-            float(csv_input_data["mort_base_br"]),
-            float(csv_input_data["mort_base_st"]),
-            1,
-            1,
-        ]
-    )
-
-    # project fraction of dead biomass left in the field
-    # specify vector = array[(leaf,branch,stem,course root,fine root)].
-    # 1 = 100% left in field. Leaf and roots assumed 100%.
-    # (can specify for individual years) using above code for thinning_project.
-    mortality_fraction_left_project = np.array(
-        [
-            1,
-            float(csv_input_data["mort_proj_br"]),
-            float(csv_input_data["mort_proj_st"]),
-            1,
-            1,
-        ]
-    )
-
-    # run tree model
-
-    # trees planted in baseline (standDens must be at least 1)
-    tree_base = TreeModel.from_defaults(
-        tree_params=tree_params_1,
-        tree_growth=growth_base,
-        yearPlanted=0,
-        standard_density=int(csv_input_data["base_plant_dens"]),
-        thin=thinning_base,
-        thinFrac=thinning_fraction_left_base,
-        mort=mortality_base,
-        mortFrac=mortality_fraction_left_base,
-        no_of_years=N_YEARS,
-    )
-
-    tree_projects = TreeModel.create_tree_projects(
-        csv_input_data=csv_input_data,
-        tree_params=tree_params,
-        growths=tree_growths,
-        thinning_project=thinning_project,
-        thinning_fraction_left_project=thinning_fraction_left_project,
-        mortality_project=mortality_project,
-        mortality_fraction_left_project=mortality_fraction_left_project,
-        no_of_years=N_YEARS,
-        tree_count=N_TREES,
-    )
-
-    # ----------
-    # Fire model
-    # ----------
-    # return interval of fire, [::2] = 1 is return interval of two years
-    base_fire_interval = int(csv_input_data["fire_int_base"])
-    if base_fire_interval == 0:
-        fire_base = np.zeros(N_YEARS)
-    else:
-        fire_base = np.zeros(N_YEARS)
-        fire_base[::base_fire_interval] = int(csv_input_data["fire_pres_base"])
-
-    project_fire_interval = int(csv_input_data["fire_int_proj"])
-    if project_fire_interval == 0:
-        fire_project = np.zeros(N_YEARS)
-    else:
-        fire_project = np.zeros(N_YEARS)
-        fire_project[::project_fire_interval] = int(csv_input_data["fire_pres_proj"])
-
-    # ----------
-    # Litter model
-    # ----------
-    # baseline external organic inputs
-    litter_external_base = LitterModel.from_defaults(
-        litterFreq=int(csv_input_data["base_lit_int"]),
-        litterQty=float(csv_input_data["base_lit_qty"]),
-        no_of_years=N_YEARS,
-    )
-
-    # baseline synthetic fertiliser additions
-    synthetic_fertiliser_base = LitterModel.synthetic_fert(
-        freq=int(csv_input_data["base_sf_int"]),
-        qty=float(csv_input_data["base_sf_qty"]),
-        nitrogen=float(csv_input_data["base_sf_n"]),
-        no_of_years=N_YEARS,
-    )
-
-    # Project external organic inputs
-    litter_external_project = LitterModel.from_defaults(
-        litterFreq=int(csv_input_data["proj_lit_int"]),
-        litterQty=float(csv_input_data["proj_lit_qty"]),
-        no_of_years=N_YEARS,
-    )
-
-    # Project synthetic fertiliser additions
-    synthetic_fertiliser_project = LitterModel.synthetic_fert(
-        freq=int(csv_input_data["proj_sf_int"]),
-        qty=float(csv_input_data["proj_sf_qty"]),
-        nitrogen=float(csv_input_data["proj_sf_n"]),
-        no_of_years=N_YEARS,
-    )
-
-    # ----------
-    # Crop model
-    # ----------
-    # Baseline specify crop, yield, and % left in field in csv file
-    cropPar = csv_handler.read_csv(input_csv)
-    cropPar = np.atleast_2d(cropPar)
-
-    crop_base, crop_par_base = CropModel.get_crop_bases(
-        input_data=csv_input_data,
-        no_of_years=N_YEARS,
-        start_index=1,
-        end_index=3,
-    )
-    crop_project, crop_par_project = CropModel.get_crop_projects(
-        input_data=csv_input_data,
-        no_of_years=N_YEARS,
-        start_index=1,
-        end_index=3,
-    )
-
-    # soil cover for baseline
-    cover_base = np.zeros(12)
-    cover_base[
-        int(csv_input_data["base_cvr_mth_st"]) : int(csv_input_data["base_cvr_mth_en"])
-    ] = int(csv_input_data["base_cvr_pres"])
-
-    # soil cover for project
-    cover_proj = np.zeros(12)
-    cover_proj[
-        int(csv_input_data["proj_cvr_mth_st"]) : int(csv_input_data["proj_cvr_mth_en"])
-    ] = int(csv_input_data["proj_cvr_pres"])
-
-    # Solve to y=0
-    for_roth = ForwardRothC.create(
-        soil,
-        climate,
-        cover_base,
-        no_of_years=N_YEARS,
-        Ci=invRoth.eqC,
-        crop=crop_base,
-        fire=fire_base,
-        solveToValue=True,
-    )
-
-    # Soil carbon for baseline and project
-    roth_base = ForwardRothC.create(
-        soil=soil,
-        climate=climate,
-        cover=cover_base,
-        Ci=for_roth.SOC[-1],
-        no_of_years=N_YEARS,
-        crop=crop_base,
-        tree=[tree_base],
-        litter=[litter_external_base],
-        fire=fire_base,
-    )
-
-    roth_proj = ForwardRothC.create(
-        soil,
-        climate,
-        cover_proj,
-        Ci=for_roth.SOC[-1],
-        no_of_years=N_YEARS,
-        crop=crop_project,
-        tree=tree_projects,
-        litter=[litter_external_project],
-        fire=fire_project,
-    )
-
-    # Emissions stuff
-    emit_base_emissions = Emit.create(
-        no_of_years=N_YEARS,
-        forRothC=roth_base,
-        crop=crop_base,
-        tree=[tree_base],
-        litter=[litter_external_base],
-        fert=[synthetic_fertiliser_base],
-        fire=fire_base,
-    )
-    emit_project_emissions = Emit.create(
-        no_of_years=N_YEARS,
-        forRothC=roth_proj,
-        crop=crop_project,
-        tree=tree_projects,
-        litter=[litter_external_project],
-        fert=[synthetic_fertiliser_project],
-        fire=fire_project,
+    intervention_emissions = handle_intervention(
+        intervention_input=csv_input_data, allometry=allometric_key, no_of_trees=N_TREES
     )
 
     # ----------
@@ -691,127 +696,86 @@ def main(n, arguments):
 
     # Print some stuff?
     print("location: ", loc)
-    Climate.print_to_stdout(climate)
-    SoilParams.print_to_stdout(soil)
+    Climate.print_to_stdout(intervention_emissions.climate)
+    SoilParams.print_to_stdout(intervention_emissions.soil)
 
-    print_tree_growths(tree_growths)
+    print_tree_growths(intervention_emissions.tree_growths)
 
-    print_tree_projects(tree_projects)
+    print_tree_projects(intervention_emissions.tree_projects)
 
-    ForwardRothC.print_to_stdout(for_roth, no_of_years=N_YEARS, label="initialisation")
-    ForwardRothC.print_to_stdout(roth_base, no_of_years=N_YEARS, label="baseline")
-    ForwardRothC.print_to_stdout(roth_proj, no_of_years=N_YEARS, label="project")
+    ForwardRothC.print_to_stdout(
+        intervention_emissions.for_roth, no_of_years=N_YEARS, label="initialisation"
+    )
+    ForwardRothC.print_to_stdout(
+        intervention_emissions.roth_base, no_of_years=N_YEARS, label="baseline"
+    )
+    ForwardRothC.print_to_stdout(
+        intervention_emissions.roth_project, no_of_years=N_YEARS, label="project"
+    )
     # =============================================================================
 
     # Crop Emissions
-    crop_base_emissions = Emit.create(
-        no_of_years=N_YEARS, crop=crop_base, fire=fire_base
+    print_crop_emissions(
+        intervention_emissions.crop_base_emissions,
+        intervention_emissions.crop_project_emissions,
+        intervention_emissions.crop_difference,
     )
-    crop_project_emissions = Emit.create(
-        no_of_years=N_YEARS, crop=crop_project, fire=fire_project
-    )
-    crop_difference = crop_project_emissions - crop_base_emissions
-
-    print_crop_emissions(crop_base_emissions, crop_project_emissions, crop_difference)
     # =============================================================================
 
     # Fertilizer Emissions
-    fertiliser_base_emissions = Emit.create(
-        no_of_years=N_YEARS, fert=[synthetic_fertiliser_base]
-    )
-    fertiliser_project_emissions = Emit.create(
-        no_of_years=N_YEARS, fert=[synthetic_fertiliser_project]
-    )
-    fertiliser_difference = fertiliser_project_emissions - fertiliser_base_emissions
-
     print_fertilizer_emissions(
-        fertiliser_base_emissions=fertiliser_base_emissions,
-        fertiliser_project_emissions=fertiliser_project_emissions,
-        fertiliser_difference=fertiliser_difference,
+        fertiliser_base_emissions=intervention_emissions.fertiliser_base_emissions,
+        fertiliser_project_emissions=intervention_emissions.fertiliser_project_emissions,
+        fertiliser_difference=intervention_emissions.fertiliser_difference,
         n_years=N_YEARS,
     )
     # =============================================================================
 
     # Litter Emissions
-    litter_base_emissions = Emit.create(
-        no_of_years=N_YEARS, litter=[litter_external_base], fire=fire_base
-    )
-    litter_project_emissions = Emit.create(
-        no_of_years=N_YEARS, litter=[litter_external_project], fire=fire_project
-    )
-    litter_difference = litter_project_emissions - litter_base_emissions
-
     print_litter_emissions(
-        litter_base_emissions=litter_base_emissions,
-        litter_project_emissions=litter_project_emissions,
-        litter_difference=litter_difference,
+        litter_base_emissions=intervention_emissions.litter_base_emissions,
+        litter_project_emissions=intervention_emissions.litter_project_emissions,
+        litter_difference=intervention_emissions.litter_difference,
         n_years=N_YEARS,
     )
     # =============================================================================
 
     # Fire Emissions
-    fire_base_emissions = Emit.create(no_of_years=N_YEARS, fire=fire_base)
-    fire_project_emissions = Emit.create(no_of_years=N_YEARS, fire=fire_project)
-    fire_difference = fire_project_emissions - fire_base_emissions
-
     print_fire_emissions(
-        fire_base_emissions=fire_base_emissions,
-        fire_project_emissions=fire_project_emissions,
-        fire_difference=fire_difference,
+        fire_base_emissions=intervention_emissions.fire_base_emissions,
+        fire_project_emissions=intervention_emissions.fire_project_emissions,
+        fire_difference=intervention_emissions.fire_difference,
         n_years=N_YEARS,
     )
     # =============================================================================
 
     # Tree Eemissions
-    tree_base_emissions = Emit.create(
-        no_of_years=N_YEARS, tree=[tree_base], fire=fire_base
-    )
-    tree_project_emissions = Emit.create(
-        no_of_years=N_YEARS,
-        tree=tree_projects,
-        fire=fire_project,
-    )
-    tree_difference = tree_project_emissions - tree_base_emissions
-
     print_tree_emissions(
-        tree_base_emissions=tree_base_emissions,
-        tree_project_emissions=tree_project_emissions,
-        tree_difference=tree_difference,
+        tree_base_emissions=intervention_emissions.tree_base_emissions,
+        tree_project_emissions=intervention_emissions.tree_project_emissions,
+        tree_difference=intervention_emissions.tree_difference,
         n_years=N_YEARS,
     )
     # =============================================================================
 
     # Soil Emissions
-    soil_base_emissions = emit_base_emissions - (
-        crop_base_emissions
-        + fertiliser_base_emissions
-        + litter_base_emissions
-        + fire_base_emissions
-        + tree_base_emissions
-    )
-    soil_project_emissions = emit_project_emissions - (
-        crop_project_emissions
-        + fertiliser_project_emissions
-        + litter_project_emissions
-        + fire_project_emissions
-        + tree_project_emissions
-    )
-    soil_difference = soil_project_emissions - soil_base_emissions
-
     print_soil_emissions(
-        soil_base_emissions=soil_base_emissions,
-        soil_project_emissions=soil_project_emissions,
-        soil_difference=soil_difference,
+        soil_base_emissions=intervention_emissions.soil_base_emissions,
+        soil_project_emissions=intervention_emissions.soil_project_emissions,
+        soil_difference=intervention_emissions.soil_difference,
         n_years=N_YEARS,
     )
     # =============================================================================
 
     # Total Emissions
-    emit_difference = emit_project_emissions - emit_base_emissions
+    emit_difference = (
+        intervention_emissions.emit_project_emissions
+        - intervention_emissions.emit_base_emissions
+    )
 
     print_total_emissions(
-        emit_base_emissions=emit_base_emissions,
-        emit_project_emissions=emit_project_emissions,
+        emit_base_emissions=intervention_emissions.emit_base_emissions,
+        emit_project_emissions=intervention_emissions.emit_project_emissions,
         emit_difference=emit_difference,
         n_years=N_YEARS,
     )
@@ -820,16 +784,36 @@ def main(n, arguments):
     # Summary of GHG pools
     summary_difference_data = [
         ["Difference Type", "Value", "Units"],
-        ["Total Crop Difference", f"{sum(crop_difference):.2f}", "t CO2 ha^-1"],
         [
-            "Total Fertiliser Difference",
-            f"{sum(fertiliser_difference):.2f}",
+            "Total Crop Difference",
+            f"{sum(intervention_emissions.crop_difference):.2f}",
             "t CO2 ha^-1",
         ],
-        ["Total Litter Difference", f"{sum(litter_difference):.2f}", "t CO2 ha^-1"],
-        ["Total Fire Difference", f"{sum(fire_difference):.2f}", "t CO2 ha^-1"],
-        ["Total Tree Difference", f"{sum(tree_difference):.2f}", "t CO2 ha^-1"],
-        ["Total Soil Difference", f"{sum(soil_difference):.2f}", "t CO2 ha^-1"],
+        [
+            "Total Fertiliser Difference",
+            f"{sum(intervention_emissions.fertiliser_difference):.2f}",
+            "t CO2 ha^-1",
+        ],
+        [
+            "Total Litter Difference",
+            f"{sum(intervention_emissions.litter_difference):.2f}",
+            "t CO2 ha^-1",
+        ],
+        [
+            "Total Fire Difference",
+            f"{sum(intervention_emissions.fire_difference):.2f}",
+            "t CO2 ha^-1",
+        ],
+        [
+            "Total Tree Difference",
+            f"{sum(intervention_emissions.tree_difference):.2f}",
+            "t CO2 ha^-1",
+        ],
+        [
+            "Total Soil Difference",
+            f"{sum(intervention_emissions.soil_difference):.2f}",
+            "t CO2 ha^-1",
+        ],
         ["Total Difference", f"{sum(emit_difference):.2f}", "t CO2 ha^-1"],
     ]
 
@@ -859,80 +843,100 @@ def main(n, arguments):
 
     plot_name = dir + "\plot_" + str(n + st)
 
-    Climate.save(climate, plot_name + "_climate.csv")
+    Climate.save(intervention_emissions.climate, plot_name + "_climate.csv")
 
-    SoilParams.save(soil, plot_name + "_soil.csv")
+    SoilParams.save(intervention_emissions.soil, plot_name + "_soil.csv")
 
-    save_tree_growths(tree_growths, plot_name)
+    save_tree_growths(intervention_emissions.tree_growths, plot_name)
 
-    save_tree_projects(tree_projects, plot_name=plot_name)
+    save_tree_projects(intervention_emissions.tree_projects, plot_name=plot_name)
 
-    save_crop_data(crop_base, crop_project, plot_name, "crop_model")
-    save_crop_data(crop_par_base, crop_par_project, plot_name, "crop_params")
+    save_crop_data(
+        intervention_emissions.crop_base,
+        intervention_emissions.crop_project,
+        plot_name,
+        "crop_model",
+    )
+    save_crop_data(
+        intervention_emissions.crop_par_base,
+        intervention_emissions.crop_par_project,
+        plot_name,
+        "crop_params",
+    )
 
-    InverseRothC.save(invRoth, plot_name + "_invRoth.csv")
+    InverseRothC.save(intervention_emissions.inverse_roth, plot_name + "_invRoth.csv")
     ForwardRothC.save(
-        forward_roth_c=for_roth, no_of_years=N_YEARS, file=plot_name + "_forRoth.csv"
+        forward_roth_c=intervention_emissions.for_roth,
+        no_of_years=N_YEARS,
+        file=plot_name + "_forRoth.csv",
     )
 
     ForwardRothC.save(
-        forward_roth_c=roth_base,
+        forward_roth_c=intervention_emissions.roth_base,
         no_of_years=N_YEARS,
         file=plot_name + "_soil_model_base.csv",
     )
     ForwardRothC.save(
-        forward_roth_c=roth_proj,
+        forward_roth_c=intervention_emissions.roth_project,
         no_of_years=N_YEARS,
         file=plot_name + "_soil_model_proj.csv",
     )
 
-    Emit.save(emit_base_emissions, emit_project_emissions, plot_name + "_emit_proj.csv")
+    Emit.save(
+        intervention_emissions.emit_base_emissions,
+        intervention_emissions.emit_project_emissions,
+        plot_name + "_emit_proj.csv",
+    )
 
     data = {
-        "emit_base_emissions": emit_base_emissions,
-        "emit_project_emissions": emit_project_emissions,
+        "emit_base_emissions": intervention_emissions.emit_base_emissions,
+        "emit_project_emissions": intervention_emissions.emit_project_emissions,
         "emit_difference": emit_difference,
-        "soil_base_emissions": soil_base_emissions,
-        "soil_project_emissions": soil_project_emissions,
-        "soil_difference": soil_difference,
-        "tree_base_emissions": tree_base_emissions,
-        "tree_project_emissions": tree_project_emissions,
-        "tree_difference": tree_difference,
-        "fire_base_emissions": fire_base_emissions,
-        "fire_project_emissions": fire_project_emissions,
-        "fire_difference": fire_difference,
-        "litter_base_emissions": litter_base_emissions,
-        "litter_project_emissions": litter_project_emissions,
-        "litter_difference": litter_difference,
-        "fertiliser_base_emissions": fertiliser_base_emissions,
-        "fertiliser_project_emissions": fertiliser_project_emissions,
-        "fertiliser_difference": fertiliser_difference,
-        "crop_base_emissions": crop_base_emissions,
-        "crop_project_emissions": crop_project_emissions,
-        "crop_difference": crop_difference,
+        "soil_base_emissions": intervention_emissions.soil_base_emissions,
+        "soil_project_emissions": intervention_emissions.soil_project_emissions,
+        "soil_difference": intervention_emissions.soil_difference,
+        "tree_base_emissions": intervention_emissions.tree_base_emissions,
+        "tree_project_emissions": intervention_emissions.tree_project_emissions,
+        "tree_difference": intervention_emissions.tree_difference,
+        "fire_base_emissions": intervention_emissions.fire_base_emissions,
+        "fire_project_emissions": intervention_emissions.fire_project_emissions,
+        "fire_difference": intervention_emissions.fire_difference,
+        "litter_base_emissions": intervention_emissions.litter_base_emissions,
+        "litter_project_emissions": intervention_emissions.litter_project_emissions,
+        "litter_difference": intervention_emissions.litter_difference,
+        "fertiliser_base_emissions": intervention_emissions.fertiliser_base_emissions,
+        "fertiliser_project_emissions": intervention_emissions.fertiliser_project_emissions,
+        "fertiliser_difference": intervention_emissions.fertiliser_difference,
+        "crop_base_emissions": intervention_emissions.crop_base_emissions,
+        "crop_project_emissions": intervention_emissions.crop_project_emissions,
+        "crop_difference": intervention_emissions.crop_difference,
     }
 
     write_emissions_csv(configuration, mod_run, n, st, data)
 
     # Plot stuff
-    plot_tree_projects(tree_projects, plot_name)
+    plot_tree_projects(intervention_emissions.tree_projects, plot_name)
 
     plt.close()
 
-    ForwardRothC.plot(for_roth, no_of_years=N_YEARS, legendStr="initialisation")
-
-    ForwardRothC.plot(roth_base, no_of_years=N_YEARS, legendStr="baseline")
+    ForwardRothC.plot(
+        intervention_emissions.for_roth, no_of_years=N_YEARS, legendStr="initialisation"
+    )
 
     ForwardRothC.plot(
-        roth_proj,
+        intervention_emissions.roth_base, no_of_years=N_YEARS, legendStr="baseline"
+    )
+
+    ForwardRothC.plot(
+        intervention_emissions.roth_project,
         no_of_years=N_YEARS,
         legendStr="project",
         saveName=plot_name + "_soilModel.png",
     )
     plt.close()
 
-    Emit.plot(emit_base_emissions, legendStr="baseline")
-    Emit.plot(emit_project_emissions, legendStr="project")
+    Emit.plot(intervention_emissions.emit_base_emissions, legendStr="baseline")
+    Emit.plot(intervention_emissions.emit_project_emissions, legendStr="project")
 
     # TODO: what is this? How could `ax` be attached to Emission?
     # Why is it done here instead of in the plot function?
@@ -944,18 +948,18 @@ def main(n, arguments):
     plt.close()
 
     Emit.save(
-        emit_base_emissions=emit_base_emissions,
-        emit_proj_emissions=emit_project_emissions,
+        emit_base_emissions=intervention_emissions.emit_base_emissions,
+        emit_proj_emissions=intervention_emissions.emit_project_emissions,
         file=plot_name + "_emissions.csv",
     )
 
     return (
-        sum(crop_difference),
-        sum(fertiliser_difference),
-        sum(litter_difference),
-        sum(fire_difference),
-        sum(tree_difference),
-        sum(soil_difference),
+        sum(intervention_emissions.crop_difference),
+        sum(intervention_emissions.fertiliser_difference),
+        sum(intervention_emissions.litter_difference),
+        sum(intervention_emissions.fire_difference),
+        sum(intervention_emissions.tree_difference),
+        sum(intervention_emissions.soil_difference),
         sum(emit_difference),
     )
 
