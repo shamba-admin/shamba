@@ -81,7 +81,7 @@ def create(
     if errors != {}:
         print(f"Errors in litter model data: {str(errors)}")
 
-    return schema.load(params)
+    return schema.load(params) # type: ignore
 
 
 def from_csv(

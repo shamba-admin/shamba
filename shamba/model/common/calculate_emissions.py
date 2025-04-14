@@ -20,7 +20,6 @@ get_int: Callable[[str, Dict[str, Any]], int] = compose(int, get)  # type: ignor
 
 
 def get_location(year_input: Dict[str, Any]) -> Tuple[float, float]:
-    print("LLLLLL", get_float(CONSTANTS.LOCATION_LATITIUDE_KEY, year_input))
     return (
         get_float(CONSTANTS.LOCATION_LATITIUDE_KEY, year_input),
         get_float(CONSTANTS.LOCATION_LONGITUDE_KEY, year_input),
