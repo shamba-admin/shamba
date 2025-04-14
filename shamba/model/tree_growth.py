@@ -238,7 +238,7 @@ def create(tree_params, growth_params, allom="chave dry") -> TreeGrowth:
     if errors != {}:
         print(f"Errors in tree growth: {errors}")
 
-    return schema.load(params)
+    return schema.load(params) # type: ignore
 
 
 def from_csv1(
@@ -412,119 +412,6 @@ def from_csv3(
     return growth
 
 
-def from_arrays(tree, age, data, isBiomass=False, allometric_key="chave dry"):
-    """Construct Growth object using data from numpy arrays."""
-    pass
-
-
-def fit(
-    age, biomass
-) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, float]]:
-    """Fit tree growth data using four fitting functions.
-
-    Returns:
-        **all dicts with keys 'lin','log','hyp','exp'**
-        data: data points from each of the fits
-        params: fitting parameters
-        mse: mean-square error
-    Raises:
-        RuntimeError: if curve_fit can't fit the data to a curve
-
-    """
-
-    data = {}
-    params = {}
-    mse = {}
-    init = {"exp": [20], "hyp": [200, 0.1], "lin": [1], "log": [100, 0, 0]}
-
-    # TODO: this isn't be used?
-    # numParams = {"exp": 1, "hyp": 2, "lin": 1, "log": 3}
-
-    for curve in fitting_functions:
-        # Do the fitting
-        try:
-            fit_params = optimize.curve_fit(
-                fitting_functions[curve], age, biomass, init[curve]
-            )
-            par = fit_params[0]
-            params[curve] = par
-
-        except RuntimeError:
-            log.warning("Could not fit data to %s", curve)
-            fit_params = None
-            par = None
-
-        # Find data corresponding to those fitting params
-        # Set data and params to array of nan if there's no fit
-        if curve == "log":
-            if fit_params is not None:
-                data[curve] = fitting_functions[curve](age, par[0], par[1], par[2])
-            else:
-                params[curve] = np.array(3 * [np.nan])
-                data[curve] = np.array(len(age) * [np.nan])
-
-        elif curve == "lin" or curve == "exp":
-            if fit_params is not None:
-                data[curve] = fitting_functions[curve](age, par[0])
-            else:
-                params[curve] = np.array(1 * [np.nan])
-                data[curve] = np.array(len(age) * [np.nan])
-        else:  # hyp
-            if fit_params is not None:
-                data[curve] = fitting_functions[curve](age, par[0], par[1])
-            else:
-                params[curve] = np.array(2 * [np.nan])
-                data[curve] = np.array(len(age) * [np.nan])
-
-        # Find mse
-        # set to inf if there's no fit for a given curve
-        if fit_params is not None:
-            mse[curve] = mse_fn(biomass, data[curve])
-        else:
-            mse[curve] = np.inf
-
-    return data, params, mse
-
-
-# TODO: this is not being used?
-# def hyp_fn_inv(fit_params, y):
-#     if math.fabs(y) < 0.00000001:
-#         x = 0
-#     else:
-#         a = fit_params[0]
-#         b = fitParmas[1]
-#         if y > a:
-#             x = a
-#         else:
-#             x = (math.log(a) - math.log(a - y)) / b
-
-#     return x
-
-# TODO: this is not being used?
-# def lin_fn_inv(self, y):
-#     if math.fabs(y) < 0.00000001:
-#         x = 0
-#     else:
-#         a = float(self.fit_params[0])  # just to be safe
-#         x = y / a
-
-#     return x
-
-# TODO: this is not being used?
-# def exp_fn_inv(self, y):
-#     if math.fabs(y) < 0.00000001:
-#         x = 0
-#     else:
-#         a = self.fit_params[0]
-#         x = math.log(y + 1) / math.log(a + 1)
-
-#     return x
-
-
-def mse_fn(yMean, yReal):
-    return ((yMean - yReal) ** 2).mean()
-
-
 def plot(tree_growth, fit=True, saveName=None):
     """Plot growth data and all four fits in a matplotlib figure."""
 
@@ -552,11 +439,8 @@ def plot(tree_growth, fit=True, saveName=None):
 
     # Shift ticks so points not cut off
     xticks = ax.get_xticks()
-    yticks = ax.get_yticks()
     xmin = xticks[0] - 0.5 * (xticks[1] - xticks[0])
     xmax = xticks[-1] + 0.5 * (xticks[-1] - xticks[-2])
-    ymin = yticks[0] - 0.5 * (yticks[1] - yticks[0])
-    ymax = yticks[-1] + 0.5 * (yticks[-1] - yticks[-2])
     ax.set_xlim(xmin, xmax)
 
     if saveName is not None:
@@ -666,7 +550,6 @@ def save(tree_growth, file="tree_growth.csv"):
 
     # fit parameters
     param_file = file.split(".csv")[0] + "_fit_params.csv"
-    temp = {"exp": [], "hyp": [], "lin": [], "log": []}
     row1 = []
     row2 = []
     row3 = []
@@ -819,3 +702,47 @@ def create_tree_growths(csv_input_data, tree_params, allometric_key, tree_count)
         )
         for i in range(tree_count)
     ]
+
+def fit(age: np.ndarray, biomass: np.ndarray) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, float]]:
+    """
+    Fit tree growth data using four fitting functions.
+
+    Args:
+        age: Array of tree ages
+        biomass: Array of corresponding biomass values
+
+    Returns:
+        Tuple containing:
+        - data: Dict with data points from each of the fits
+        - params: Dict with fitting parameters
+        - mse: Dict with mean-square error for each fit
+
+    Raises:
+        RuntimeError: if curve_fit can't fit the data to a curve
+    """
+    curve_configs = {
+        'exp': {'init': [20], 'num_params': 1},
+        'hyp': {'init': [200, 0.1], 'num_params': 2},
+        'lin': {'init': [1], 'num_params': 1},
+        'log': {'init': [100, 0, 0], 'num_params': 3}
+    }
+
+    data, params, mse = {}, {}, {}
+
+    for curve, config in curve_configs.items():
+        try:
+            fit_params = optimize.curve_fit(fitting_functions[curve], age, biomass, config['init'])
+            params[curve] = fit_params[0]
+            data[curve] = fitting_functions[curve](age, *params[curve])
+            mse[curve] = mse_fn(biomass, data[curve])
+        except RuntimeError:
+            log.warning(f"Could not fit data to {curve}")
+            params[curve] = np.array([np.nan] * config['num_params'])
+            data[curve] = np.array([np.nan] * len(age))
+            mse[curve] = np.inf
+
+    return data, params, mse
+
+def mse_fn(y_mean: np.ndarray, y_real: np.ndarray) -> float:
+    """Calculate mean squared error."""
+    return float(np.mean((y_mean - y_real) ** 2))
