@@ -15,20 +15,6 @@ from .common_schema import OutputSchema as ClimateDataOutputSchema
 from .tree_growth import TreeGrowthSchema, derivative_functions
 from .tree_params import ROOT_IN_TOP_30, TreeParamsSchema
 
-"""
-Tree model class. Calculate residues and soil inputs
-for given params and growth.
-
-Instance variables
-----------------
-tree_params     TreeParams object with the params (dens, carbon, etc.)
-growth          TreeGrowth object governing growth of trees
-output          output to soil,fire in t C ha^-1
-                    (dict with keys 'carbon,'nitrogen','DMon','DMoff')
-woody_biomass       vector of woody biomass in each pool in t C ha^-1
-
-"""
-
 
 class MassBalanceData(Schema):
     in_ = fields.List(fields.Float(allow_nan=True), required=True)
@@ -38,6 +24,25 @@ class MassBalanceData(Schema):
 
 
 class TreeModel:
+    """
+    Object for tree model.
+
+    Instance variables
+    ----------------
+    tree_params     TreeParams object with the params (dens, carbon, etc.)
+    tree_growth     TreeGrowth object governing growth of trees
+    alloc           vector with allocation for each year
+    turnover        vector with turnover for each year
+    thin_frac       vector with thinning fraction left for each year
+    mort_frac       vector with mortality fraction left for each year
+    thin            vector with thinning regime for each year
+    mort            vector with mortality regime for each year
+    output          output to soil,fire in t C ha^-1
+                    (dict with keys 'carbon,'nitrogen','DMon','DMoff')
+    woody_biomass   vector with yearly woody biomass pools
+    balance         MassBalanceData object with mass balance data
+    """
+
     def __init__(
         self,
         tree_params,
@@ -96,20 +101,16 @@ def create(
     """Intialise TreeModel object (run biomass model, essentially).
 
     Args:
-        tree_params TreeParams object (holds tree params)
-        growth: tree_growth.Growth object
-        pool_params: dict with alloc, turnover, thinFrac, and mortFrac
-        yearPlanted: year (after start of project) tree is planted
-        thin: thinning vector
-        thinFrac: vector with the retained fraction of thinned biomass
-                    for each pool (default = [leaf=1,branch=0,stem=0,
-                                            croot=1,froot=1])
-        mort: mortality vector
-        mortFrac: vector with the retained fraction of dead biomass
-                    for each pool (default same as thinFrac)
-    Raises:
-        KeyError: if pool_params doesn't have the appropriate keys
+        tree_params         TreeParams object (holds tree params)
+        tree_growth         TreeGrowth object
+        pool_params         dict with alloc, turnover, thinFrac, and mortFrac
+        yearPlanted         year (after start of project) tree is planted
+        initialStandDens    initial stand density
+        thin                vector with thinning regime for each year
+        mort                vector with mortality regime for each year
 
+    Returns:
+        tree_model: TreeModel object
     """
     alloc = pool_params["alloc"]
     turnover = pool_params["turnover"]
@@ -228,7 +229,7 @@ def get_inputs(
     Calculate and return residues and soil inputs from the tree.
 
     Args:
-        same explanations as __init__
+        same explanations as create
     Returns:
         output: dict with soil,fire inputs due to this tree
                         (keys='carbon','nitrogen','DMon','DMoff')
@@ -236,7 +237,6 @@ def get_inputs(
 
     **NOTE** a lot of these arrays are implicitly 2d with 2nd
     dimension = [leaf, branch, stem, croot, froot]. Careful here.
-
     """
     # NOTE - initially quantities are in kg C
     #   -> woody_biomass and output get converted at end before returning

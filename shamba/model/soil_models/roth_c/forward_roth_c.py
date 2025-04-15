@@ -14,17 +14,23 @@ from .roth_c import RothCSchema
 from .roth_c import create as create_roth_c
 from .roth_c import dC_dt
 
-"""
-Forward RothC class. Extends RothC class.
-
-Instance variables
-----------------
-SOC     vector with soil distributions for each year
-
-"""
-
 
 class ForwardRothCData:
+    """
+    Forward RothC object
+
+    Instance variables
+    ----------------
+    SOC            vector with soil distributions for each year
+    soil_params    SoilParams object with soil params (porosity, field capacity, etc.)
+    climate        Climate object with climate data (rain, evaporation, etc.)
+    cover          vector with cover for each year
+    k              vector with crop coefficient for each year
+    inputs         vector with inputs for each year
+    Cy0Year        vector with initial soil carbon for each year
+
+    """
+
     def __init__(
         self,
         soil_params,
@@ -68,7 +74,7 @@ def create(
     fire=[],
     solveToValue=False,
 ) -> ForwardRothCData:
-    """Initialise ForwardRothC.
+    """Creates ForwardRothCData.
 
     Args:
         soil: soil object
@@ -103,7 +109,7 @@ def create(
     if errors != {}:
         print(f"Errors in ForwardRothC data: {str(errors)}")
 
-    return schema.load(params)
+    return schema.load(params)  # type: ignore
 
 
 def solver(

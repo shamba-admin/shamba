@@ -17,20 +17,19 @@ from .crop_params import (
 )
 from .crop_params import from_species_index as create_crop_params_from_species_index
 
-"""
-Crop model object. Calculate residues and soil inputs
-for given parameters.
-
-Instance variables
-------------------
-crop_params     CropParams object with crop params (slope, carbon, etc.)
-output          output to soil,fire in t C ha^-1
-                    (dict with keys 'carbon','nitrogen','DMon','DMoff')
-
-"""
-
 
 class CropModelData:
+    """
+    Crop model object. Calculate residues and soil inputs
+    for given parameters.
+
+    Instance variables
+    ------------------
+    crop_params     CropParams object with crop params (slope, carbon, etc.)
+    output          output to soil,fire in t C ha^-1
+                    (dict with keys 'carbon','nitrogen','DMon','DMoff')
+    """
+
     def __init__(self, crop_params, output):
         self.crop_params = crop_params
         self.output = output
@@ -50,7 +49,6 @@ def create(crop_params, no_of_years, crop_yield, left_in_field) -> CropModelData
     crop_params: CropParams object with crop params
     cropYield: dry matter yield of the crop in t C ha^-1
     leftInField: fraction of residues left in field post-harvest
-
     """
     raw_crop_model_data = {
         "crop_params": vars(
@@ -116,7 +114,6 @@ def save(crop_model, file="crop_model.csv"):
 
     Args:
         file: name or path to csv file
-
     """
     cols = []
     data = []

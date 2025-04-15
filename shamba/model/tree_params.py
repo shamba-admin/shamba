@@ -1,7 +1,4 @@
-#!/usr/bin/python
-
-import logging as log
-import sys
+from typing import Dict, Any
 
 import numpy as np
 from marshmallow import Schema, fields, post_load
@@ -39,30 +36,22 @@ for _i in range(len(SPP_LIST)):
         "rootToShoot": _rootToShoot[_i],
     }
 
-
-# -------------------------------------------------------
-# Tree object, holding info for a particular type of tree
-# -------------------------------------------------------
-
-"""
-Tree object to hold params. Can be initialised from species name,
-species index, csv, or manually (calling __init__ with params
-in a dict).
-
-Instance variables
-----------------
-species         tree species name
-dens        tree density in g cm^-3
-carbon          tree carbon content as a fraction
-nitrogen        tree nitrogen content as a fraction
-rootToShoot     tree root-to-shoot ratio
-
-"""
-
 ROOT_IN_TOP_30 = 0.7
 
 
 class TreeParamsData:
+    """
+    Object holding tree params.
+
+    Instance variables
+    ----------------
+    species         tree species name
+    dens        tree density in g cm^-3
+    carbon          tree carbon content as a fraction
+    nitrogen        tree nitrogen content as a fraction
+    root_to_shoot     tree root-to-shoot ratio
+    """
+
     def __init__(
         self,
         species,
@@ -101,15 +90,12 @@ class TreeParamsSchema(Schema):
 
 
 def create(tree_params) -> TreeParamsData:
-    """Initialise tree data.
+    """
+    Create a TreeParams object from a dict.
 
-    Args:
-        tree_params: dict with tree params
-                        keys='species','dens','carbon',
-                            'nitrogen','rootToShoot'
-    Raises:
-        KeyError: if tree_params doesn't have the right keys
+    Args: tree_params: dict with tree params
 
+    Returns: TreeParamsData object
     """
     params = {
         "species": tree_params["species"],
@@ -125,65 +111,44 @@ def create(tree_params) -> TreeParamsData:
     if errors != {}:
         print(f"Errors in tree params: {errors}")
 
-    return schema.load(params)
+    return schema.load(params)  # type: ignore
 
 
-def from_species_name(species):
-    """Construct Tree object from species defaults in tree_spp dict.
-
-    Args:
-        species: species name that's a key in tree_spp
-    Returns:
-        Tree object
-    Raises:
-        KeyError: is species isn't a key in the tree_spp dict
-
+def from_species_name(species: str):
+    """
+    Same as create, but with species name.
     """
     return create(TREE_SPP[species])
 
 
-def from_species_index(index):
-    """Construct Tree object from index of species in the csv.
-
-    Args:
-        index: index of the species (1-indexed, so off by one from
-                SPP_LIST index
-    Returns:
-        Tree object
-    Raises:
-        IndexError: if index is not a valid index in the species list
-
+def from_species_index(index: int):
+    """
+    Same as create, but with species index.
     """
     index = int(index)
     species = SPP_LIST[index - 1]
 
     return create(TREE_SPP[species])
 
-    # TODO: is this being used?
-    # def _repr(self):
-    #     return "_repr_"
 
-
-def from_csv(speciesName, filename, row=0):
-    """Construct Tree object using data from a csv which
+def from_csv(species_name: str, filename: str, row=0):
+    """
+    Construct Tree object using data from a csv which
     is structured like the master csv (tree_defaults.csv)
 
     Args:
-        speciesName: name of species (can be anything)
+        species_name: name of species (can be anything)
         filename: csv file with the info
         row: row in the csv to be read (0-indexed)
     Returns:
-        Tree object
-    Raises:
-        IndexError: if row > # rows in csv, or csv doesn't have 8 cols
-
+        TreeParamsData
     """
 
     data = csv_handler.read_csv(filename, cols=(2, 3, 4, 5, 6, 7, 8, 9))
     data = np.atleast_2d(data)  # to account for if there's only one row
 
     params = {
-        "species": speciesName,
+        "species": species_name,
         "nitrogen": np.array(
             [
                 data[row, 0],
@@ -200,7 +165,7 @@ def from_csv(speciesName, filename, row=0):
     return create(params)
 
 
-def save(tree_params, file="tree_params.csv"):
+def save(tree_params: TreeParamsData, file="tree_params.csv"):
     """Save tree params to a csv.
     Default path is in OUTPUT_DIR with filename 'tree_params.csv'
 
@@ -241,7 +206,9 @@ def save(tree_params, file="tree_params.csv"):
     csv_handler.print_csv(file, data, col_names=cols)
 
 
-def create_tree_params_from_species_index(csv_input_data, tree_count):
+def create_tree_params_from_species_index(
+    csv_input_data: Dict[str, Any], tree_count: int
+):
     return [
         from_species_index(int(csv_input_data[f"species{i + 1}"]))
         for i in range(tree_count)

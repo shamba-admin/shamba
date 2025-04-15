@@ -106,7 +106,7 @@ def get_data_from_identifier(mu: int) -> Optional[Tuple[float, float]]:
     return calculate_weighted_sum(mu_rows)
 
 
-def get_soil_data(localtion) -> Optional[Tuple[float, float]]:
+def get_soil_data(localtion: Tuple[float, float]) -> Optional[Tuple[float, float]]:
     """Get soil data from soilgrids api.
     If data is not available, get data from local csv file.
     """

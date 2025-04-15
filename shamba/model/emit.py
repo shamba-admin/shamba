@@ -97,7 +97,7 @@ def create(
     fire=[],
     burnOff=True,
 ) -> np.ndarray:
-    """Initialise object.
+    """Create an array.
     Optional arguments gives flexibility about what/what kind of
     emissions to calculate
 

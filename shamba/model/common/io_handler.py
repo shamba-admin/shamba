@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 
 from model import configuration
-from model.tree_growth import allometric
+import model.tree_growth as TreeGrowth
 
 
 def get_arguments_interactively():
@@ -23,7 +23,7 @@ def get_arguments_interactively():
     arguments["project-name"] = project_name if project_name else f"project_{timestamp}"
 
     # Display allometric options
-    allometric_keys = list(allometric.keys())
+    allometric_keys = list(TreeGrowth.allometric.keys())
     print("\nSelect Allometric Key:")
     for idx, key in enumerate(allometric_keys):
         print(f"{idx + 1}: {key}")

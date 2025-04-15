@@ -9,19 +9,19 @@ from .roth_c import RothCData, RothCSchema
 from .roth_c import create as create_roth_c
 from .roth_c import dC_dt
 
-"""
-Inverse RothC model. Extends RothC class.
-
-Instance variables
-------------------
-eqC     calculated equilibrium distribution of carbon
-inputC  yearly input to soil giving eqC
-x       partitioning coefficients
-
-"""
-
 
 class InverseRothCData(RothCData):
+    """
+    Inverse RothC model. Extends RothCData class.
+
+    Instance variables
+    ------------------
+    eqC     calculated equilibrium distribution of carbon
+    inputC  yearly input to soil giving eqC
+    x       partitioning coefficients
+
+    """
+
     def __init__(self, eqC, inputC, x, **kwargs):
         super().__init__(**kwargs)
         self.eqC = eqC
@@ -42,7 +42,7 @@ class InverseRothCSchema(RothCSchema):
 
 
 def create(soil, climate, cover=np.ones(12)) -> InverseRothCData:
-    """Initialise inverse rothc object.
+    """Creates inverse rothc object.
 
     Args:
         soil: soil object with soil parameters

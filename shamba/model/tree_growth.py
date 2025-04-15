@@ -1,12 +1,10 @@
-#!/usr/bin/python
 """
 Module containing tree growth information and allometric functions
 
-class Growth:   for tree growth data and fitting
 def ryan      allometric function based on C. Ryan biotropica paper (2010)
-
 """
 
+from typing import Dict, List, Tuple, Any
 import logging as log
 import math
 import os
@@ -17,6 +15,7 @@ import numpy as np
 from marshmallow import Schema, fields, post_load
 from scipy import optimize
 from tabulate import tabulate
+import model.tree_params as TreeParams
 
 from . import configuration
 from .common import csv_handler
@@ -99,24 +98,6 @@ derivative_functions = {
     "log": logarithmic_function_derivative,
 }
 
-"""
-Object holding tree growth data, and fit functions/params for this.
-Also includes method for printing and plotting data and fits
-
-Instance variables
-----------------
-tree_params TreeParams object (holds carbon and dens, among others)
-func        dict holding the four fitting functions
-func_deriv   dict holding the four derivative functions
-age         tree age data in years
-diam        tree diameter data in cm
-best        string with best fit ('exp, 'log', 'lin, or 'hyp')
-fitDiam     dict holding fit diameter data in cm for all four fits
-fit_params   dict holding fitting params for all four fits
-fitMSE      dict holding MSE for all four fits
-
-"""
-
 
 class FitData(Schema):
     exp = fields.List(fields.Float(allow_nan=True), required=True)
@@ -133,6 +114,24 @@ class FitMSEData(Schema):
 
 
 class TreeGrowth:
+    """
+    Object holding tree growth data.
+
+    Instance variables
+    ----------------
+    age                 tree age data in years
+    all_fit_data        dict holding fit diameter data in cm for all four fits
+    all_fit_params      dict holding fitting params for all four fits
+    all_mse             dict holding MSE for all four fits
+    allometric_key      string with allometric key
+    best                string with best fit ('exp, 'log', 'lin, or 'hyp')
+    biomass             vector with biomass data for each year
+    fit_data            dict holding fit diameter data in cm for all four fits
+    fit_mse             dict holding MSE for all four fits
+    fit_params          dict holding fitting params for all four fits
+    tree_diameter       vector with tree diameter data for each year
+    """
+
     def __init__(
         self,
         age,
@@ -187,19 +186,21 @@ def get_biomass(tree_diameter, allometric_key, tree_params):
     )
 
 
-def create(tree_params, growth_params, allom="chave dry") -> TreeGrowth:
-    """Initialise tree growth data.
+def create(
+    tree_params: List[TreeParams.TreeParamsData],
+    growth_params: Dict[str, np.ndarray],
+    allom="chave dry",
+) -> TreeGrowth:
+    """Create a TreeGrowth object from a tree parameters and a growth parameters
+    dictionary.
 
     Args:
-        growth_params: dict with growth params
-                        keys=are 'age','diam' OR 'age','biomass'
-        tree_params: tree_params.TreeParams object (holds tree params)
-        allom: which allometric to use - ignored if biomass is a key
-                in growth_params since it won't be used
-    Raises:
-        KeyError: if dict doesn't have the right keys
-        KeyError: if allom isn't in the allometric dict
+        tree_params (dict): A dictionary containing the tree parameters.
+        growth_params (dict): A dictionary containing the growth parameters.
+        allom (str, optional): The allometric key. Defaults to "chave dry".
 
+    Returns:
+        TreeGrowth: A TreeGrowth object.
     """
     tree_diameter = growth_params["diam"]
     allometric_key = allom.lower()
@@ -242,10 +243,9 @@ def create(tree_params, growth_params, allom="chave dry") -> TreeGrowth:
 
 
 def from_csv1(
-    tree_params,
-    allometric_key,
-    csv_input_data,
-    isBiomass=False,
+    tree_params: List[TreeParams.TreeParamsData],
+    allometric_key: str,
+    csv_input_data: Dict[str, Any],
 ):
     """Construct Growth object using data in a csv file.
 
@@ -253,15 +253,12 @@ def from_csv1(
     np.arrays for each new cohort
 
     Args:
-        tree: Tree object with tree information
-        filename: csv to read data from with columns age,diam
-        True if data in column 2 is biomass (not dbh)
-        allom: which allometric to use
-    Returns:
-        Growth object
-    Raises:
-        IndexError: if file isn't the right format
+        tree_params: TreeParams object (holds tree params)
+        allometric_key: string with allometric key
+        csv_input_data: dictionary with csv input data
 
+    Returns:
+        tree_growth: TreeGrowth object
     """
 
     age_input = ["age1", "age2", "age3", "age4", "age5", "age6"]
@@ -280,21 +277,15 @@ def from_csv1(
         "diam": diam,
     }
 
-    params = {
-        "age": age,
-        "diam": diam,
-    }
-
     growth = create(tree_params, params, allometric_key)
 
     return growth
 
 
 def from_csv2(
-    tree_params,
-    allometric_key,
-    csv_input_data,
-    isBiomass=False,
+    tree_params: List[TreeParams.TreeParamsData],
+    allometric_key: str,
+    csv_input_data: Dict[str, Any],
 ):
     """Construct Growth object using data in a csv file.
 
@@ -302,15 +293,12 @@ def from_csv2(
     np.arrays for each new cohort
 
     Args:
-        tree: Tree object with tree information
-        filename: csv to read data from with columns age,diam
-        True if data in column 2 is biomass (not dbh)
-        allom: which allometric to use
-    Returns:
-        Growth object
-    Raises:
-        IndexError: if file isn't the right format
+        tree_params: TreeParams object (holds tree params)
+        allometric_key: string with allometric key
+        csv_input_data: dictionary with csv input data
 
+    Returns:
+        tree_growth: TreeGrowth object
     """
 
     age_input = [
@@ -352,10 +340,9 @@ def from_csv2(
 
 
 def from_csv3(
-    tree_params,
-    allometric_key,
-    csv_input_data,
-    isBiomass=False,
+    tree_params: List[TreeParams.TreeParamsData],
+    allometric_key: str,
+    csv_input_data: Dict[str, Any],
 ):
     """Construct Growth object using data in a csv file.
 
@@ -363,15 +350,12 @@ def from_csv3(
     np.arrays for each new cohort
 
     Args:
-        tree: Tree object with tree information
-        filename: csv to read data from with columns age,diam
-        True if data in column 2 is biomass (not dbh)
-        allom: which allometric to use
-    Returns:
-        Growth object
-    Raises:
-        IndexError: if file isn't the right format
+        tree_params: TreeParams object (holds tree params)
+        allometric_key: string with allometric key
+        csv_input_data: dictionary with csv input data
 
+    Returns:
+        tree_growth: TreeGrowth object
     """
 
     age_input = [
@@ -522,6 +506,7 @@ def save(tree_growth, file="tree_growth.csv"):
     Default path is in OUTPUT_DIR.
 
     Args:
+        tree_growth: TreeGrowth object
         file: name or path to csv file
 
     """
@@ -719,9 +704,6 @@ def fit(
         - data: Dict with data points from each of the fits
         - params: Dict with fitting parameters
         - mse: Dict with mean-square error for each fit
-
-    Raises:
-        RuntimeError: if curve_fit can't fit the data to a curve
     """
     curve_configs = {
         "exp": {"init": [20], "num_params": 1},

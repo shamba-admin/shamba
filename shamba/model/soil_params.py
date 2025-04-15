@@ -1,24 +1,9 @@
-#!/usr/bin/python
-
-"""Module containing Soil class."""
+from typing import Dict, Any, Tuple
 import numpy as np
 from marshmallow import Schema, fields, post_load
 
 from model.common import csv_handler
 from model.common.data_sources.soil import get_soil_data
-
-"""
-Object to hold soil parameter information.
-
-Instance variables
-------------------
-Cy0     soil carbon at start of project in t C ha^-1 (year 0)
-clay    soil clay content as percentage
-depth   depth of soil in cm (default=30)
-Ceq     soil carbon at equilibrium in t C ha^-1 (calculated from Cy0)
-iom     soil inert organic matter in t C ha^-1 (calculated from Ceq)
-
-"""
 
 
 def validate_clay(value):
@@ -41,6 +26,18 @@ class SoilParamsData:
 
 
 class SoilParamsSchema(Schema):
+    """
+    Object to hold soil parameter information.
+
+    Instance variables
+    ------------------
+    Cy0     soil carbon at start of project in t C ha^-1 (year 0)
+    clay    soil clay content as percentage
+    depth   depth of soil in cm (default=30)
+    Ceq     soil carbon at equilibrium in t C ha^-1 (calculated from Cy0)
+    iom     soil inert organic matter in t C ha^-1 (calculated from Ceq)
+    """
+
     clay = fields.Float(required=True, validate=lambda v: validate_clay(v))
     Cy0 = fields.Float(required=True, validate=lambda v: validate_Cy0(v))
     depth = fields.Float(required=True)
@@ -52,15 +49,14 @@ class SoilParamsSchema(Schema):
         return SoilParamsData(**data)
 
 
-def create(soil_params) -> SoilParamsData:
-    """Initialise soil data.
+def create(soil_params: Dict[str, Any]) -> SoilParamsData:
+    """Create soil data.
 
     Args:
-        soil_params: dict with soil params (keys='Cy0,'clay')
-    Raises:
-        KeyError: if dict doesn't have the right keys
-        TypeError: if non-numeric type is used for soil_params
+        soil_params: dict with soil params (keys='Cy0', 'clay')
 
+    Returns:
+        SoilParamsData: object containing soil parameters
     """
     Cy0 = soil_params["Cy0"]
     Ceq = 1.25 * Cy0
@@ -79,7 +75,7 @@ def create(soil_params) -> SoilParamsData:
     if errors != {}:
         print(f"Errors in soil params: {errors}")
 
-    return schema.load(params)
+    return schema.load(params)  # type: ignore
 
 
 def from_csv(filename="soil.csv"):
@@ -90,14 +86,13 @@ def from_csv(filename="soil.csv"):
     return create(params)
 
 
-def from_location(location):
+def from_location(location: Tuple[float, float]):
     """Construct Soil object from HWSD data for given location
 
     Args:
         location: location to look for in HWSD
     Returns:
         Soil object
-
     """
 
     result = get_soil_data(location)

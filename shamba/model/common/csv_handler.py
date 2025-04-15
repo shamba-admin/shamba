@@ -163,8 +163,6 @@ def read_mixed_csv(fileIn, cols=None, types=None):
         if not os.path.isfile(fileIn):
             if os.path.isfile(os.path.join(configuration.INPUT_DIR, fileIn)):
                 fileIn = os.path.join(configuration.INPUT_DIR, fileIn)
-            elif os.path.isfile(os.path.join(configuration.DEF_DIR, fileIn)):
-                fileIn = os.path.join(configuration.DEF_DIR, fileIn)
             else:
                 # not in either folder, and not in full path
                 raise IOError

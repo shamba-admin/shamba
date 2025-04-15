@@ -1,8 +1,3 @@
-#!/usr/bin/python
-
-"""Module containing litter model."""
-
-
 import logging as log
 
 import numpy as np
@@ -11,21 +6,19 @@ from marshmallow import Schema, fields, post_load
 from .common import csv_handler
 from .common_schema import OutputSchema as LitterDataOutputSchema
 
-"""
-Litter model object. Read litter params
-and calculate residues and inputs to the soil.
-
-Instance variables
-------------------
-carbon      litter carbon content
-nitrogen    litter nitrogen content
-output      output to soil,fire
-                (dict with keys 'DMon','DMoff,'carbon','nitrogen')
-
-"""
-
 
 class LitterModelData:
+    """
+    Litter model object. Read litter params
+    and calculate residues and inputs to the soil.
+
+    Instance variables
+    ------------------
+    carbon      litter carbon content
+    nitrogen    litter nitrogen content
+    output      output to soil,fire (dict with keys 'DMon','DMoff,'carbon','nitrogen')
+    """
+
     def __init__(self, carbon, nitrogen, output):
         self.carbon = carbon
         self.nitrogen = nitrogen
@@ -45,19 +38,17 @@ class LitterDataSchema(Schema):
 def create(
     litter_params, litterFreq, litterQty, no_of_years, litterVector=None
 ) -> LitterModelData:
-    """Initialise litter object.
+    """Create LitterModelData object.
 
     Args:
-        litter_params: dict with litter params
-                        (keys='carbon','nitrogen')
-        litterFreq: frequency of litter application
-        litterQty: Quantity (in t C ha^-1) of litter when applied.
-        litterVector: vector with custom litter additions (t DM / ha)
+        litter_params:  dict with litter params(keys='carbon','nitrogen')
+        litterFreq:     frequency of litter application
+        litterQty:      Quantity (in t C ha^-1) of litter when applied.
+        litterVector:   vector with custom litter additions (t DM / ha)
                         (e.g. for when litter isn't at regular freq.)
                         -> overrides any quantity and freq. info
-    Raises:
-        KeyError: if litter_params doesn't have the right keys
-
+    Returns:
+        LitterModelData: object containing litter parameters
     """
 
     carbon = litter_params["carbon"]
@@ -87,18 +78,8 @@ def create(
 def from_csv(
     litterFreq, litterQty, no_of_years, filename="litter.csv", row=0, litterVector=None
 ):
-    """Read litter params from a csv file.
-
-    Args:
-        filename
-        row: which row to read from file
-        other same as __init__
-    Returns:
-        Litter object
-    Raises:
-        IndexError: if row > number of rows in csv,
-                    or csv doesn't have 2 columns
-
+    """
+    Same as create, but with litter parameters from a csv file.
     """
 
     data = csv_handler.read_csv(filename)
@@ -120,11 +101,8 @@ def from_csv(
 
 
 def from_defaults(litterFreq, litterQty, no_of_years, litterVector=None):
-    """Construct litter object from default parameters.
-
-    Args:
-        same as __init__
-
+    """
+    Same as create, but with default litter parameters.
     """
 
     # Carbon and nitrogen content of litter input defaults
@@ -158,12 +136,14 @@ def get_inputs(carbon, nitrogen, litterFreq, litterQty, litterVector, no_of_year
     soil from additional litter.
 
     Args:
-        litterFreq: frequency of litter addition
-        litterQty: amount of dry matter added to field
-                    when litter added in t DM ha^-1
+        carbon: litter carbon content
+        nitrogen: litter nitrogen content
+        litterFreq: frequency of litter application
+        litterQty: amount of dry matter added to field when litter added in t DM ha^-1
+        litterVector: vector with custom litter additions (t DM / ha)
+        no_of_years: number of years in the project
     Returns:
-        output: dict with soil,fire inputs due to litter
-                (keys='carbon','nitrogen','DMon','DMoff')
+        output: dict with soil,fire inputs due to litter (keys='carbon','nitrogen','DMon','DMoff')
 
     """
 

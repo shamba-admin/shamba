@@ -67,28 +67,28 @@ for _i in range(len(SPP_LIST)):
     }
 
 
-"""
-Crop object to hold crop params. Can be initialised from species name,
-species index, csv file, or manually (callling __init__ with params
-in a dict)
-
-Instance variables
-------------------
-species         crop species
-slope           crop IPCC slope
-intercept       crop IPCC y-intercept
-nitrogenBelow   crop below-ground nitrogen content as a fraction
-nitrogenAbove   crop above-ground nitrogen content as a fraction
-carbonBelow     crop below-ground carbon content as a fraction
-carbonAbove     crop above-ground carbon content as a fraction
-rootToShoot     crop root-to-shoot ratio
-
-"""
-
 ROOT_IN_TOP_30 = 0.7
 
 
 class CropParamsData:
+    """
+    Crop object to hold crop params. Can be initialised from species name,
+    species index, csv file, or manually (callling __init__ with params
+    in a dict)
+
+    Instance variables
+    ------------------
+    species         crop species
+    slope           crop IPCC slope
+    intercept       crop IPCC y-intercept
+    nitrogenBelow   crop below-ground nitrogen content as a fraction
+    nitrogenAbove   crop above-ground nitrogen content as a fraction
+    carbonBelow     crop below-ground carbon content as a fraction
+    carbonAbove     crop above-ground carbon content as a fraction
+    rootToShoot     crop root-to-shoot ratio
+
+    """
+
     def __init__(
         self,
         species,
@@ -166,8 +166,6 @@ def from_species_index(index) -> CropParamsData:
                     (1-indexed, so off by one from index in SPP_LIST)
     Return:
         Crop object
-    Raises:
-        IndexError: if speciesNum isn't a valid index in species list
 
     """
     index = int(index)
@@ -207,10 +205,6 @@ def from_csv(speciesName, filename, row=0) -> CropParamsData:
         row: row in the csv to be read (0-indexed)
     Returns:
         Crop object
-    Raises:
-        IndexError: if row > number of rows in csv,
-                    or csv doesn't have 7 columns
-
     """
 
     data = csv_handler.read_csv(filename, cols=(2, 3, 4, 5, 6, 7, 8))

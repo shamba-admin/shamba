@@ -79,9 +79,6 @@ def from_location(location) -> ClimateData:
         location
     Returns:
         Climate object
-    Raises:
-        io.FileOpenError if raster file(s) can't be opened/read
-
     """
     # Location stuff
     latitude = location[0]
