@@ -238,7 +238,7 @@ def create(tree_params, growth_params, allom="chave dry") -> TreeGrowth:
     if errors != {}:
         print(f"Errors in tree growth: {errors}")
 
-    return schema.load(params) # type: ignore
+    return schema.load(params)  # type: ignore
 
 
 def from_csv1(
@@ -703,7 +703,10 @@ def create_tree_growths(csv_input_data, tree_params, allometric_key, tree_count)
         for i in range(tree_count)
     ]
 
-def fit(age: np.ndarray, biomass: np.ndarray) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, float]]:
+
+def fit(
+    age: np.ndarray, biomass: np.ndarray
+) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, float]]:
     """
     Fit tree growth data using four fitting functions.
 
@@ -721,27 +724,30 @@ def fit(age: np.ndarray, biomass: np.ndarray) -> Tuple[Dict[str, np.ndarray], Di
         RuntimeError: if curve_fit can't fit the data to a curve
     """
     curve_configs = {
-        'exp': {'init': [20], 'num_params': 1},
-        'hyp': {'init': [200, 0.1], 'num_params': 2},
-        'lin': {'init': [1], 'num_params': 1},
-        'log': {'init': [100, 0, 0], 'num_params': 3}
+        "exp": {"init": [20], "num_params": 1},
+        "hyp": {"init": [200, 0.1], "num_params": 2},
+        "lin": {"init": [1], "num_params": 1},
+        "log": {"init": [100, 0, 0], "num_params": 3},
     }
 
     data, params, mse = {}, {}, {}
 
     for curve, config in curve_configs.items():
         try:
-            fit_params = optimize.curve_fit(fitting_functions[curve], age, biomass, config['init'])
+            fit_params = optimize.curve_fit(
+                fitting_functions[curve], age, biomass, config["init"]
+            )
             params[curve] = fit_params[0]
             data[curve] = fitting_functions[curve](age, *params[curve])
             mse[curve] = mse_fn(biomass, data[curve])
         except RuntimeError:
             log.warning(f"Could not fit data to {curve}")
-            params[curve] = np.array([np.nan] * config['num_params'])
+            params[curve] = np.array([np.nan] * config["num_params"])
             data[curve] = np.array([np.nan] * len(age))
             mse[curve] = np.inf
 
     return data, params, mse
+
 
 def mse_fn(y_mean: np.ndarray, y_real: np.ndarray) -> float:
     """Calculate mean squared error."""

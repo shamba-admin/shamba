@@ -242,18 +242,8 @@ def get_inputs(
     #   -> woody_biomass and output get converted at end before returning
 
     # First get params from bpFile and ppFile
-    print("new tree cohort running...")
-    print(initial_biomass, year_planted, initial_stand_dens)
-
-    yp = year_planted
-    print("yp,  then initialSD")
-    print(yp)
-    print(initial_stand_dens)
-
     standard_density = np.zeros(no_of_years + 1)
-    standard_density[yp] = initial_stand_dens
-    print("standard_density:")
-    print(standard_density)
+    standard_density[year_planted] = initial_stand_dens
 
     inputParams = {
         "live": np.array((no_of_years + 1) * [turnover]),
@@ -280,10 +270,12 @@ def get_inputs(
     biomGrowth = np.zeros((no_of_years + 1, 5))
 
     # set woody_biomass[0] to initial (allocated appropriately)
-    pools[yp] = initial_biomass * alloc
-    woody_biomass[yp] = pools[yp] * standard_density[yp]
+    pools[year_planted] = initial_biomass * alloc
+    woody_biomass[year_planted] = pools[year_planted] * standard_density[year_planted]
     for s in inputs:
-        flux[s][yp] = woody_biomass[yp] * inputParams[s][yp]
+        flux[s][year_planted] = (
+            woody_biomass[year_planted] * inputParams[s][year_planted]
+        )
 
     in_ = np.zeros(no_of_years + 1)
     acc = np.zeros(no_of_years + 1)

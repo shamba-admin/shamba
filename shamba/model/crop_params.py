@@ -155,7 +155,7 @@ def from_species_name(species) -> CropParamsData:
     if errors != {}:
         print(f"Errors in crop params: {errors}")
 
-    return schema.load(params) # type: ignore
+    return schema.load(params)  # type: ignore
 
 
 def from_species_index(index) -> CropParamsData:
@@ -194,7 +194,7 @@ def from_species_index(index) -> CropParamsData:
             + "TO SPECIES NUMBER %d" % index
         )
 
-    return schema.load(params) # type: ignore
+    return schema.load(params)  # type: ignore
 
 
 def from_csv(speciesName, filename, row=0) -> CropParamsData:
@@ -231,7 +231,7 @@ def from_csv(speciesName, filename, row=0) -> CropParamsData:
 
     print(f"Errors in crop params: {errors}")
 
-    return schema.load(params) # type: ignore
+    return schema.load(params)  # type: ignore
 
 
 def save(crop_params, file="crop_params.csv"):

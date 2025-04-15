@@ -112,7 +112,7 @@ def from_location(location) -> ClimateData:
     if errors != {}:
         print(f"Errors in climate data: {str(errors)}")
 
-    return schema.load(params) # type: ignore
+    return schema.load(params)  # type: ignore
 
 
 def from_csv(
@@ -149,7 +149,7 @@ def from_csv(
                 "rain": climate_data[1],
                 "evaporation": climate_data[2],
             }
-        ) # type: ignore
+        )  # type: ignore
     except ValueError:
         log.exception("INCORRECT VALUE(S) IN ORDER ARGUMENT")
         sys.exit(1)
