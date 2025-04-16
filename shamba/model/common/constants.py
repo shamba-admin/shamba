@@ -76,3 +76,8 @@ DEFAULT_ALLOMORPHY = "chave dry"
 DEFAULT_TREE_STANDARD_DENSITY = 100
 DEFAULT_YEAR = datetime.now().year
 DEFAULT_NO_OF_YEARS = 10
+
+# =============================================================================
+#  Model configuration
+# =============================================================================
+DEFAULT_USE_API = True

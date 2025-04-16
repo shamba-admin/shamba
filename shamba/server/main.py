@@ -20,5 +20,7 @@ class SoilEmissions(BaseModel):
 
 
 @app.post("/dry-run", response_model=List[SoilEmissions])
-def dry_run(data=Body(..., embed=True), name: str = Body(..., embed=True)):
-    return main.run(project_name=name, data=data)
+def dry_run(
+    data=Body(..., embed=True), name: str = Body(..., embed=True), use_api: bool = False
+):
+    return main.run(project_name=name, data=data, use_api=use_api)

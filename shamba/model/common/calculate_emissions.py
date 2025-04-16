@@ -600,6 +600,7 @@ def handle_intervention(
     intervention_input: Dict[str, Union[float, int]],
     allometry: str = CONSTANTS.DEFAULT_ALLOMORPHY,
     no_of_trees: int = CONSTANTS.DEFAULT_NO_OF_TREES,
+    use_api: bool = CONSTANTS.DEFAULT_USE_API,
 ):
     no_of_years = (
         get_int(CONSTANTS.NO_OF_YEARS_KEY, intervention_input)
@@ -610,12 +611,12 @@ def handle_intervention(
     # LOCATION INFORMATION
     # ----------
     location = get_location(intervention_input)
-    climate = Climate.from_location(location)
+    climate = Climate.from_location(location, use_api=use_api)
 
     # ----------
     # SOIL EQUILIBRIUM SOLVE
     # ----------
-    soil = SoilParams.from_location(location)
+    soil = SoilParams.from_location(location, use_api=use_api)
     inverse_roth = InverseRothC.create(soil, climate)
 
     # ----------

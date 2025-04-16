@@ -22,6 +22,11 @@ def get_arguments_interactively():
     project_name = input("Enter project name (or press Enter to skip): ").strip()
     arguments["project-name"] = project_name if project_name else f"project_{timestamp}"
 
+    # Prompt for use-api
+    # Default to False if not provided
+    use_api = input("Use API (y/n)? ").strip().lower()
+    arguments["use-api"] = use_api.startswith("y")
+
     # Display allometric options
     allometric_keys = list(TreeGrowth.allometric.keys())
     print("\nSelect Allometric Key:")

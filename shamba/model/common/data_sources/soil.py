@@ -4,6 +4,7 @@ from typing import Tuple, List, Optional, NamedTuple, Any, Dict
 import logging as log
 from toolz import compose
 import requests
+import numpy as np
 import socket
 from enum import Enum
 from copy import deepcopy
@@ -59,7 +60,7 @@ def get_identifier(location: Tuple[float, float]) -> int:
     return get_raster_value(ds, x, y)
 
 
-def read_soil_table(filename: str) -> List[Tuple]:
+def read_soil_table(filename: str) -> np.ndarray:
     """Read the soil data from CSV file."""
     return csv_handler.read_mixed_csv(
         filename,
@@ -82,7 +83,7 @@ def read_soil_table(filename: str) -> List[Tuple]:
     )
 
 
-def filter_rows_by_mu(soil_table: List[Tuple], mu: int) -> List[Tuple]:
+def filter_rows_by_mu(soil_table: np.ndarray, mu: int) -> List[Tuple]:
     """Filter rows from soil table by MU_GLOBAL value."""
     return [row for row in soil_table if row[1] == mu]
 
@@ -106,15 +107,19 @@ def get_data_from_identifier(mu: int) -> Optional[Tuple[float, float]]:
     return calculate_weighted_sum(mu_rows)
 
 
-def get_soil_data(localtion: Tuple[float, float]) -> Optional[Tuple[float, float]]:
+def get_soil_data(
+    localtion: Tuple[float, float], use_api: bool
+) -> Optional[Tuple[float, float]]:
     """Get soil data from soilgrids api.
     If data is not available, get data from local csv file.
     """
-    # api_response = get_properties_from_soilgrids_api(
-    #     location=Point(localtion[1], localtion[0])
-    # )
-
-    api_response = None
+    api_response: Optional[Dict[str, Any]] = (
+        None
+        if not use_api
+        else get_properties_from_soilgrids_api(
+            location=Point(localtion[1], localtion[0])
+        )
+    )
 
     if api_response is None:
         return compose(get_data_from_identifier, get_identifier)(localtion)
@@ -123,7 +128,9 @@ def get_soil_data(localtion: Tuple[float, float]) -> Optional[Tuple[float, float
         get_soc_and_clay,
         process_data,
         convert_units_in_api_response,
-    )(api_response)
+    )(
+        api_response
+    )  # type: ignore
 
 
 class SoilProperty(Enum):
@@ -268,7 +275,9 @@ def get_properties_from_soilgrids_api(
     return response.json()
 
 
-def get_soc_and_clay(api_response: List[Tuple[str, float]]) -> Tuple[float, float]:
+def get_soc_and_clay(
+    api_response: List[Tuple[str, float]],
+) -> Optional[Tuple[float, float]]:
     return next((value for name, value in api_response if name == "soc"), 0.0), next(
         (value for name, value in api_response if name == "clay"), 0.0
     )

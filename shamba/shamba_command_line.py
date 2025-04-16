@@ -376,12 +376,6 @@ def main(n, arguments):
     st = int(csv_input_data["analysis_no"])
 
     # ----------
-    # location information
-    # ----------
-    loc = (float(csv_input_data["lat"]), float(csv_input_data["lon"]))
-    # climate = Climate.from_location(loc)
-
-    # ----------
     # project length
     # ----------
     # YEARS = length of tree data. ACCT = years in accounting period
@@ -391,7 +385,10 @@ def main(n, arguments):
     allometric_key = arguments["allometric-key"]
 
     intervention_emissions = handle_intervention(
-        intervention_input=csv_input_data, allometry=allometric_key, no_of_trees=N_TREES
+        intervention_input=csv_input_data,
+        allometry=allometric_key,
+        no_of_trees=N_TREES,
+        use_api=arguments["use-api"],
     )
 
     # ----------
@@ -399,7 +396,6 @@ def main(n, arguments):
     # ----------
 
     # Print some stuff?
-    print("location: ", loc)
     Climate.print_to_stdout(intervention_emissions.climate)
     SoilParams.print_to_stdout(intervention_emissions.soil)
 

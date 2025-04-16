@@ -71,7 +71,7 @@ class ClimateDataSchema(Schema):
         return ClimateData(**data)
 
 
-def from_location(location) -> ClimateData:
+def from_location(location, use_api: bool) -> ClimateData:
     """Construct Climate object using CRU-TS
     dataset for a given location.
 
@@ -84,7 +84,9 @@ def from_location(location) -> ClimateData:
     latitude = location[0]
     longitude = location[1]
 
-    climate_data = get_climate_data(latitude=latitude, longitude=longitude)
+    climate_data = get_climate_data(
+        latitude=latitude, longitude=longitude, use_api=use_api
+    )
 
     # Account for scaling factor in CRU-TS dataset
     climate_data *= 0.1

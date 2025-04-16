@@ -86,7 +86,7 @@ def from_csv(filename="soil.csv"):
     return create(params)
 
 
-def from_location(location: Tuple[float, float]):
+def from_location(location: Tuple[float, float], use_api: bool):
     """Construct Soil object from HWSD data for given location
 
     Args:
@@ -95,7 +95,7 @@ def from_location(location: Tuple[float, float]):
         Soil object
     """
 
-    result = get_soil_data(location)
+    result = get_soil_data(location, use_api)
 
     if result is None:
         raise

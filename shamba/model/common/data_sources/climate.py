@@ -41,10 +41,16 @@ def populate_climate_data(folder: str, x: int, y: int) -> np.ndarray:
     return climate_data
 
 
-def get_climate_data(longitude: float, latitude: float) -> np.ndarray:
-    # api_response = get_weather_forecast(latitude, longitude, ["temperature_2m_mean", "rain_sum", "evapotranspiration"])
-    # print("XXXXX", api_response)
-    api_response = None
+def get_climate_data(longitude: float, latitude: float, use_api: bool) -> np.ndarray:
+    api_response = (
+        get_weather_forecast(
+            latitude,
+            longitude,
+            ["temperature_2m_mean", "rain_sum", "evapotranspiration"],
+        )
+        if use_api
+        else None
+    )
 
     if api_response is None:
         # Indices for picking out climate data from rasters
@@ -54,7 +60,8 @@ def get_climate_data(longitude: float, latitude: float) -> np.ndarray:
         folder = os.path.dirname(os.path.abspath(climate_raster.__file__))
         return populate_climate_data(folder, x, y)
 
-    return api_response
+    # TODO: Fix this
+    return api_response  # type: ignore
 
 
 @return_none_on_exception(requests.RequestException, socket.gaierror)
