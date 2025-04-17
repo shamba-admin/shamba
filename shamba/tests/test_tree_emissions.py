@@ -74,7 +74,7 @@ def test_crop_model():
         tree_params=tree_params_1,
         tree_growth=growth_base,
         yearPlanted=0,
-        standDens=int(csv_input_data["base_plant_dens"]),
+        standard_density=int(csv_input_data["base_plant_dens"]),
         thin=thinning_base,
         thinFrac=thinning_fraction_left_base,
         mort=mortality_base,
