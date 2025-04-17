@@ -107,8 +107,9 @@ def from_location(location: Tuple[float, float], use_api: bool):
 
 def print_to_stdout(soil_params):
     """Print soil information to stdout."""
-    print("\nSOIL INFORMATION")
-    print("================\n")
+    print("SOIL INFORMATION")
+    print()
+    print("================")
     print("Equilibrium C -", soil_params.Ceq)
     print("C at y=0  - - -", soil_params.Cy0)
     print("IOM - - - - - -", soil_params.iom)

@@ -142,8 +142,6 @@ def test_crop_model():
         fire=fire_project,
     )
 
-    print("xxxx", tree_project_emissions.tolist())
-
     assert tree_base_emissions == pytest.approx(
         [
             0,
