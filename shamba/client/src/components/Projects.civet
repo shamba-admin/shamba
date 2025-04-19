@@ -1,24 +1,66 @@
-{ useState } from preact/hooks
+{ useState, useReducer } from preact/hooks
 { PlayIcon } from @heroicons/react/24/outline
-clsx from "clsx"
+// @ts-ignore
+clsx from clsx
 * as R from ramda
 { connect } from react-redux
 
-Datatable, { transformDataToGrid, transformDryRunResultsToGrid } from "./Datatable.civet"
-{ getDryRun } from "../actions.civet"
+Datatable, { transformDataToGrid, transformDryRunResultsToGrid } from ./Datatable.civet
+{ getDryRun, setDataTableData, setSelectedProject } from ../actions.civet
+{
+  TableNames,
+  projectClimateData,
+  projectCropIpccData,
+  projectSoilInfoData,
+  projectInputsData,
+  projectDryRunResultsData,
+  projectLens,
+  projectIdLens,
+  stateLens,
+} from ../lenses.civet
+
+emptyState :=
+  <div className="hero min-h-screen bg-base-200">
+    <div className="hero-content text-center">
+      <div className="max-w-md">
+        <h3 className="text-5xl font-bold mb-8">No Data Found
 
 mapStateToProps := (state) =>
   projects: R.view(R.lensPath(["state", "projects"]), state)
+  selectedProjectId: R.view(R.compose(stateLens, projectIdLens), state)
 
 mapDispatchToProps :=
   dryRun: getDryRun.fire
+  setDataTableData: setDataTableData.fire
+  setSelectedProject: setSelectedProject.fire
 
-Projects := ({ projects: projectsObject, dryRun, children }) => {
+Projects := ({
+  projects: projectsObject,
+  dryRun, setDataTableData,
+  selectedProjectId,
+  setSelectedProject,
+  children
+}) => {
   projects := R.values(projectsObject)
-  [selectedProject, setSelectedProject] := useState(R.head(projects) ?? undefined)
+  selectedProject := R.prop(selectedProjectId, projectsObject) ?? undefined
 
-  getResults := () => dryRun(selectedProject)
+  getResults := () => dryRun({
+    name: selectedProject.name,
+    data: R.pick([TableNames.Climate, TableNames.CropIpcc, TableNames.SoilInfo, TableNames.Inputs], selectedProject.dataTables)
+  })
   contentClassName := "tab-content py-4"
+
+  setClimateDataTables := (climateDataTablesRows) =>
+    setDataTableData({ projectId: selectedProject.id, tableName: TableNames.Climate, tableData: climateDataTablesRows })
+  
+  setCropIpccDataTables := (cropIpccDataTablesRows) =>
+    setDataTableData({ projectId: selectedProject.id, tableName: TableNames.CropIpcc, tableData: cropIpccDataTablesRows })
+  
+  setSoilInfoDataTables := (soilInfoDataTablesRows) =>
+    setDataTableData({ projectId: selectedProject.id, tableName: TableNames.SoilInfo, tableData: soilInfoDataTablesRows })
+  
+  setInputsDataTables := (inputsDataTablesRows) =>
+    setDataTableData({ projectId: selectedProject.id, tableName: TableNames.Inputs, tableData: inputsDataTablesRows })
 
   (
     <div className="min-h-screen flex flex-col p-4 bg-base-100 gap-6">
@@ -30,56 +72,59 @@ Projects := ({ projects: projectsObject, dryRun, children }) => {
           <button className="btn btn-square btn-ghost">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block h-5 w-5 stroke-current"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path> </svg>
 
-      <div className="flex flex-1 gap-4 w-full">
-        {/* Side menu */}
-        <ul className="menu bg-base-200 rounded-box w-56 border border-secondary">
-          >for project of projects
-            <li>
-              <a
-                className=clsx("cursor-pointer", {"menu-active": project.id == selectedProject.id})
-                onClick={() => setSelectedProject(project)}
-                onKeyPress={() => setSelectedProject(project)}>{project.name}
+      >if !selectedProject
+        emptyState
+      >if selectedProject
+        <div className="flex flex-1 gap-4 w-full">
+          {/* Side menu */}
+          <ul className="menu bg-base-200 rounded-box w-56 border border-secondary">
+            >for project of projects
+              <li>
+                <a
+                  className=clsx("cursor-pointer", {"menu-active": project.id == selectedProject.id})
+                  onClick={() => setSelectedProject(project)}
+                  onKeyPress={() => setSelectedProject(project)}>{project.name}
 
-        {/* Main content area */}
-        <main className="flex flex-col flex-1 gap-4 w-[80%]">
-          <div className="tabs as-two-lists tabs-box p-2 h-full">
-            <input type="radio" name="inner-tabs" className="tab" aria-label="Climate" defaultChecked />
-            <div className=contentClassName>
-              >if selectedProject
-                <div className="grid justify-items-center">
-                  <Datatable ...transformDataToGrid(selectedProject.data.climate) />
+          {/* Main content area */}
+          <main className="flex flex-col flex-1 gap-4 w-[80%]">
+            <div className="tabs as-two-lists tabs-box p-2 h-full">
+              <input type="radio" name="inner-tabs" className="tab" aria-label="Climate" defaultChecked />
+              <div className=contentClassName>
+                >if selectedProject
+                  <div className="grid justify-items-center">
+                    <Datatable ...transformDataToGrid(R.view(projectClimateData, selectedProject)) setRows=setClimateDataTables />
 
-            <input type="radio" name="inner-tabs" className="tab" aria-label="Crop IPCC" />
-            <div className=contentClassName>
-              >if selectedProject
-                <div className="grid justify-items-center">
-                  <Datatable ...transformDataToGrid(selectedProject.data.cropIpcc) />
+              <input type="radio" name="inner-tabs" className="tab" aria-label="Crop IPCC" />
+              <div className=contentClassName>
+                >if selectedProject
+                  <div className="grid justify-items-center">
+                    <Datatable ...transformDataToGrid(R.view(projectCropIpccData, selectedProject)) setRows=setCropIpccDataTables />
 
-            <input type="radio" name="inner-tabs" className="tab" aria-label="Soil Info" />
-            <div className=contentClassName>
-              >if selectedProject
-                <div className="grid justify-items-center">
-                  <Datatable ...transformDataToGrid(selectedProject.data.soilInfo) />
+              <input type="radio" name="inner-tabs" className="tab" aria-label="Soil Info" />
+              <div className=contentClassName>
+                >if selectedProject
+                  <div className="grid justify-items-center">
+                    <Datatable ...transformDataToGrid(R.view(projectSoilInfoData, selectedProject)) setRows=setSoilInfoDataTables />
 
-            <input type="radio" name="inner-tabs" className="tab" aria-label="Other Data" />
-            <div className=contentClassName>
-              >if selectedProject
-                <div className="grid justify-items-center">
-                  <Datatable ...transformDataToGrid(selectedProject.data.inputs) />
+              <input type="radio" name="inner-tabs" className="tab" aria-label="Other Data" />
+              <div className=contentClassName>
+                >if selectedProject
+                  <div className="grid justify-items-center">
+                    <Datatable ...transformDataToGrid(R.view(projectInputsData, selectedProject)) setRows=setInputsDataTables />
 
-            <!-- Dummy element to fill the remaining space -->
-            <div className="grow-7"/>
+              <!-- Dummy element to fill the remaining space -->
+              <div className="grow-7"/>
 
-            <input type="radio" name="inner-tabs" className="tab" aria-label="Results" />
-            <div className=contentClassName>
-              >if selectedProject
-                <div className="grid justify-items-center">
-                  <Datatable ...transformDryRunResultsToGrid(selectedProject.dryRunResults) />
-          
-          <button className="btn btn-primary" onClick={getResults}>
-            Run <PlayIcon className="size-6 text-blue-500" />
+              <input type="radio" name="inner-tabs" className="tab" aria-label="Results" />
+              <div className=contentClassName>
+                >if selectedProject
+                  <div className="grid justify-items-center">
+                    <Datatable ...transformDryRunResultsToGrid(R.view(projectDryRunResultsData, selectedProject)) />
+            
+            <button className="btn btn-primary" onClick={getResults}>
+              Run <PlayIcon className="size-6 text-blue-500" />
 
-          {children}
+            {children}
   )
 }
 

@@ -15,3 +15,6 @@ export gotProjects := createAction("got-projects")
 
 export getDryRun := createAction("get-dry-run")
 export gotDryRun := createAction("got-dry-run")
+
+export setDataTableData := createAction("set-data-table-data")
+export setSelectedProject := createAction("set-selected-project")

@@ -1,19 +1,33 @@
 * as R from ramda
 
-{ gotProjects, gotDryRun } from ../actions.civet
-{ projectsLens, projectDryRunLens } from ../lenses.civet
+{
+  gotProjects,
+  gotDryRun,
+  setDataTableData,
+  setSelectedProject,
+} from ../actions.civet
+{
+  projectsLens,
+  projectDryRunLens,
+  projectDataTableLens,
+  DATA_TABLES,
+  TableNames,
+  projectIdLens,
+} from ../lenses.civet
 { climateData, cropIpccData, soilInfo, inputs } from ../defaultData
 
 INITIAL_STATE := {
+  selectedProjectId: 1,
   projects: {
-    1: { name: "Example",
+    1: {
+      name: "Example",
       id: 1,
       description: "An example project",
-      data: {
-        climate: climateData,
-        cropIpcc: cropIpccData,
-        soilInfo: soilInfo,
-        inputs: inputs,
+      [DATA_TABLES]: {
+        [TableNames.Climate]: climateData,
+        [TableNames.CropIpcc]: cropIpccData,
+        [TableNames.SoilInfo]: soilInfo,
+        [TableNames.Inputs]: inputs,
       }
     }
   }
@@ -23,5 +37,9 @@ export default (state = INITIAL_STATE, action) =>
   switch action.type
     when gotProjects.type then R.set(projectsLens, R.prepend(action.payload))(state)
     when gotDryRun.type then R.set(projectDryRunLens(action.payload.projectId), action.payload.dryRunResults)(state)
+    when setDataTableData.type
+      then R.over(projectDataTableLens(action.payload.projectId), R.set(R.lensProp(action.payload.tableName), action.payload.tableData))(state)
+    when setSelectedProject.type
+      then R.set(projectIdLens, action.payload)(state)
     else
       state

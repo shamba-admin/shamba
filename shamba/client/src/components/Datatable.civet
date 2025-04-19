@@ -1,4 +1,4 @@
-{ DataGrid } from react-data-grid
+{ DataGrid, textEditor } from react-data-grid
 * as R from ramda
 
 indexedMap := R.addIndex(R.map)
@@ -14,7 +14,7 @@ export convertDryRunToColumnFirstData := (data = []) =>
   result
 
 export transformDataToGrid := (data) =>
-  columns := R.compose(R.map((key) => ({ key, name: key})), R.keys)(R.head(data) ?? {})
+  columns := R.compose(R.map((key) => ({ key, name: key, renderEditCell: textEditor, resizable: true })), R.keys)(R.head(data) ?? {})
   rows := R.map((row) => R.fromPairs(R.map(({ key }) => [key, row[key]], columns)), data)
 
   { columns, rows }
@@ -22,8 +22,12 @@ export transformDataToGrid := (data) =>
 export transformDryRunResultsToGrid := R.compose(transformDataToGrid, convertDryRunToColumnFirstData)
 
 
-Datatable := ({ rows, columns }) =>
+Datatable := ({ rows, columns, setRows = R.identity }) =>
   <div className="main-area-content overflow-x-auto">
-    <DataGrid columns={columns} rows={rows} />
+    <DataGrid
+      columns={columns}
+      rows={rows}
+      onRowsChange={setRows}
+    />
 
 export default Datatable
