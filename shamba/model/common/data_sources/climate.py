@@ -156,7 +156,5 @@ def get_weather_forecast(
         "timeformat": "unixtime",
     }
 
-    print("IIII", params)
-
     response = requests.get(API_URL, params=params)
     return response.json()
