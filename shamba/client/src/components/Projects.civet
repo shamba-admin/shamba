@@ -6,6 +6,7 @@ clsx from clsx
 { connect } from react-redux
 
 Datatable, { transformDataToGrid, transformDryRunResultsToGrid } from ./Datatable.civet
+CsvUploader from ./CsvUploader.civet
 { getDryRun, setDataTableData, setSelectedProject } from ../actions.civet
 {
   TableNames,
@@ -91,26 +92,34 @@ Projects := ({
               <input type="radio" name="inner-tabs" className="tab" aria-label="Climate" defaultChecked />
               <div className=contentClassName>
                 >if selectedProject
-                  <div className="grid justify-items-center">
-                    <Datatable ...transformDataToGrid(R.view(projectClimateData, selectedProject)) setRows=setClimateDataTables />
+                  <div className="grid gap-4">
+                    <CsvUploader setParsedData=setClimateDataTables />
+                    <div className="justify-items-center">
+                      <Datatable ...transformDataToGrid(R.view(projectClimateData, selectedProject)) setRows=setClimateDataTables />
 
               <input type="radio" name="inner-tabs" className="tab" aria-label="Crop IPCC" />
               <div className=contentClassName>
                 >if selectedProject
-                  <div className="grid justify-items-center">
-                    <Datatable ...transformDataToGrid(R.view(projectCropIpccData, selectedProject)) setRows=setCropIpccDataTables />
+                  <div className="grid gap-4">
+                    <CsvUploader setParsedData=setCropIpccDataTables />
+                    <div className="justify-items-center">
+                      <Datatable ...transformDataToGrid(R.view(projectCropIpccData, selectedProject)) setRows=setCropIpccDataTables />
 
               <input type="radio" name="inner-tabs" className="tab" aria-label="Soil Info" />
               <div className=contentClassName>
                 >if selectedProject
-                  <div className="grid justify-items-center">
-                    <Datatable ...transformDataToGrid(R.view(projectSoilInfoData, selectedProject)) setRows=setSoilInfoDataTables />
+                  <div className="grid gap-4">
+                    <CsvUploader setParsedData=setSoilInfoDataTables />
+                    <div className="justify-items-center">
+                      <Datatable ...transformDataToGrid(R.view(projectSoilInfoData, selectedProject)) setRows=setSoilInfoDataTables />
 
               <input type="radio" name="inner-tabs" className="tab" aria-label="Other Data" />
               <div className=contentClassName>
                 >if selectedProject
-                  <div className="grid justify-items-center">
-                    <Datatable ...transformDataToGrid(R.view(projectInputsData, selectedProject)) setRows=setInputsDataTables />
+                  <div className="grid gap-4">
+                    <CsvUploader setParsedData=setInputsDataTables />
+                    <div className="justify-items-center">
+                      <Datatable ...transformDataToGrid(R.view(projectInputsData, selectedProject)) setRows=setInputsDataTables />
 
               <!-- Dummy element to fill the remaining space -->
               <div className="grow-7"/>
@@ -118,8 +127,9 @@ Projects := ({
               <input type="radio" name="inner-tabs" className="tab" aria-label="Results" />
               <div className=contentClassName>
                 >if selectedProject
-                  <div className="grid justify-items-center">
-                    <Datatable ...transformDryRunResultsToGrid(R.view(projectDryRunResultsData, selectedProject)) />
+                  <div className="grid gap-4">
+                    <div className="justify-items-center">
+                      <Datatable ...transformDryRunResultsToGrid(R.view(projectDryRunResultsData, selectedProject)) />
             
             <button className="btn btn-primary" onClick={getResults}>
               Run <PlayIcon className="size-6 text-blue-500" />
