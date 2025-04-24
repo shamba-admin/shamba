@@ -10,6 +10,9 @@ export createAction = (name) =>
     payload,
   })
 
+export addProject := createAction("add-project")
+export removeProject := createAction("remove-project")
+
 export getProjects := createAction("get-projects")
 export gotProjects := createAction("got-projects")
 

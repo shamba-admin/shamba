@@ -1,10 +1,13 @@
 * as R from ramda
+{ nanoid } from nanoid
 
 {
   gotProjects,
   gotDryRun,
   setDataTableData,
   setSelectedProject,
+  addProject,
+  removeProject,
 } from ../actions.civet
 {
   projectsLens,
@@ -16,22 +19,36 @@
 } from ../lenses.civet
 { climateData, cropIpccData, soilInfo, inputs } from ../defaultData
 
+DEFAULT_PROJECT_DATA := {
+  [DATA_TABLES]: {
+    [TableNames.Climate]: climateData,
+    [TableNames.CropIpcc]: cropIpccData,
+    [TableNames.SoilInfo]: soilInfo,
+    [TableNames.Inputs]: inputs,
+  }
+}
+
+INITIAL_PROJECT_ID := nanoid()
+
 INITIAL_STATE := {
-  selectedProjectId: 1,
+  selectedProjectId: INITIAL_PROJECT_ID,
   projects: {
-    1: {
-      name: "Example",
-      id: 1,
+    [INITIAL_PROJECT_ID]: {
+      name: "Project 1",
+      id: INITIAL_PROJECT_ID,
       description: "An example project",
-      [DATA_TABLES]: {
-        [TableNames.Climate]: climateData,
-        [TableNames.CropIpcc]: cropIpccData,
-        [TableNames.SoilInfo]: soilInfo,
-        [TableNames.Inputs]: inputs,
-      }
+      ...DEFAULT_PROJECT_DATA
     }
   }
 }
+
+getNewProject := (id, projectsCount) =>
+  {
+    name: `Project ${projectsCount + 1}`,
+    id: id,
+    description: "An example project",
+    ...DEFAULT_PROJECT_DATA
+  }
 
 export default (state = INITIAL_STATE, action) =>
   switch action.type
@@ -41,5 +58,19 @@ export default (state = INITIAL_STATE, action) =>
       then R.over(projectDataTableLens(action.payload.projectId), R.set(R.lensProp(action.payload.tableName), action.payload.tableData))(state)
     when setSelectedProject.type
       then R.set(projectIdLens, action.payload)(state)
+    when addProject.type
+      then
+        id := nanoid()
+        projectsCount := R.length(R.keys(R.view(projectsLens, state)))
+        R.over(projectsLens, R.assoc(id, getNewProject(id, projectsCount)))(state)
+    when removeProject.type
+      then
+        availableProjects := R.values(R.view(projectsLens, state))
+        if R.length(availableProjects) > 1
+          stateWithOutProject := R.over(projectsLens, R.dissoc(action.payload))(state)
+          availableProjectIds := R.keys(R.view(projectsLens, stateWithOutProject))
+          R.set(projectIdLens, R.head(availableProjectIds))(stateWithOutProject)
+        else
+          state
     else
       state
