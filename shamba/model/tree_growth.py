@@ -329,11 +329,6 @@ def from_csv2(
         "diam": diam,
     }
 
-    params = {
-        "age": age,
-        "diam": diam,
-    }
-
     growth = create(tree_params, params, allometric_key)
 
     return growth
@@ -380,11 +375,6 @@ def from_csv3(
     ]
     diam = {key: csv_input_data[key] for key in diam_input}
     diam = np.array(list(diam.values())).astype(float)
-
-    params = {
-        "age": age,
-        "diam": diam,
-    }
 
     params = {
         "age": age,

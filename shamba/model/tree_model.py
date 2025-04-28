@@ -7,13 +7,14 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
-from marshmallow import Schema, fields, post_load
+from marshmallow import Schema, fields, post_load, ValidationError
 
 from . import configuration
 from .common import csv_handler
 from .common_schema import OutputSchema as ClimateDataOutputSchema
 from .tree_growth import TreeGrowthSchema, derivative_functions
 from .tree_params import ROOT_IN_TOP_30, TreeParamsSchema
+from .common.validations import validate_between_0_and_1
 
 
 class MassBalanceData(Schema):
@@ -33,10 +34,10 @@ class TreeModel:
     tree_growth     TreeGrowth object governing growth of trees
     alloc           vector with allocation for each year
     turnover        vector with turnover for each year
-    thin_frac       vector with thinning fraction left for each year
-    mort_frac       vector with mortality fraction left for each year
-    thin            vector with thinning regime for each year
-    mort            vector with mortality regime for each year
+    thinning_fraction       vector with thinning fraction left for each year
+    mortality_fraction       vector with mortality fraction left for each year
+    thinning            vector with thinning regime for each year
+    mortality            vector with mortality regime for each year
     output          output to soil,fire in t C ha^-1
                     (dict with keys 'carbon,'nitrogen','DMon','DMoff')
     woody_biomass   vector with yearly woody biomass pools
@@ -49,10 +50,10 @@ class TreeModel:
         tree_growth,
         alloc,
         turnover,
-        thin_frac,
-        mort_frac,
-        thin,
-        mort,
+        thinning_fraction,
+        mortality_fraction,
+        thinning,
+        mortality,
         output,
         woody_biomass,
         balance,
@@ -61,10 +62,10 @@ class TreeModel:
         self.tree_growth = tree_growth
         self.alloc = alloc
         self.turnover = turnover
-        self.thin_frac = thin_frac
-        self.mort_frac = mort_frac
-        self.thin = thin
-        self.mort = mort
+        self.thinning_fraction = thinning_fraction
+        self.mortality_fraction = mortality_fraction
+        self.thinning = thinning
+        self.mortality = mortality
         self.output = output
         self.woody_biomass = np.array(woody_biomass)
         self.balance = balance
@@ -75,10 +76,26 @@ class TreeModelSchema(Schema):
     tree_growth = fields.Nested(TreeGrowthSchema, required=True)
     alloc = fields.List(fields.Float, required=True)
     turnover = fields.List(fields.Float, required=True)
-    thin_frac = fields.List(fields.Float, required=True)
-    mort_frac = fields.List(fields.Float, required=True)
-    thin = fields.List(fields.Float, required=True)
-    mort = fields.List(fields.Float, required=True)
+    thinning_fraction = fields.List(
+        fields.Float, 
+        required=True, 
+        validate=lambda value: ValidationError(validate_between_0_and_1(value)) if validate_between_0_and_1(value) else None
+    )
+    mortality_fraction = fields.List(
+        fields.Float, 
+        required=True, 
+        validate=lambda value: ValidationError(validate_between_0_and_1(value)) if validate_between_0_and_1(value) else None
+    )
+    thinning = fields.List(
+        fields.Float, 
+        required=True, 
+        validate=lambda value: ValidationError(validate_between_0_and_1(value)) if validate_between_0_and_1(value) else None
+    )
+    mortality = fields.List(
+        fields.Float, 
+        required=True, 
+        validate=lambda value: ValidationError(validate_between_0_and_1(value)) if validate_between_0_and_1(value) else None
+    )
     output = fields.Nested(ClimateDataOutputSchema, required=True)
     woody_biomass = fields.List(fields.List(fields.Float), required=True)
     balance = fields.Nested(MassBalanceData, required=True)
@@ -93,31 +110,31 @@ def create(
     tree_growth,
     pool_params,
     no_of_years,
-    yearPlanted=0,
-    initialStandDens=0,  # Should initialStandDens be 200?
-    thin=None,
-    mort=None,
+    year_planted=0,
+    initial_stand_density=0,  # Should initial_stand_density be 200?
+    thinning=None,
+    mortality=None,
 ) -> TreeModel:
     """Intialise TreeModel object (run biomass model, essentially).
 
     Args:
         tree_params         TreeParams object (holds tree params)
         tree_growth         TreeGrowth object
-        pool_params         dict with alloc, turnover, thinFrac, and mortFrac
-        yearPlanted         year (after start of project) tree is planted
-        initialStandDens    initial stand density
-        thin                vector with thinning regime for each year
-        mort                vector with mortality regime for each year
+        pool_params         dict with alloc, turnover, thinning_fraction, and mortality_fraction
+        year_planted         year (after start of project) tree is planted
+        initial_stand_density    initial stand density
+        thinning                vector with thinning regime for each year
+        mortality                vector with mortality regime for each year
 
     Returns:
         tree_model: TreeModel object
     """
     alloc = pool_params["alloc"]
     turnover = pool_params["turnover"]
-    thin_frac = pool_params["thinFrac"]
-    mort_frac = pool_params["mortFrac"]
-    thin = np.zeros(no_of_years + 1) if thin is None else thin
-    mort = np.zeros(no_of_years + 1) if mort is None else mort
+    thinning_fraction = pool_params["thinning_fraction"]
+    mortality_fraction = pool_params["mortality_fraction"]
+    thinning = np.zeros(no_of_years + 1) if thinning is None else thinning
+    mortality = np.zeros(no_of_years + 1) if mortality is None else mortality
     initial_biomass = tree_growth.fit_data[0]
 
     output, woody_biomass, balance = get_inputs(
@@ -125,13 +142,13 @@ def create(
         tree_growth=tree_growth,
         alloc=alloc,
         turnover=turnover,
-        thin_frac=thin_frac,
-        mort_frac=mort_frac,
+        thinning_fraction=thinning_fraction,
+        mortality_fraction=mortality_fraction,
         initial_biomass=initial_biomass,
-        year_planted=yearPlanted,
-        initial_stand_dens=initialStandDens,
-        thin=thin,
-        mort=mort,
+        year_planted=year_planted,
+        initial_stand_dens=initial_stand_density,
+        thinning=thinning,
+        mortality=mortality,
         no_of_years=no_of_years,
     )
 
@@ -140,10 +157,10 @@ def create(
         "tree_growth": vars(tree_growth),
         "alloc": alloc,
         "turnover": turnover,
-        "thin_frac": thin_frac,
-        "mort_frac": mort_frac,
-        "thin": thin,
-        "mort": mort,
+        "thinning_fraction": thinning_fraction,
+        "mortality_fraction": mortality_fraction,
+        "thinning": thinning,
+        "mortality": mortality,
         "output": output,
         "woody_biomass": woody_biomass,
         "balance": balance,
@@ -162,61 +179,61 @@ def from_defaults(
     tree_params,
     tree_growth,
     no_of_years,
-    yearPlanted=0,
-    standard_density=100,  # Should standard_density be 200?
-    thin=None,
-    thinFrac=None,
-    mort=None,
-    mortFrac=None,
+    year_planted=0,
+    stand_density=100,  # Should stand_density be 200?
+    thinning=None,
+    thinning_fraction=None,
+    mortality=None,
+    mortality_fraction=None,
 ):
     """Use defaults for pool params.
-    Can override defaults for thinFrac and mortFrac by providing arguments.
+    Can override defaults for thinning_fraction and mortality_fraction by providing arguments.
 
     """
 
     data = csv_handler.read_csv("biomass_pool_params.csv", cols=(3, 4, 5, 6))
     turnover = data[:, 0]
     alloc = data[:, 1]
-    thinFrac_temp = data[:, 2]
-    mortFrac_temp = data[:, 3]
+    temp_thinning_fraction = data[:, 2]
+    temp_mortality_fraction = data[:, 3]
 
     # Take into account croot alloc - rs * stem alloc
     alloc[3] = alloc[2] * tree_params.root_to_shoot
 
     # thinning and mortality
-    if thin is None:
-        thin = np.zeros(no_of_years + 1)
-    if thinFrac is None:
-        thinFrac = thinFrac_temp
-    if mort is None:
-        mort = np.zeros(no_of_years + 1)
-    if mortFrac is None:
-        mortFrac = mortFrac_temp
+    if thinning is None:
+        thinning = np.zeros(no_of_years + 1)
+    if thinning_fraction is None:
+        thinning_fraction = temp_thinning_fraction
+    if mortality is None:
+        mortality = np.zeros(no_of_years + 1)
+    if mortality_fraction is None:
+        mortality_fraction = temp_mortality_fraction
 
     params = {
         "alloc": alloc,
         "turnover": turnover,
-        "thinFrac": thinFrac,
-        "mortFrac": mortFrac,
+        "thinning_fraction": thinning_fraction,
+        "mortality_fraction": mortality_fraction,
     }
     return create(
         tree_params=tree_params,
         tree_growth=tree_growth,
         pool_params=params,
         no_of_years=no_of_years,
-        yearPlanted=yearPlanted,
-        initialStandDens=standard_density,
-        thin=thin,
-        mort=mort,
+        year_planted=year_planted,
+        initial_stand_density=stand_density,
+        thinning=thinning,
+        mortality=mortality,
     )
 
 
 def get_inputs(
-    thin,
-    mort,
+    thinning,
+    mortality,
     turnover,
-    thin_frac,
-    mort_frac,
+    thinning_fraction,
+    mortality_fraction,
     alloc,
     tree_growth,
     tree_params,
@@ -242,15 +259,15 @@ def get_inputs(
     #   -> woody_biomass and output get converted at end before returning
 
     # First get params from bpFile and ppFile
-    standard_density = np.zeros(no_of_years + 1)
-    standard_density[year_planted] = initial_stand_dens
+    stand_density = np.zeros(no_of_years + 1)
+    stand_density[year_planted] = initial_stand_dens
 
     inputParams = {
         "live": np.array((no_of_years + 1) * [turnover]),
-        "thin": thin,
-        "dead": mort,
+        "thinning": thinning,
+        "dead": mortality,
     }
-    retainedFrac = {"live": 1, "thin": thin_frac, "dead": mort_frac}
+    retainedFrac = {"live": 1, "thinning": thinning_fraction, "dead": mortality_fraction}
 
     # initialise stuff
     pools = np.zeros((no_of_years + 1, 5))
@@ -260,7 +277,7 @@ def get_inputs(
     flux = {}
     inputs = {}
     exports = {}
-    for s in ["live", "dead", "thin"]:
+    for s in ["live", "dead", "thinning"]:
         flux[s] = np.zeros((no_of_years + 1, 5))
         inputs[s] = np.zeros((no_of_years + 1, 5))
         exports[s] = np.zeros((no_of_years + 1, 5))
@@ -271,7 +288,7 @@ def get_inputs(
 
     # set woody_biomass[0] to initial (allocated appropriately)
     pools[year_planted] = initial_biomass * alloc
-    woody_biomass[year_planted] = pools[year_planted] * standard_density[year_planted]
+    woody_biomass[year_planted] = pools[year_planted] * stand_density[year_planted]
     for s in inputs:
         flux[s][year_planted] = (
             woody_biomass[year_planted] * inputParams[s][year_planted]
@@ -291,10 +308,10 @@ def get_inputs(
 
         # Growth for one tree
         tNPP[i] = derivative_functions[tree_growth.best](tree_growth.fit_params, agb)
-        biomGrowth[i] = tNPP[i] * alloc * standard_density[i - 1]
+        biomGrowth[i] = tNPP[i] * alloc * stand_density[i - 1]
 
         for s in inputs:
-            flux[s][i] = inputParams[s][i] * pools[i - 1] * standard_density[i - 1]
+            flux[s][i] = inputParams[s][i] * pools[i - 1] * stand_density[i - 1]
             inputs[s][i] = retainedFrac[s] * flux[s][i]
             exports[s][i] = (1 - retainedFrac[s]) * flux[s][i]
 
@@ -306,12 +323,12 @@ def get_inputs(
         woody_biomass[i] += biomGrowth[i]
         woody_biomass[i] -= sum(flux.values())[i]
 
-        standard_density[i] = standard_density[i - 1]
-        standard_density[i] *= 1 - (inputParams["dead"][i] + inputParams["thin"][i])
-        if standard_density[i] < 1:
+        stand_density[i] = stand_density[i - 1]
+        stand_density[i] *= 1 - (inputParams["dead"][i] + inputParams["thinning"][i])
+        if stand_density[i] < 1:
             print("SD [i] is less than 1, end of this tree cohort...")
             break
-        pools[i] = woody_biomass[i] / standard_density[i]
+        pools[i] = woody_biomass[i] / stand_density[i]
 
         # Balance stuff
 
@@ -470,12 +487,12 @@ def create_tree_projects(
         from_defaults(
             tree_params=tree_params[i],
             tree_growth=growths[i],
-            yearPlanted=int(csv_input_data[f"proj_plant_yr{i + 1}"]),
-            standard_density=int(csv_input_data[f"proj_plant_dens{i + 1}"]),
-            thin=thinning_project,
-            thinFrac=thinning_fraction_left_project,
-            mort=mortality_project,
-            mortFrac=mortality_fraction_left_project,
+            year_planted=int(csv_input_data[f"proj_plant_yr{i + 1}"]),
+            stand_density=int(csv_input_data[f"proj_plant_dens{i + 1}"]),
+            thinning=thinning_project,
+            thinning_fraction=thinning_fraction_left_project,
+            mortality=mortality_project,
+            mortality_fraction=mortality_fraction_left_project,
             no_of_years=no_of_years,
         )
         for i in range(tree_count)
