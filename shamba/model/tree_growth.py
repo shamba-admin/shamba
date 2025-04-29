@@ -4,7 +4,7 @@ Module containing tree growth information and allometric functions
 def ryan      allometric function based on C. Ryan biotropica paper (2010)
 """
 
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 import logging as log
 import math
 import os
@@ -552,61 +552,70 @@ def save(tree_growth, file="tree_growth.csv"):
 # (TREE MODEL), MAKE SURE TO CONVERT TO t C
 # --------------------------------------------------
 
+DIAMETER_THRESHOLD = 1e-8
+
 # Return AGB of general allometric of type diam = -c*(agb)^c
 #   -> solving for agb gives agb = exp[(ln(diam) - ln(c)) / d]
 #   -> agb = exp[a + b*ln(diam)]    since c,d are arbitrary
+def calculate_logarithmic_above_ground_biomass(
+    allometric_params: List[float],
+    diameter: float,
+    wood_density: Optional[float] = None
+) -> float:
+    """
+    Calculate above-ground biomass using a general log-type allometric equation.
 
-
-def log_allom(params, d, dens=None):
-    """General log type allometric.
+    This function applies a polynomial function to the log of the diameter,
+    then exponentiates the result. If wood density is provided, the result
+    is multiplied by the density.
 
     Args:
-        params: array-like holding fit params
-                with p[0] multiplied by highest power of ln(d)
-                e.g. p=np.array([2.601, -3.629])
-                     -> agb = exp(2.601*log(d)-3.629) (kg) is the ryan allom
-        d: diameter
-        dens: tree density (only needed for some allometrics)
+        allometric_params: List of coefficients for the allometric equation.
+            The first coefficient is multiplied by the highest power of ln(diameter).
+            E.g., [2.601, -3.629] represents the equation:
+            agb = exp(2.601 * log(diameter) - 3.629)
+        diameter: Tree diameter in consistent units (e.g., meters)
+        wood_density: Wood density in kg/m^3 (optional, used in some allometric equations)
+
     Returns:
-        agb: agb corresponding to diameter of d
-
+        float: Above-ground biomass in kg. Returns 0 for non-positive diameters.
     """
-    if math.fabs(d) < 0.00000001:
-        agb = 0
-    else:
-        logd = math.log(d)
-        agb = np.polyval(params, logd)
-        agb = math.exp(agb)  # kg C
-        if dens is not None:  # for Chave allometric (and possibly others)
-            agb *= dens
+    if diameter <= DIAMETER_THRESHOLD:
+        return 0.0
 
-    return agb
+    log_diameter = math.log(diameter)
+    log_biomass = np.polyval(allometric_params, log_diameter)
+    biomass = math.exp(log_biomass)
 
+    if wood_density is not None:
+        biomass *= wood_density
+
+    return biomass
 
 # Some specific log allometrics
 # All take dbh vectors and tree object as arguments
 def ryan(dbh, tree_params):
     """C. Ryan, biotropica (2010)."""
-    return log_allom([2.601, -3.629], dbh)
+    return calculate_logarithmic_above_ground_biomass([2.601, -3.629], dbh)
 
 
 def tumwebaze_grevillea(dbh, tree_params):
     """Tumwebaze et al. (2013) - Grevillea."""
 
-    agb = log_allom([3.06, -5.5], dbh) + log_allom([1.32, 1.06], dbh)
+    agb = calculate_logarithmic_above_ground_biomass([3.06, -5.5], dbh) + calculate_logarithmic_above_ground_biomass([1.32, 1.06], dbh)
     return agb * tree_params.carbon
 
 
 def tumwebaze_maesopsis(dbh, tree_params):
     """Tumwebaze et al. (2013) - Maesopsis."""
 
-    agb = log_allom([3.33, -7.02], dbh) + log_allom([2.38, -2.9], dbh)
+    agb = calculate_logarithmic_above_ground_biomass([3.33, -7.02], dbh) + calculate_logarithmic_above_ground_biomass([2.38, -2.9], dbh)
     return agb * tree_params.carbon
 
 
 def tumwebaze_markhamia(dbh, tree_params):
     """Tumwebaze et al. (2013) - Markhamia."""
-    agb = log_allom([2.63, -4.91], dbh) + log_allom([2.43, -3.08], dbh)
+    agb = calculate_logarithmic_above_ground_biomass([2.63, -4.91], dbh) + calculate_logarithmic_above_ground_biomass([2.43, -3.08], dbh)
     return agb * tree_params.carbon
 
 
@@ -615,7 +624,7 @@ def chave_dry(dbh, tree_params):
     with < 1500 mm/year rainfall, > 5 months dry season
 
     """
-    agb = log_allom([-0.0281, 0.207, 1.784, -0.667], dbh, dens=tree_params.dens)
+    agb = calculate_logarithmic_above_ground_biomass([-0.0281, 0.207, 1.784, -0.730], dbh, wood_density=tree_params.dens)
     return agb * tree_params.carbon
 
 
@@ -624,7 +633,7 @@ def chave_moist(dbh, tree_params):
     with 1500-3000 mm/year rainfall, 1-4 months dry season
 
     """
-    agb = log_allom([-0.0281, 0.207, 2.148, -1.499], dbh, dens=tree_params.dens)
+    agb = calculate_logarithmic_above_ground_biomass([-0.0281, 0.207, 2.148, -1.499], dbh, wood_density=tree_params.dens)
     return agb * tree_params.carbon
 
 
@@ -633,7 +642,7 @@ def chave_wet(dbh, tree_params):
     with > 3500 mm/year rainfall, no seasonality
 
     """
-    agb = log_allom([-0.0281, 0.207, 1.98, -1.239], dbh, dens=tree_params.dens)
+    agb = calculate_logarithmic_above_ground_biomass([-0.0281, 0.207, 1.98, -1.239], dbh, wood_density=tree_params.dens)
     return agb * tree_params.carbon
 
 
@@ -645,7 +654,7 @@ allometric = {
     "chave dry": chave_dry,
     "chave moist": chave_moist,
     "chave wet": chave_wet,
-    "log_allom": log_allom,
+    "calculate_logarithmic_above_ground_biomass": calculate_logarithmic_above_ground_biomass,
 }
 
 

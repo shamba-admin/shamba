@@ -282,8 +282,8 @@ def get_inputs(
         inputs[s] = np.zeros((no_of_years + 1, 5))
         exports[s] = np.zeros((no_of_years + 1, 5))
 
-    inputC = np.zeros((no_of_years + 1, 5))
-    exportC = np.zeros((no_of_years + 1, 5))
+    input_carbon = np.zeros((no_of_years + 1, 5))
+    export_carbon = np.zeros((no_of_years + 1, 5))
     biomGrowth = np.zeros((no_of_years + 1, 5))
 
     # set woody_biomass[0] to initial (allocated appropriately)
@@ -316,8 +316,8 @@ def get_inputs(
             exports[s][i] = (1 - retainedFrac[s]) * flux[s][i]
 
         # Totals (in t C / ha)
-        inputC[i] = sum(inputs.values())[i]
-        exportC[i] = sum(exports.values())[i]
+        input_carbon[i] = sum(inputs.values())[i]
+        export_carbon[i] = sum(exports.values())[i]
 
         woody_biomass[i] = woody_biomass[i - 1]
         woody_biomass[i] += biomGrowth[i]
@@ -334,7 +334,7 @@ def get_inputs(
 
         in_[i] = biomGrowth[i].sum()
         acc[i] = woody_biomass[i].sum() - woody_biomass[i - 1].sum()
-        out[i] = inputC[i].sum() + exportC[i].sum()
+        out[i] = input_carbon[i].sum() + export_carbon[i].sum()
         bal[i] = in_[i] - out[i] - acc[i]
 
     # *********************
@@ -348,7 +348,7 @@ def get_inputs(
         "bal": bal * 0.001,
     }
     woody_biomass *= 0.001  # convert to tonnes for emissions calc.
-    C = inputC[0:no_of_years]
+    C = input_carbon[0:no_of_years]
     DM = C / tree_params.carbon
     N = np.zeros((no_of_years, 5))
     for i in range(no_of_years):
