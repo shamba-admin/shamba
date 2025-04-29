@@ -1,4 +1,4 @@
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Union
 
 import csv
 import numpy as np
@@ -22,7 +22,9 @@ def read_csv(filename: str, cols: Tuple[int, ...]) -> np.ndarray:
     return np.array(data)
 
 
-def load_tree_species_data(filename: str = "tree_defaults_cl.csv") -> Dict[int, Dict]:
+def load_tree_species_data(
+    filename: str = "tree_defaults_cl.csv",
+) -> Dict[Union[int, str], Dict]:
     data = csv_handler.read_csv("tree_defaults_cl.csv", cols=(2, 3, 4, 5, 6, 7, 8, 9))
 
     nitrogen = data[:, :5]

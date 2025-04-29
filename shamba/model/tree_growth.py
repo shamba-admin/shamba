@@ -386,7 +386,7 @@ def from_csv3(
     return growth
 
 
-def plot(tree_growth, fit=True, saveName=None):
+def plot(tree_growth, fit=True, save_name=None):
     """Plot growth data and all four fits in a matplotlib figure."""
 
     fig = plt.figure()
@@ -417,8 +417,8 @@ def plot(tree_growth, fit=True, saveName=None):
     xmax = xticks[-1] + 0.5 * (xticks[-1] - xticks[-2])
     ax.set_xlim(xmin, xmax)
 
-    if saveName is not None:
-        plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
+    if save_name is not None:
+        plt.savefig(os.path.join(configuration.OUTPUT_DIR, save_name))
 
 
 def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):

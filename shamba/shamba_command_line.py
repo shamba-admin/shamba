@@ -233,8 +233,8 @@ def save_tree_projects(tree_projects, plot_name):
 
 def plot_tree_projects(tree_projects, plot_name):
     for project in tree_projects:
-        TreeModel.plot_biomass(project, saveName=plot_name + "_biomassPools.png")
-        TreeModel.plot_balance(project, saveName=plot_name + "_massBalance.png")
+        TreeModel.plot_biomass(project, save_name=plot_name + "_biomassPools.png")
+        TreeModel.plot_balance(project, save_name=plot_name + "_massBalance.png")
 
 
 def print_tree_growths(tree_growths):
@@ -620,23 +620,25 @@ def main(n, arguments):
     plt.close()
 
     ForwardRothC.plot(
-        intervention_emissions.for_roth, no_of_years=N_YEARS, legendStr="initialisation"
+        intervention_emissions.for_roth,
+        no_of_years=N_YEARS,
+        legend_string="initialisation",
     )
 
     ForwardRothC.plot(
-        intervention_emissions.roth_base, no_of_years=N_YEARS, legendStr="baseline"
+        intervention_emissions.roth_base, no_of_years=N_YEARS, legend_string="baseline"
     )
 
     ForwardRothC.plot(
         intervention_emissions.roth_project,
         no_of_years=N_YEARS,
-        legendStr="project",
-        saveName=plot_name + "_soilModel.png",
+        legend_string="project",
+        save_name=plot_name + "_soilModel.png",
     )
     plt.close()
 
-    Emit.plot(intervention_emissions.emit_base_emissions, legendStr="baseline")
-    Emit.plot(intervention_emissions.emit_project_emissions, legendStr="project")
+    Emit.plot(intervention_emissions.emit_base_emissions, legend_string="baseline")
+    Emit.plot(intervention_emissions.emit_project_emissions, legend_string="project")
 
     # TODO: what is this? How could `ax` be attached to Emission?
     # Why is it done here instead of in the plot function?

@@ -135,7 +135,7 @@ def solver(
     """
 
     # Reduce inputs due to fire
-    soilIn_crop, soilIn_tree = emit.reduceFromFire(
+    soilIn_crop, soilIn_tree = emit.reduce_from_fire(
         no_of_years=no_of_years, crop=crop, tree=tree, litter=litter, fire=fire
     )
 
@@ -246,11 +246,11 @@ def get_partitions(roth_c, inputs, no_of_years):
     return x
 
 
-def plot(forward_roth_c, legendStr, no_of_years, saveName=None):
+def plot(forward_roth_c, legend_string, no_of_years, save_name=None):
     """Plot total carbon vs year for forwardRothC run.
 
     Args:
-        legendStr: string to put in legend
+        legend_string: string to put in legend
 
     """
     fig = plt.figure()
@@ -271,11 +271,11 @@ def plot(forward_roth_c, legendStr, no_of_years, saveName=None):
         x[-1] = 0
 
     tot_soc = np.sum(forward_roth_c.SOC, axis=1)
-    ax.plot(x, tot_soc, label=legendStr)
+    ax.plot(x, tot_soc, label=legend_string)
     ax.legend(loc="best")
 
-    if saveName is not None:
-        plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
+    if save_name is not None:
+        plt.savefig(os.path.join(configuration.OUTPUT_DIR, save_name))
 
 
 def create_row(

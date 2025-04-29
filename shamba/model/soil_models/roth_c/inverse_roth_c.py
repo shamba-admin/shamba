@@ -16,28 +16,28 @@ class InverseRothCData(RothCData):
 
     Instance variables
     ------------------
-    eqC     calculated equilibrium distribution of carbon
-    inputC  yearly input to soil giving eqC
+    eq_C     calculated equilibrium distribution of carbon
+    input_C  yearly input to soil giving eq_C
     x       partitioning coefficients
 
     """
 
-    def __init__(self, eqC, inputC, x, **kwargs):
+    def __init__(self, eq_C, input_C, x, **kwargs):
         super().__init__(**kwargs)
-        self.eqC = eqC
-        self.inputC = inputC
+        self.eq_C = eq_C
+        self.input_C = input_C
         self.x = x
 
 
 class InverseRothCSchema(RothCSchema):
-    eqC = fields.List(fields.Float, required=True)
-    inputC = fields.Float(required=True)
+    eq_C = fields.List(fields.Float, required=True)
+    input_C = fields.Float(required=True)
     x = fields.List(fields.Float, required=True)
 
     @post_load
     def build_inverse_roth_c(self, data, **kwargs):
         roth_c_data = {k: data[k] for k in RothCSchema().fields.keys()}
-        inverse_data = {k: data[k] for k in ["eqC", "inputC", "x"]}
+        inverse_data = {k: data[k] for k in ["eq_C", "input_C", "x"]}
         return InverseRothCData(**inverse_data, **roth_c_data)
 
 
@@ -52,15 +52,15 @@ def create(soil, climate, cover=np.ones(12)) -> InverseRothCData:
     """
     roth_c = create_roth_c(soil, climate, cover)
 
-    eqC, inputC, x = solver(roth_c)
+    eq_C, input_C, x = solver(roth_c)
 
     params = {
         "soil_params": vars(roth_c.soil),
         "climate": vars(roth_c.climate),
         "cover": roth_c.cover,
         "k": roth_c.k,
-        "eqC": eqC,
-        "inputC": inputC,
+        "eq_C": eq_C,
+        "input_C": input_C,
         "x": x,
     }
 
@@ -78,7 +78,7 @@ def solver(roth_c):
     giving equilibrium and Carbon pool values at equilibrium.
 
     Returns:
-        eqC: equilibrium distribution of carbon
+        eq_C: equilibrium distribution of carbon
         eqInput: yearly tree input giving equilibrium
         x: partitioning coefficient for pools
 
@@ -101,16 +101,16 @@ def solver(roth_c):
 
         if currDiff < prevDiff:
             prevDiff = currDiff
-            inputC = input
+            input_C = input
             prevC = C
             prevCtot = Ctot
 
         if prevDiff < currDiff:
             break
 
-    eqC = prevC
-    eqInput = inputC
-    return eqC, eqInput, x
+    eq_C = prevC
+    eqInput = input_C
+    return eq_C, eqInput, x
 
 
 def get_partitions(roth_c):
@@ -143,11 +143,11 @@ def print_to_stdout(inverse_roth_c):
     pools = ["DPM", "RPM", "BIO", "HUM"]
     print("\nINVERSE CALCULATIONS")
     print("====================\n")
-    print("Equilibrium C -", inverse_roth_c.eqC.sum() + inverse_roth_c.soil.iom)
-    for i in range(len(inverse_roth_c.eqC)):
-        print("   ", pools[i], "- - - -", inverse_roth_c.eqC[i])
+    print("Equilibrium C -", inverse_roth_c.eq_C.sum() + inverse_roth_c.soil.iom)
+    for i in range(len(inverse_roth_c.eq_C)):
+        print("   ", pools[i], "- - - -", inverse_roth_c.eq_C[i])
     print("    IOM", "- - - -", inverse_roth_c.soil.iom)
-    print("Equil. inputs -", inverse_roth_c.inputC)
+    print("Equil. inputs -", inverse_roth_c.input_C)
     print("")
 
 
@@ -156,13 +156,13 @@ def save(inverse_roth_c, file="soil_model_inverse.csv"):
 
     data = np.array(
         [
-            np.sum(inverse_roth_c.eqC) + inverse_roth_c.soil.iom,
-            inverse_roth_c.eqC[0],
-            inverse_roth_c.eqC[1],
-            inverse_roth_c.eqC[2],
-            inverse_roth_c.eqC[3],
+            np.sum(inverse_roth_c.eq_C) + inverse_roth_c.soil.iom,
+            inverse_roth_c.eq_C[0],
+            inverse_roth_c.eq_C[1],
+            inverse_roth_c.eq_C[2],
+            inverse_roth_c.eq_C[3],
             inverse_roth_c.soil.iom,
-            inverse_roth_c.inputC,
+            inverse_roth_c.input_C,
         ]
     )
     cols = ["Ceq", "dpm", "rpm", "bio", "hum", "iom", "inputs"]

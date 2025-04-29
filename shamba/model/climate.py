@@ -115,15 +115,15 @@ def from_location(location, use_api: bool) -> ClimateData:
 
 
 def from_csv(
-    filename="climate.csv", order=("temp", "rain", "evap"), isEvap=True
+    filename="climate.csv", order=("temp", "rain", "evap"), is_evaporation=True
 ) -> ClimateData:
     """Construct Climate object from a csv file.
 
     Args:
         filename
         order: tuple of str specifying the column order in csv
-        isEvap: whether data has evap or PET - convert to evap
-                if not isEvap
+        is_evaporation: whether data has evap or PET - convert to evap
+                if not is_evaporation
     Returns:
         Climate object
     Raises:
@@ -136,11 +136,11 @@ def from_csv(
     try:
         # Create clim array with the correct rows
         climate_data = np.zeros((3, 12))
-        correctOrder = ("temp", "rain", "evap")
+        correct_order = ("temp", "rain", "evap")
         for i in range(3):
-            climate_data[i] = data[:, order.index(correctOrder[i])]
+            climate_data[i] = data[:, order.index(correct_order[i])]
 
-        if not isEvap:  # pet given, so convert to evap
+        if not is_evaporation:  # pet given, so convert to evap
             climate_data[2] /= 0.75
         climate: ClimateData = ClimateDataSchema().load(
             {
@@ -162,18 +162,18 @@ def from_csv(
 def plot(climate):
     """Plot climate data in a matplotlib figure."""
 
-    xAxis = list(range(1, 13))
+    x_axis = list(range(1, 13))
     fig, ax1 = plt.subplots()
     fig.suptitle("Climate data")
 
-    ax1.bar(xAxis, climate.rain, align="center", ec="k", fc="w")
-    ax1.plot(xAxis, climate.evaporation, "k--D")
+    ax1.bar(x_axis, climate.rain, align="center", ec="k", fc="w")
+    ax1.plot(x_axis, climate.evaporation, "k--D")
     ax1.set_xlabel("Month")
     ax1.set_ylabel("Rain and evaporation (mm/month)")
     ax1.set_title("Monthly Climate Data")
 
     ax2 = ax1.twinx()
-    ax2.plot(xAxis, climate.temperature, "b-o")
+    ax2.plot(x_axis, climate.temperature, "b-o")
     ax1.set_xlim(0, 13)
     ax2.set_ylabel("Temperature (C)", color="b")
 

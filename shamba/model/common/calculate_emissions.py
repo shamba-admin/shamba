@@ -247,17 +247,21 @@ def get_litter_model_data(
 ) -> GetLitterModelReturnData:
     # baseline external organic inputs
     litter_external_base = LitterModel.from_defaults(
-        litterFreq=get_int(CONSTANTS.BASE_LITTER_INTERVAL_KEY, intervention_input),
-        litterQty=get_float(CONSTANTS.BASE_LITTER_QUANTITY_KEY, intervention_input),
+        litter_frequence=get_int(
+            CONSTANTS.BASE_LITTER_INTERVAL_KEY, intervention_input
+        ),
+        litter_quantity=get_float(
+            CONSTANTS.BASE_LITTER_QUANTITY_KEY, intervention_input
+        ),
         no_of_years=no_of_years,
     )
 
     # baseline synthetic fertiliser additions
-    synthetic_fertiliser_base = LitterModel.synthetic_fert(
-        freq=get_int(
+    synthetic_fertiliser_base = LitterModel.synthetic_fertiliser(
+        frequency=get_int(
             CONSTANTS.BASE_SYNTHETIC_FERTILISER_INTERVAL_KEY, intervention_input
         ),
-        qty=get_float(
+        quantity=get_float(
             CONSTANTS.BASE_SYNTHETIC_FERTILISER_QUANTITY_KEY, intervention_input
         ),
         nitrogen=get_float(
@@ -268,17 +272,21 @@ def get_litter_model_data(
 
     # Project external organic inputs
     litter_external_project = LitterModel.from_defaults(
-        litterFreq=get_int(CONSTANTS.PROJECT_LITTER_INTERVAL_KEY, intervention_input),
-        litterQty=get_float(CONSTANTS.PROJECT_LITTER_QUANTITY_KEY, intervention_input),
+        litter_frequence=get_int(
+            CONSTANTS.PROJECT_LITTER_INTERVAL_KEY, intervention_input
+        ),
+        litter_quantity=get_float(
+            CONSTANTS.PROJECT_LITTER_QUANTITY_KEY, intervention_input
+        ),
         no_of_years=no_of_years,
     )
 
     # Project synthetic fertiliser additions
-    synthetic_fertiliser_project = LitterModel.synthetic_fert(
-        freq=get_int(
+    synthetic_fertiliser_project = LitterModel.synthetic_fertiliser(
+        frequency=get_int(
             CONSTANTS.PROJECT_SYNTHETIC_FERTILISER_INTERVAL_KEY, intervention_input
         ),
-        qty=get_float(
+        quantity=get_float(
             CONSTANTS.PROJECT_SYNTHETIC_FERTILISER_QUANTITY_KEY, intervention_input
         ),
         nitrogen=get_float(
@@ -370,7 +378,7 @@ def get_soil_carbon_data(
         climate,
         cover_base,
         no_of_years=no_of_years,
-        Ci=inverse_roth.eqC,
+        Ci=inverse_roth.eq_C,
         crop=crop_base,
         fire=fire_base,
         solveToValue=True,
@@ -430,7 +438,7 @@ def get_emissions_data(
     # Emissions stuff
     emit_base_emissions = Emit.create(
         no_of_years=no_of_years,
-        forRothC=roth_base,
+        for_roth_C=roth_base,
         crop=crop_base,
         tree=[tree_base],
         litter=[litter_external_base],
@@ -439,7 +447,7 @@ def get_emissions_data(
     )
     emit_project_emissions = Emit.create(
         no_of_years=no_of_years,
-        forRothC=roth_project,
+        for_roth_C=roth_project,
         crop=crop_project,
         tree=tree_projects,
         litter=[litter_external_project],

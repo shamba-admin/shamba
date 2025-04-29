@@ -47,8 +47,8 @@ class ClimateDataSchema(Schema):
 def create(crop_params, no_of_years, crop_yield, left_in_field) -> CropModelData:
     """Args:
     crop_params: CropParams object with crop params
-    cropYield: dry matter yield of the crop in t C ha^-1
-    leftInField: fraction of residues left in field post-harvest
+    crop_yield: dry matter yield of the crop in t C ha^-1
+    left_in_field: fraction of residues left in field post-harvest
     """
     raw_crop_model_data = {
         "crop_params": vars(
@@ -83,26 +83,26 @@ def get_inputs(crop_params, no_of_years, crop_yield, left_in_field):
     """
 
     # residues
-    res = crop_yield * crop_params.slope + crop_params.intercept
-    res *= np.ones(no_of_years)  # convert to array
-    resAG = res * left_in_field
-    resBG = crop_yield + res
-    resBG *= crop_params.root_to_shoot * ROOT_IN_TOP_30
+    residue = crop_yield * crop_params.slope + crop_params.intercept
+    residue *= np.ones(no_of_years)  # convert to array
+    residue_AG = residue * left_in_field
+    residue_BG = crop_yield + residue
+    residue_BG *= crop_params.root_to_shoot * ROOT_IN_TOP_30
 
     output = {}
 
     # Standard outputs - in tonnes of carbon and as vectors
     output["above"] = {
-        "carbon": resAG * crop_params.carbon_above,
-        "nitrogen": resAG * crop_params.nitrogen_above,
-        "DMon": resAG,
-        "DMoff": resAG * (1 - left_in_field),
+        "carbon": residue_AG * crop_params.carbon_above,
+        "nitrogen": residue_AG * crop_params.nitrogen_above,
+        "DMon": residue_AG,
+        "DMoff": residue_AG * (1 - left_in_field),
     }
     output["below"] = {
-        "carbon": resBG * crop_params.carbon_below,
-        "nitrogen": resBG * crop_params.nitrogen_below,
-        "DMon": resBG,
-        "DMoff": np.zeros(len(res)),
+        "carbon": residue_BG * crop_params.carbon_below,
+        "nitrogen": residue_BG * crop_params.nitrogen_below,
+        "DMon": residue_BG,
+        "DMoff": np.zeros(len(residue)),
     }
 
     return output
@@ -160,8 +160,8 @@ def get_crop_data(
     input_data, no_of_years, prefix, index
 ) -> Tuple[CropModelData, CropParamsData]:
     spp = int(input_data[f"{prefix}_spp{index}"])
-    harvYield = np.zeros(no_of_years)
-    harvYield[
+    harvest_yield = np.zeros(no_of_years)
+    harvest_yield[
         int(input_data[f"{prefix}_start{index}"]) : int(
             input_data[f"{prefix}_end{index}"]
         )
@@ -172,7 +172,7 @@ def get_crop_data(
     crop_model = create(
         crop_params=crop_params,
         no_of_years=no_of_years,
-        crop_yield=harvYield,
+        crop_yield=harvest_yield,
         left_in_field=harv_frac,
     )
 

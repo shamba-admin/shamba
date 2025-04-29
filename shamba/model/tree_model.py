@@ -278,12 +278,12 @@ def get_inputs(
     stand_density = np.zeros(no_of_years + 1)
     stand_density[year_planted] = initial_stand_dens
 
-    inputParams = {
+    input_params = {
         "live": np.array((no_of_years + 1) * [turnover]),
         "thinning": thinning,
         "dead": mortality,
     }
-    retainedFrac = {
+    retained_fraction = {
         "live": 1,
         "thinning": thinning_fraction,
         "dead": mortality_fraction,
@@ -292,7 +292,7 @@ def get_inputs(
     # initialise stuff
     pools = np.zeros((no_of_years + 1, 5))
     woody_biomass = np.zeros((no_of_years + 1, 5))
-    tNPP = np.zeros(no_of_years + 1)
+    t_NPP = np.zeros(no_of_years + 1)
 
     flux = {}
     inputs = {}
@@ -304,14 +304,14 @@ def get_inputs(
 
     input_carbon = np.zeros((no_of_years + 1, 5))
     export_carbon = np.zeros((no_of_years + 1, 5))
-    biomGrowth = np.zeros((no_of_years + 1, 5))
+    biomass_growth = np.zeros((no_of_years + 1, 5))
 
     # set woody_biomass[0] to initial (allocated appropriately)
     pools[year_planted] = initial_biomass * alloc
     woody_biomass[year_planted] = pools[year_planted] * stand_density[year_planted]
     for s in inputs:
         flux[s][year_planted] = (
-            woody_biomass[year_planted] * inputParams[s][year_planted]
+            woody_biomass[year_planted] * input_params[s][year_planted]
         )
 
     in_ = np.zeros(no_of_years + 1)
@@ -327,24 +327,24 @@ def get_inputs(
         agb = pools[i - 1][1] + pools[i - 1][2]
 
         # Growth for one tree
-        tNPP[i] = derivative_functions[tree_growth.best](tree_growth.fit_params, agb)
-        biomGrowth[i] = tNPP[i] * alloc * stand_density[i - 1]
+        t_NPP[i] = derivative_functions[tree_growth.best](tree_growth.fit_params, agb)
+        biomass_growth[i] = t_NPP[i] * alloc * stand_density[i - 1]
 
         for s in inputs:
-            flux[s][i] = inputParams[s][i] * pools[i - 1] * stand_density[i - 1]
-            inputs[s][i] = retainedFrac[s] * flux[s][i]
-            exports[s][i] = (1 - retainedFrac[s]) * flux[s][i]
+            flux[s][i] = input_params[s][i] * pools[i - 1] * stand_density[i - 1]
+            inputs[s][i] = retained_fraction[s] * flux[s][i]
+            exports[s][i] = (1 - retained_fraction[s]) * flux[s][i]
 
         # Totals (in t C / ha)
         input_carbon[i] = sum(inputs.values())[i]
         export_carbon[i] = sum(exports.values())[i]
 
         woody_biomass[i] = woody_biomass[i - 1]
-        woody_biomass[i] += biomGrowth[i]
+        woody_biomass[i] += biomass_growth[i]
         woody_biomass[i] -= sum(flux.values())[i]
 
         stand_density[i] = stand_density[i - 1]
-        stand_density[i] *= 1 - (inputParams["dead"][i] + inputParams["thinning"][i])
+        stand_density[i] *= 1 - (input_params["dead"][i] + input_params["thinning"][i])
         if stand_density[i] < 1:
             print("SD [i] is less than 1, end of this tree cohort...")
             break
@@ -352,7 +352,7 @@ def get_inputs(
 
         # Balance stuff
 
-        in_[i] = biomGrowth[i].sum()
+        in_[i] = biomass_growth[i].sum()
         acc[i] = woody_biomass[i].sum() - woody_biomass[i - 1].sum()
         out[i] = input_carbon[i].sum() + export_carbon[i].sum()
         bal[i] = in_[i] - out[i] - acc[i]
@@ -361,7 +361,7 @@ def get_inputs(
     # Standard output stuff
     # in tonnes
     # *********************
-    massBalance = {
+    mass_balance = {
         "in_": in_ * 0.001,
         "out": out * 0.001,
         "acc": acc * 0.001,
@@ -387,10 +387,10 @@ def get_inputs(
         "DMon": 0.001 * ROOT_IN_TOP_30 * (DM[:, 3] + DM[:, 4]),
         "DMoff": np.zeros(len(C[:, 0])),
     }
-    return output, woody_biomass, massBalance
+    return output, woody_biomass, mass_balance
 
 
-def plot_biomass(tree_model, saveName=None):
+def plot_biomass(tree_model, save_name=None):
     """Plot the biomass pool data."""
 
     fig = plt.figure()
@@ -406,13 +406,13 @@ def plot_biomass(tree_model, saveName=None):
     ax.set_ylabel("Pool biomass (t C ha^-1)")
     ax.set_title("Biomass pools vs time")
 
-    if saveName is not None:
-        plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
+    if save_name is not None:
+        plt.savefig(os.path.join(configuration.OUTPUT_DIR, save_name))
 
     plt.close()
 
 
-def plot_balance(tree_model, saveName=None):
+def plot_balance(tree_model, save_name=None):
     """Plot the mass balance data."""
 
     fig = plt.figure()
@@ -427,8 +427,8 @@ def plot_balance(tree_model, saveName=None):
     ax.set_ylabel("Biomass (t C ha^-1)")
     ax.set_title("Mass balance vs time")
 
-    if saveName is not None:
-        plt.savefig(os.path.join(configuration.OUTPUT_DIR, saveName))
+    if save_name is not None:
+        plt.savefig(os.path.join(configuration.OUTPUT_DIR, save_name))
 
     plt.close()
 
