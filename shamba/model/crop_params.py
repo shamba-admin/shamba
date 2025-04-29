@@ -59,11 +59,11 @@ for _i in range(len(SPP_LIST)):
         "species": _spp,
         "slope": _slope[_i],
         "intercept": _intercept[_i],
-        "nitrogenBelow": _nitrogenBelow[_i],
-        "nitrogenAbove": _nitrogenAbove[_i],
-        "carbonBelow": _carbonBelow[_i],
-        "carbonAbove": _carbonAbove[_i],
-        "rootToShoot": _rootToShoot[_i],
+        "nitrogen_below": _nitrogenBelow[_i],
+        "nitrogen_above": _nitrogenAbove[_i],
+        "carbon_below": _carbonBelow[_i],
+        "carbon_above": _carbonAbove[_i],
+        "root_to_shoot": _rootToShoot[_i],
     }
 
 
@@ -81,11 +81,11 @@ class CropParamsData:
     species         crop species
     slope           crop IPCC slope
     intercept       crop IPCC y-intercept
-    nitrogenBelow   crop below-ground nitrogen content as a fraction
-    nitrogenAbove   crop above-ground nitrogen content as a fraction
-    carbonBelow     crop below-ground carbon content as a fraction
-    carbonAbove     crop above-ground carbon content as a fraction
-    rootToShoot     crop root-to-shoot ratio
+    nitrogen_below   crop below-ground nitrogen content as a fraction
+    nitrogen_above   crop above-ground nitrogen content as a fraction
+    carbon_below     crop below-ground carbon content as a fraction
+    carbon_above     crop above-ground carbon content as a fraction
+    root_to_shoot     crop root-to-shoot ratio
 
     """
 
@@ -129,7 +129,7 @@ def from_species_name(species) -> CropParamsData:
     """Construct Crop object from species default in CROP_SPP.
 
     Args:
-        species: species name to be read from speciesList
+        species: species name to be read from species list
     Returns:
         Crop object
     Raises:
@@ -142,11 +142,11 @@ def from_species_name(species) -> CropParamsData:
         "species": crop_params["species"],
         "slope": crop_params["slope"],
         "intercept": crop_params["intercept"],
-        "nitrogen_below": crop_params["nitrogenBelow"],
-        "nitrogen_above": crop_params["nitrogenAbove"],
-        "carbon_below": crop_params["carbonBelow"],
-        "carbon_above": crop_params["carbonAbove"],
-        "root_to_shoot": crop_params["rootToShoot"],
+        "nitrogen_below": crop_params["nitrogen_below"],
+        "nitrogen_above": crop_params["nitrogen_above"],
+        "carbon_below": crop_params["carbon_below"],
+        "carbon_above": crop_params["carbon_above"],
+        "root_to_shoot": crop_params["root_to_shoot"],
     }
 
     schema = CropParamsSchema()
@@ -162,7 +162,7 @@ def from_species_index(index) -> CropParamsData:
     """Construct Crop object from index of species in the csv
 
     Args:
-        speciesNum: index of the species
+        index: index of the species
                     (1-indexed, so off by one from index in SPP_LIST)
     Return:
         Crop object
@@ -176,11 +176,11 @@ def from_species_index(index) -> CropParamsData:
         "species": crop_params["species"],
         "slope": crop_params["slope"],
         "intercept": crop_params["intercept"],
-        "nitrogen_below": crop_params["nitrogenBelow"],
-        "nitrogen_above": crop_params["nitrogenAbove"],
-        "carbon_below": crop_params["carbonBelow"],
-        "carbon_above": crop_params["carbonAbove"],
-        "root_to_shoot": crop_params["rootToShoot"],
+        "nitrogen_below": crop_params["nitrogen_below"],
+        "nitrogen_above": crop_params["nitrogen_above"],
+        "carbon_below": crop_params["carbon_below"],
+        "carbon_above": crop_params["carbon_above"],
+        "root_to_shoot": crop_params["root_to_shoot"],
     }
     schema = CropParamsSchema()
     errors = schema.validate(params)
@@ -195,12 +195,12 @@ def from_species_index(index) -> CropParamsData:
     return schema.load(params)  # type: ignore
 
 
-def from_csv(speciesName, filename, row=0) -> CropParamsData:
+def from_csv(species_name, filename, row=0) -> CropParamsData:
     """Construct Crop object using data from a csv which
     is structured like the master csv (crop_ipcc_defaults.csv).
 
     Args:
-        speciesName: name of species (can be anything)
+        species_name: name of species (can be anything)
         filename: filename of csv with species info
         row: row in the csv to be read (0-indexed)
     Returns:
@@ -211,7 +211,7 @@ def from_csv(speciesName, filename, row=0) -> CropParamsData:
     data = np.atleast_2d(data)  # account for when only one row in file
 
     params = {
-        "species": speciesName,
+        "species": species_name,
         "slope": data[row, 0],
         "intercept": data[row, 1],
         "nitrogen_below": data[row, 2],

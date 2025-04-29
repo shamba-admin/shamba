@@ -434,12 +434,12 @@ def plot_balance(tree_model, save_name=None):
 
 
 def print_biomass(tree_model):
-    totalBiomass = np.sum(tree_model.woody_biomass, axis=1)
+    total_biomass = np.sum(tree_model.woody_biomass, axis=1)
 
     # Prepare the data for tabulate
     table_data = [
         [year, f"{biomass:.2f}"]  # Format biomass to 2 decimal places
-        for year, biomass in enumerate(totalBiomass)
+        for year, biomass in enumerate(total_biomass)
     ]
 
     # Define headers
@@ -458,8 +458,10 @@ def print_biomass(tree_model):
 
 def print_balance(tree_model):
     print("\nMass-balance sum (kg C /ha): ", np.sum(tree_model.balance["bal"]))
-    totDiff = np.sum(tree_model.balance["bal"]) / np.sum(tree_model.woody_biomass[-1])
-    print("Normalized mass balance (kg C /ha): ", totDiff)
+    to_difference = np.sum(tree_model.balance["bal"]) / np.sum(
+        tree_model.woody_biomass[-1]
+    )
+    print("Normalized mass balance (kg C /ha): ", to_difference)
 
 
 def save(tree_model, file="tree_model.csv"):

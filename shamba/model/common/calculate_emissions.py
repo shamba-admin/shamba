@@ -171,7 +171,7 @@ def get_tree_model_data(
     )
 
     # RUN TREE MODEL
-    # Trees planted in baseline (standDens must be at least 1)
+    # Trees planted in baseline (stand_dens must be at least 1)
     tree_base = TreeModel.from_defaults(
         tree_params=tree_params_1,
         tree_growth=growth_base,
@@ -381,7 +381,7 @@ def get_soil_carbon_data(
         Ci=inverse_roth.eq_C,
         crop=crop_base,
         fire=fire_base,
-        solveToValue=True,
+        solve_to_value=True,
     )
 
     # Soil carbon for baseline and project

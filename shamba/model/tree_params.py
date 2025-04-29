@@ -38,7 +38,7 @@ def load_tree_species_data(
             "dens": density[i],
             "carbon": carbon[i],
             "nitrogen": nitrogen[i],
-            "rootToShoot": root_to_shoot[i],
+            "root_to_shoot": root_to_shoot[i],
         }
         for i, spp in enumerate(SPP_LIST)
     }
@@ -111,7 +111,7 @@ def create(tree_params) -> TreeParamsData:
         "dens": tree_params["dens"],
         "carbon": tree_params["carbon"],
         "nitrogen": tree_params["nitrogen"],
-        "root_to_shoot": tree_params["rootToShoot"],
+        "root_to_shoot": tree_params["root_to_shoot"],
     }
 
     schema = TreeParamsSchema()
@@ -168,7 +168,7 @@ def from_csv(species_name: str, filename: str, row=0):
             ]
         ),
         "carbon": data[row, 5],
-        "rootToShoot": data[row, 6],
+        "root_to_shoot": data[row, 6],
         "dens": data[row, 7],
     }
     return create(params)

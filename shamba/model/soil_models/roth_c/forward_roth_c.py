@@ -72,7 +72,7 @@ def create(
     tree=[],
     litter=[],
     fire=[],
-    solveToValue=False,
+    solve_to_value=False,
 ) -> ForwardRothCData:
     """Creates ForwardRothCData.
 
@@ -84,13 +84,13 @@ def create(
         crop: list of crop objects which provide carbon to soil
         tree: list of tree objects which provide carbon to soil
         litter: list of litter objects which provide carbon to soil
-        solveToValue: whether to solve to value (to Cy0) or by time
+        solve_to_value: whether to solve to value (to Cy0) or by time
 
     """
     roth_c = create_roth_c(soil, climate, cover)
 
     SOC, inputs, Cy0Year = solver(
-        roth_c, Ci, no_of_years, crop, tree, litter, fire, solveToValue
+        roth_c, Ci, no_of_years, crop, tree, litter, fire, solve_to_value
     )
 
     params = {
@@ -113,7 +113,7 @@ def create(
 
 
 def solver(
-    roth_c, Ci, no_of_years, crop=[], tree=[], litter=[], fire=[], solveToValue=False
+    roth_c, Ci, no_of_years, crop=[], tree=[], litter=[], fire=[], solve_to_value=False
 ):
     """Run RothC in 'forward' mode;
     solve dC_dt over a given time period
@@ -123,13 +123,13 @@ def solver(
     Args:
         crop: list of Crop objects (not reduced by fire)
         tree: list of Tree objects (not reduced by fire)
-        solveToValue: whether to solve to a particular value (Cy0)
+        solve_to_value: whether to solve to a particular value (Cy0)
                         as opposed to for a certain amount of time
     Returns:
         C: vector with yearly distribution of soil carbon
         inputs: yearly inputs to soil with 2 columns (crop,tree)
         year_target_reached: year that the target value
-                (if solveToValue==True) of Cy0 was reached
+                (if solve_to_value==True) of Cy0 was reached
                 since it will (probably) not be on nice round num.
 
     """
@@ -152,9 +152,9 @@ def solver(
     # keep track of when target year reached
     year_target_reached = 0
     # To keep track of closest value to SOCf
-    if solveToValue:
-        prevDiff_outer = 1000.0
-        prevDiff_inner = 1000.0
+    if solve_to_value:
+        previous_difference_outer = 1000.0
+        previous_difference_inner = 1000.0
 
     for i in range(1, no_of_years + 1):
         # Careful with indices - using 1-based for arrays here
@@ -167,28 +167,28 @@ def solver(
         C[i] = Ctemp[-1]  # carbon pools at end of year
 
         # Check to see if close to target value
-        if solveToValue:
+        if solve_to_value:
             j = -1
             for c in Ctemp:
                 j += 1
                 Ctot = c.sum() + roth_c.soil.iom
-                currDiff = math.fabs(Ctot - roth_c.soil.Cy0)
+                current_difference = math.fabs(Ctot - roth_c.soil.Cy0)
 
-                if currDiff - prevDiff_inner < 0.00000001:
-                    prevDiff_inner = currDiff
+                if current_difference - previous_difference_inner < 0.00000001:
+                    previous_difference_inner = current_difference
                     c_inner = c
                     closest_j = j
                 else:  # getting farther away
                     break
 
-            if prevDiff_inner < prevDiff_outer:
-                prevDiff_outer = prevDiff_inner
+            if previous_difference_inner < previous_difference_outer:
+                previous_difference_outer = previous_difference_inner
                 c_outer = c_inner
                 closest_i = i
             else:
                 break
 
-    if solveToValue:
+    if solve_to_value:
         C[closest_i] = c_outer
         C = C[0 : closest_i + 1]
         year_target_reached = float(closest_j) / len(t)
@@ -221,16 +221,16 @@ def get_partitions(roth_c, inputs, no_of_years):
 
     # Normalize
     i = 0
-    normInput = np.zeros((no_of_years, 2))
+    norm_input = np.zeros((no_of_years, 2))
     for row in inputs:
         if math.fabs(float(row.sum())) < 0.00000001:
-            normInput[i] = 0
+            norm_input[i] = 0
         else:
-            normInput[i] = inputs[i] / float(row.sum())
+            norm_input[i] = inputs[i] / float(row.sum())
         i += 1
 
     # Weighted mean of dpm
-    p1 = np.array(0.59 * normInput[:, 0] + 0.2 * normInput[:, 1])
+    p1 = np.array(0.59 * norm_input[:, 0] + 0.2 * norm_input[:, 1])
 
     # Construct x
     # make arrays (p1 already array)

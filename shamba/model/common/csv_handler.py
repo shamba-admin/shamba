@@ -30,7 +30,7 @@ class FileOpenError(Exception):
 
 
 def print_csv(
-    fileOut,
+    file_out,
     array,
     col_names=[],
     print_years=False,
@@ -41,8 +41,8 @@ def print_csv(
     Uses numpy.savetxt.
 
     Args
-        arrayName: array to be printed
-        fileOut: where to print (put in output unless path specified)
+        array: array to be printed
+        file_out: where to print (put in output unless path specified)
         col_names: list of column names to put at top of csv
         print_years: whether to print the years (index of array) in
                      left-most column
@@ -58,27 +58,27 @@ def print_csv(
         return x
 
     # See if existing path was given, put file in OUTPUT_DIR if not
-    if not os.path.isdir(os.path.dirname(fileOut)):
-        fileOut = os.path.join(configuration.OUTPUT_DIR, fileOut)
+    if not os.path.isdir(os.path.dirname(file_out)):
+        file_out = os.path.join(configuration.OUTPUT_DIR, file_out)
 
     # See if the array given is actually a list (because it has strings)
     if isinstance(array, list):
-        isList = True
+        is_list = True
 
         # WARNIN - broken if data is 3d (list is doubly nested)
         # but not sure how you'd print that to csv anyway
         if not isinstance(array[0], list):
             array = [array, []]  # to make sure it's at least 2d
     else:
-        isList = False
+        is_list = False
 
-    if print_total and not isList:
+    if print_total and not is_list:
         # Add total as last column
         total = np.sum(array, axis=1)
         col_names.append("total")
         array = np.column_stack((array, total))
 
-    if print_years and not isList:
+    if print_years and not is_list:
         # Add years as first column
         years = np.array(list(range(array.shape[0])))
         col_names.insert(0, "year")
@@ -87,10 +87,10 @@ def print_csv(
     # manually do header since numpy 1.6 doesn't
     # support header argument to savetxt - FFS
     try:
-        with open(fileOut, "w") as outcsv:
+        with open(file_out, "w") as outcsv:
             writer = csv.writer(outcsv, lineterminator="\n")
             writer.writerow(col_names)
-            if isList:
+            if is_list:
                 for row in array:
                     if row:
                         writer.writerow([round_(x) for x in row])
@@ -104,17 +104,17 @@ def print_csv(
                     np.savetxt(outcsv, np.atleast_2d(array), delimiter=",", fmt="%.5f")
 
     except IOError:
-        log.exception("Cannot print to file %s", fileOut)
+        log.exception("Cannot print to file %s", file_out)
 
 
-def read_csv(fileIn, cols=None):
+def read_csv(file_in, cols=None):
     """Read data from a .csv file. Usees numpy.loadtxt.
 
     Args:
-        fileIn: name of file to read
+        file_in: name of file to read
         cols: tuple of columns to read (read all if cols==None)
     Returns:
-        array: numpy array with data from fileIn
+        array: numpy array with data from file_in
     Raises:
         IOError: if file can't be found/opened
 
@@ -124,23 +124,23 @@ def read_csv(fileIn, cols=None):
     # project data folder /input, then in the 'defaults' folder
     default_path = os.path.join(configuration.BASE_PATH, "default_input")
 
-    if not os.path.isfile(fileIn):
-        if os.path.isfile(os.path.join(configuration.INPUT_DIR, fileIn)):
-            fileIn = os.path.join(configuration.INPUT_DIR, fileIn)
-        elif os.path.isfile(os.path.join(default_path, fileIn)):
-            fileIn = os.path.join(default_path, fileIn)
+    if not os.path.isfile(file_in):
+        if os.path.isfile(os.path.join(configuration.INPUT_DIR, file_in)):
+            file_in = os.path.join(configuration.INPUT_DIR, file_in)
+        elif os.path.isfile(os.path.join(default_path, file_in)):
+            file_in = os.path.join(default_path, file_in)
         else:
             # not in either folder, and not in full path
-            raise FileOpenError(fileIn)
+            raise FileOpenError(file_in)
 
     array = np.genfromtxt(
-        fileIn, skip_header=1, usecols=cols, comments="#", delimiter=","
+        file_in, skip_header=1, usecols=cols, comments="#", delimiter=","
     )
 
     return array
 
 
-def read_mixed_csv(fileIn, cols=None, types=None):
+def read_mixed_csv(file_in, cols=None, types=None):
     """Read data from a mixed csv (strings and numbers).
     Uses numpy.loadfromtxt
 
@@ -149,29 +149,29 @@ def read_mixed_csv(fileIn, cols=None, types=None):
     since genfromtxt seems to think there's 15 cols and gives an error
 
     Args:
-        fileIn: name of file to be read
+        file_in: name of file to be read
         cols: tuple of columns to read (read all if cols==None)
         types: tuple of the expected types (e.g. int, float, "|S25", etc.)
     Returns:
-        array: ndarray of data from fileIn
+        array: ndarray of data from file_in
     Raises:
         IOError: if file can't be read/opened or if types don't work
 
     """
 
     try:
-        if not os.path.isfile(fileIn):
-            if os.path.isfile(os.path.join(configuration.INPUT_DIR, fileIn)):
-                fileIn = os.path.join(configuration.INPUT_DIR, fileIn)
+        if not os.path.isfile(file_in):
+            if os.path.isfile(os.path.join(configuration.INPUT_DIR, file_in)):
+                file_in = os.path.join(configuration.INPUT_DIR, file_in)
             else:
                 # not in either folder, and not in full path
                 raise IOError
 
         array = np.genfromtxt(
-            fileIn, usecols=cols, dtype=types, delimiter=",", skip_header=1
+            file_in, usecols=cols, dtype=types, delimiter=",", skip_header=1
         )
     except IOError:
-        raise FileOpenError(fileIn)
+        raise FileOpenError(file_in)
 
     return array
 

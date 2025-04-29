@@ -79,7 +79,7 @@ def solver(roth_c):
 
     Returns:
         eq_C: equilibrium distribution of carbon
-        eqInput: yearly tree input giving equilibrium
+        eq_input: yearly tree input giving equilibrium
         x: partitioning coefficient for pools
 
     """
@@ -90,27 +90,26 @@ def solver(roth_c):
     C0 = np.array([0.1, 10, 0, 0])  # initial ballpark guess
 
     # Keep track of difference b/t Ctot and Ceq
-    prevDiff = 1000.0
+    previous_difference = 1000.0
 
     # Loop through range of inputs
     for input in np.arange(0.01, 10, 0.001):
         C = optimize.fsolve(dC_dt, C0, args=(t, x, roth_c.k, input))
         # TODO: Is this correct
         Ctot = np.sum(np.array(C)) + roth_c.soil.iom
-        currDiff = math.fabs(Ctot - roth_c.soil.Ceq)
+        current_difference = math.fabs(Ctot - roth_c.soil.Ceq)
 
-        if currDiff < prevDiff:
-            prevDiff = currDiff
+        if current_difference < previous_difference:
+            previous_difference = current_difference
             input_C = input
-            prevC = C
-            prevCtot = Ctot
+            previous_C = C
 
-        if prevDiff < currDiff:
+        if previous_difference < current_difference:
             break
 
-    eq_C = prevC
-    eqInput = input_C
-    return eq_C, eqInput, x
+    eq_C = previous_C
+    eq_input = input_C
+    return eq_C, eq_input, x
 
 
 def get_partitions(roth_c):
