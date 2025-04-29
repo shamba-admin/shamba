@@ -557,7 +557,7 @@ DIAMETER_THRESHOLD = 1e-8
 # Return AGB of general allometric of type diam = -c*(agb)^c
 #   -> solving for agb gives agb = exp[(ln(diam) - ln(c)) / d]
 #   -> agb = exp[a + b*ln(diam)]    since c,d are arbitrary
-def calculate_logarithmic_above_ground_biomass(
+def calculate_above_ground_biomass(
     allometric_params: List[float],
     diameter: float,
     wood_density: Optional[float] = None
@@ -596,26 +596,26 @@ def calculate_logarithmic_above_ground_biomass(
 # All take dbh vectors and tree object as arguments
 def ryan(dbh, tree_params):
     """C. Ryan, biotropica (2010)."""
-    return calculate_logarithmic_above_ground_biomass([2.601, -3.629], dbh)
+    return calculate_above_ground_biomass([2.601, -3.629], dbh)
 
 
 def tumwebaze_grevillea(dbh, tree_params):
     """Tumwebaze et al. (2013) - Grevillea."""
 
-    agb = calculate_logarithmic_above_ground_biomass([3.06, -5.5], dbh) + calculate_logarithmic_above_ground_biomass([1.32, 1.06], dbh)
+    agb = calculate_above_ground_biomass([3.06, -5.5], dbh) + calculate_above_ground_biomass([1.32, 1.06], dbh)
     return agb * tree_params.carbon
 
 
 def tumwebaze_maesopsis(dbh, tree_params):
     """Tumwebaze et al. (2013) - Maesopsis."""
 
-    agb = calculate_logarithmic_above_ground_biomass([3.33, -7.02], dbh) + calculate_logarithmic_above_ground_biomass([2.38, -2.9], dbh)
+    agb = calculate_above_ground_biomass([3.33, -7.02], dbh) + calculate_above_ground_biomass([2.38, -2.9], dbh)
     return agb * tree_params.carbon
 
 
 def tumwebaze_markhamia(dbh, tree_params):
     """Tumwebaze et al. (2013) - Markhamia."""
-    agb = calculate_logarithmic_above_ground_biomass([2.63, -4.91], dbh) + calculate_logarithmic_above_ground_biomass([2.43, -3.08], dbh)
+    agb = calculate_above_ground_biomass([2.63, -4.91], dbh) + calculate_above_ground_biomass([2.43, -3.08], dbh)
     return agb * tree_params.carbon
 
 
@@ -624,7 +624,7 @@ def chave_dry(dbh, tree_params):
     with < 1500 mm/year rainfall, > 5 months dry season
 
     """
-    agb = calculate_logarithmic_above_ground_biomass([-0.0281, 0.207, 1.784, -0.730], dbh, wood_density=tree_params.dens)
+    agb = calculate_above_ground_biomass([-0.0281, 0.207, 1.784, -0.730], dbh, wood_density=tree_params.dens)
     return agb * tree_params.carbon
 
 
@@ -633,7 +633,7 @@ def chave_moist(dbh, tree_params):
     with 1500-3000 mm/year rainfall, 1-4 months dry season
 
     """
-    agb = calculate_logarithmic_above_ground_biomass([-0.0281, 0.207, 2.148, -1.499], dbh, wood_density=tree_params.dens)
+    agb = calculate_above_ground_biomass([-0.0281, 0.207, 2.148, -1.499], dbh, wood_density=tree_params.dens)
     return agb * tree_params.carbon
 
 
@@ -642,7 +642,7 @@ def chave_wet(dbh, tree_params):
     with > 3500 mm/year rainfall, no seasonality
 
     """
-    agb = calculate_logarithmic_above_ground_biomass([-0.0281, 0.207, 1.98, -1.239], dbh, wood_density=tree_params.dens)
+    agb = calculate_above_ground_biomass([-0.0281, 0.207, 1.98, -1.239], dbh, wood_density=tree_params.dens)
     return agb * tree_params.carbon
 
 
@@ -654,7 +654,7 @@ allometric = {
     "chave dry": chave_dry,
     "chave moist": chave_moist,
     "chave wet": chave_wet,
-    "calculate_logarithmic_above_ground_biomass": calculate_logarithmic_above_ground_biomass,
+    "calculate_above_ground_biomass": calculate_above_ground_biomass,
 }
 
 
