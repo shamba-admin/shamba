@@ -1,42 +1,49 @@
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 
+import csv
 import numpy as np
 from marshmallow import Schema, fields, post_load
 
 from model.common import csv_handler
 
-# ----------------------------------
-# Read species data from csv
-# (run when this module is imported)
-# ----------------------------------
-# abridged species list
-SPP_LIST = [1, 2, 3]
+# # ----------------------------------
+# # Read species data from csv
+# # (run when this module is imported)
+# # ----------------------------------
+SPP_LIST = [1, 2, 3]  # Abridged species list
+ROOT_IN_TOP_30 = 0.7
 
-TREE_SPP = {}
-# For GUI, the filename is 'tree_defaults.csv'
-_data = csv_handler.read_csv("tree_defaults_cl.csv", cols=(2, 3, 4, 5, 6, 7, 8, 9))
-_data = np.atleast_2d(_data)
-_nitrogen = np.zeros((len(SPP_LIST), 5))
-for _i in range(len(SPP_LIST)):
-    _nitrogen[_i] = np.array(
-        [_data[_i, 0], _data[_i, 1], _data[_i, 2], _data[_i, 3], _data[_i, 4]]
-    )
 
-_carbon = _data[:, 5]
-_rootToShoot = _data[:, 6]
-_dens = _data[:, 7]
+def read_csv(filename: str, cols: Tuple[int, ...]) -> np.ndarray:
+    with open(filename, "r") as file:
+        reader = csv.reader(file)
+        next(reader)  # Skip header row
+        data = [[float(row[col]) for col in cols] for row in reader]
+    return np.array(data)
 
-for _i in range(len(SPP_LIST)):
-    _spp = SPP_LIST[_i]
-    TREE_SPP[_spp] = {
-        "species": _spp,
-        "dens": _dens[_i],
-        "carbon": _carbon[_i],
-        "nitrogen": _nitrogen[_i],
-        "rootToShoot": _rootToShoot[_i],
+
+def load_tree_species_data(filename: str = "tree_defaults_cl.csv") -> Dict[int, Dict]:
+    data = csv_handler.read_csv("tree_defaults_cl.csv", cols=(2, 3, 4, 5, 6, 7, 8, 9))
+
+    nitrogen = data[:, :5]
+    carbon = data[:, 5]
+    root_to_shoot = data[:, 6]
+    density = data[:, 7]
+
+    return {
+        spp: {
+            "species": spp,
+            "dens": density[i],
+            "carbon": carbon[i],
+            "nitrogen": nitrogen[i],
+            "rootToShoot": root_to_shoot[i],
+        }
+        for i, spp in enumerate(SPP_LIST)
     }
 
-ROOT_IN_TOP_30 = 0.7
+
+# Load tree species data when this module is imported
+TREE_SPP = load_tree_species_data()
 
 
 class TreeParamsData:

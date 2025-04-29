@@ -77,24 +77,40 @@ class TreeModelSchema(Schema):
     alloc = fields.List(fields.Float, required=True)
     turnover = fields.List(fields.Float, required=True)
     thinning_fraction = fields.List(
-        fields.Float, 
-        required=True, 
-        validate=lambda value: ValidationError(validate_between_0_and_1(value)) if validate_between_0_and_1(value) else None
+        fields.Float,
+        required=True,
+        validate=lambda value: (
+            ValidationError(validate_between_0_and_1(value))
+            if validate_between_0_and_1(value)
+            else None
+        ),
     )
     mortality_fraction = fields.List(
-        fields.Float, 
-        required=True, 
-        validate=lambda value: ValidationError(validate_between_0_and_1(value)) if validate_between_0_and_1(value) else None
+        fields.Float,
+        required=True,
+        validate=lambda value: (
+            ValidationError(validate_between_0_and_1(value))
+            if validate_between_0_and_1(value)
+            else None
+        ),
     )
     thinning = fields.List(
-        fields.Float, 
-        required=True, 
-        validate=lambda value: ValidationError(validate_between_0_and_1(value)) if validate_between_0_and_1(value) else None
+        fields.Float,
+        required=True,
+        validate=lambda value: (
+            ValidationError(validate_between_0_and_1(value))
+            if validate_between_0_and_1(value)
+            else None
+        ),
     )
     mortality = fields.List(
-        fields.Float, 
-        required=True, 
-        validate=lambda value: ValidationError(validate_between_0_and_1(value)) if validate_between_0_and_1(value) else None
+        fields.Float,
+        required=True,
+        validate=lambda value: (
+            ValidationError(validate_between_0_and_1(value))
+            if validate_between_0_and_1(value)
+            else None
+        ),
     )
     output = fields.Nested(ClimateDataOutputSchema, required=True)
     woody_biomass = fields.List(fields.List(fields.Float), required=True)
@@ -267,7 +283,11 @@ def get_inputs(
         "thinning": thinning,
         "dead": mortality,
     }
-    retainedFrac = {"live": 1, "thinning": thinning_fraction, "dead": mortality_fraction}
+    retainedFrac = {
+        "live": 1,
+        "thinning": thinning_fraction,
+        "dead": mortality_fraction,
+    }
 
     # initialise stuff
     pools = np.zeros((no_of_years + 1, 5))
