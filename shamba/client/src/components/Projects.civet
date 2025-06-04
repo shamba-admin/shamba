@@ -56,6 +56,7 @@ Projects := ({
   selectedProject := R.prop(selectedProjectId, projectsObject) ?? undefined
 
   getResults := () => dryRun({
+    id: selectedProject.id,
     name: selectedProject.name,
     data: R.pick([TableNames.Climate, TableNames.CropIpcc, TableNames.SoilInfo, TableNames.Inputs], selectedProject.dataTables)
   })
@@ -132,7 +133,7 @@ Projects := ({
                 >if selectedProject
                   <div className="grid gap-4">
                     <CsvUploader setParsedData=setInputsDataTables />
-                    <div className="justify-items-center">
+                    <div className="justify-items-center overflow-scroll">
                       <Datatable ...transformDataToGrid(R.view(projectInputsData, selectedProject)) setRows=setInputsDataTables />
 
               <!-- Dummy element to fill the remaining space -->

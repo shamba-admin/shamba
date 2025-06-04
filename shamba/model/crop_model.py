@@ -43,7 +43,6 @@ class ClimateDataSchema(Schema):
     def build(self, data, **kwargs):
         return CropModelData(**data)
 
-
 def create(crop_params, no_of_years, crop_yield, left_in_field) -> CropModelData:
     """Args:
     crop_params: CropParams object with crop params
