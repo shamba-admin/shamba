@@ -38,6 +38,8 @@ See [the client README.md](shamba/client/README.md) for instructions on how to r
 
 From the `./server` directory, run the server in _development_ mode: `poetry run fastapi dev main.py`
 
+Go to: `http://127.0.0.1:8000/main/#/`
+
 
 ### Format Files
 ```sh
