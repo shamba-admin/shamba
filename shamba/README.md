@@ -2,7 +2,7 @@
 
 ### Local Installation
 
-1. Install `gdal`. For MacOS, use `brew install gdal`.
+1. Install `gdal`. For MacOS, use `brew install gdal`. The currently supported version of `gdal` is `3.11.3`
 2. Please unzip the soil data file `./rasters/soil/hwsd.7z`.
 3. Ensure you have the correct version of Python. `pyenv` is an easy-to-use tool to manage multiple Python versions: e.g. `pyenv install 3.10` then `pyenv local 3.10`.
 4. Install `poetry` using `brew install poetry`.
