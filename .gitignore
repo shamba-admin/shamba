@@ -118,5 +118,5 @@ shamba/rasters/soil/hwsd.bil
 **/*.swp
 
 # Server
-shamba/server/static/
-!shamba/server/static/index.html
+# shamba/server/static/
+# !shamba/server/static/index.html

@@ -2,11 +2,12 @@
 
 ### Local Installation
 
-1. Install `gdal`. For MacOS, use `brew install gdal`. The currently supported version of `gdal` is `3.11.3`
+1. Install `gdal`. The currently supported version of `gdal` is `3.11.3`. Check the [official documentation](https://gdal.org/en/stable/download.html#binaries) for how to install `gdal` for your specific operating system.
 2. Please unzip the soil data file `./rasters/soil/hwsd.7z`.
-3. Ensure you have the correct version of Python. `pyenv` is an easy-to-use tool to manage multiple Python versions: e.g. `pyenv install 3.10` then `pyenv local 3.10`.
-4. Install `poetry` using `brew install poetry`.
-5. Go to the `shamba` directory and install dependencies:
+3. Install `pyenv` which is an easy-to-use tool to manage multiple Python versions. Check the [official documentation](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation) for how to install `pyenv` for your specific operating system.
+4. Install Python `3.10`: `pyenv install 3.10` then `pyenv local 3.10`.
+5. Install `poetry` by following the [official documentation](https://python-poetry.org/docs/).
+6. Go to the `shamba` directory and install dependencies:
 ```sh
 cd shamba
 poetry install
@@ -28,11 +29,13 @@ The script will prompt you for the information it needs to run the model. It wil
 
 ### UI version
 
-The SHAMBA model can be run as a client-server application using the `shamba/server` and `shamba/client` directories. The server is a FastAPI application that runs the model and returns the results. The client is a Preact application that is built using [Esbuild](https://esbuild.github.io/). The client is used to display the results of the model in a web browser.
+The SHAMBA model can be run as a client-server application using the `shamba/server` and `shamba/client` directories. The server is a _FastAPI_ application that runs the model and returns the results. The client is a [Preact](https://preactjs.com/) application that is built using [Esbuild](https://esbuild.github.io/). The client is used to display the results of the model in a web browser.
 
-#### Run the Client
+#### Produce Static Files
 
-See [the client README.md](shamba/client/README.md) for instructions on how to run the client.
+The purpose of the client code is to produce static files, i.e. JavaScript and CSS, that are then injected into the _server_ code. _FastAPI_ then serves these static files to browser clients.
+
+See [the client README.md](shamba/client/README.md) for instructions on how to create the static files.
 
 #### Run the Server
 

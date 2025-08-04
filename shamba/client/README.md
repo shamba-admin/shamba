@@ -6,9 +6,12 @@
 - The project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
 - [Civet](https://github.com/danielx/civet) is used as the main language for the project.
 
-## Installation
+## Prerequisites
 
-Ensure that `pnpm` is installed on your system. If not, check the installation instructions [here](https://pnpm.io/installation).
+- [Node](https://nodejs.org/en). Check the required version of `node` in the `package.json` file under the `engines` key. We recommend to use [nvm](https://github.com/nvm-sh/nvm) to manage multiple `node` versions.
+- [pnpm](https://pnpm.io/installation).
+
+## Installation
 
 Install the dependencies:
 

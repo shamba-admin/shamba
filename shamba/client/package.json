@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+      "node": ">=20.12.2"
+    }
+  },
   "scripts": {
     "build:production": "dotenvx run --env-file=.env.production -- node esbuild.mjs",
     "build": "dotenvx run -f .env.local -- node esbuild.mjs",
