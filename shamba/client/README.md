@@ -8,7 +8,7 @@
 
 ## Prerequisites
 
-- [Node](https://nodejs.org/en). Check the required version of `node` in the `package.json` file under the `engines` key. We recommend to use [nvm](https://github.com/nvm-sh/nvm) to manage multiple `node` versions.
+- [Node](https://nodejs.org/en). The currently supported version of `node` is `v20.12.2`. We recommend to use [nvm](https://github.com/nvm-sh/nvm) to manage multiple `node` versions.
 - [pnpm](https://pnpm.io/installation).
 
 ## Installation

@@ -1,9 +1,27 @@
 services:
-  shamba:
+  server:
     build:
       context: shamba/
       dockerfile: Dockerfile
-    container_name: shamba
+    container_name: shamba-server
     volumes:
       - ./shamba:/app  # Mount the shamba directory to /app in the container
-    command: python shamba_command_line.py 
+      - /shamba/client/
+    working_dir: /app/server
+    command: poetry run fastapi dev main.py
+    depends_on:
+      - client
+  client:
+    build:
+      context: shamba/client
+      dockerfile: Dockerfile
+    container_name: shamba-client
+    volumes:
+      - ./shamba/client/src:/app/src
+      - ./shamba/client/public:/app/public
+      - ./shamba/client/package.json:/app/package.json
+      - ./shamba/client/tailwind.config.js:/app/tailwind.config.js
+      - ./shamba/client/tsconfig.json:/app/tsconfig.json
+      - ./shamba/client/esbuild.mjs:/app/esbuild.mjs
+      - ./shamba/client/biome.json:/app/biome.json
+    command: pnpm watch

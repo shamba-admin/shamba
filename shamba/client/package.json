@@ -3,19 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "engines": {
-      "node": ">=20.12.2"
-    }
-  },
   "scripts": {
     "build:production": "dotenvx run --env-file=.env.production -- node esbuild.mjs",
-    "build": "dotenvx run -f .env.local -- node esbuild.mjs",
+    "build": "node esbuild.mjs",
     "format": "npx biome format --write ./src",
     "lint": "npx biome check .",
     "styles": "npx @tailwindcss/cli -i ./public/css/main.css -o ../server/static/css/main.css",
     "styles:watch": "npx @tailwindcss/cli -i ./public/css/main.css -o ../server/static/css/main.css --watch",
     "test": "node --loader @esbuild-kit/esm-loader src/_common/utils/helpers.test.js",
-    "watch": "dotenvx run --env-file=.env.local -- node esbuild.mjs --watch"
+    "watch": "node esbuild.mjs --watch"
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.39.0",
