@@ -16,7 +16,7 @@ Shamba can be used as:
 1. unzip the soil data file located here `./shamba/rasters/soil/hwsd.7z`.
 2. install Miniconda on your computer from this webpage [https://docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html).
 
-**Ensure to download the Python 3.7 version.**
+**Ensure to download the Python 3.10.16 version.**
 
 ### Windows setup
 
@@ -73,7 +73,7 @@ Then to enable a smooth debugging experience:
 3- start vscode from the command line: ```%VSCODE_PATH%/code .```
 
 4- choose the appropriate Python interpreter in vscode (bottom left in the status bar)
-You should choose something like ```Python 3.7.8 64-bit ('myenv':conda)```
+You should choose something like ```Python 3.10.16 64-bit ('myenv':conda)```
 
 5- open the ```shamba/shamba_command_line_.py``` file in the editor
 

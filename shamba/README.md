@@ -39,6 +39,8 @@ See [the client README.md](shamba/client/README.md) for instructions on how to c
 
 #### Run the Server
 
+First, ensure that the static files are generated from the `./client` directory. Follow the instruction in the [client README.](./client/README.md)
+
 From the `./server` directory, run the server in _development_ mode: `poetry run fastapi dev main.py`
 
 Go to: `http://127.0.0.1:8000/main/#/`
