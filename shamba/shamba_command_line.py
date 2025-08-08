@@ -7,33 +7,6 @@ terms and conditions.
 
 These can be viewed here: http://www.research-innovation.ed.ac.uk/Opportunities/small-
 holder-agriculture-mitigation-benefit-assessment-tool
-
-### INSTRUCTIONS ###
-Below are NINE steps to help you run this script.
-
-This script provides a method for estimating GHG impacts for single or multiple
-interventions. It has been developed as part of the Plan Vivo approved approach
-See here for further details:
-https://shambatool.files.wordpress.com/2013/10/shamba-methodology-v9-plan-vivo-approved-approach.pdf
-
-This script runs SHAMBA v1.1 in conjunction with the '_input.csv' sheet
-generated from the Excel spreadsheet 'SHAMBA_input_output_template_v1.1'. For
-the full instructions, first see this Excel spreadsheet in the
-'plan_vivo_approach_excel_templates' folder first .
-
-The script is currently set up as an example to run with the example
-'WL_input.csv' generated from the Excel spreadsheet 'example_SHAMBA_input_output_uganda_tech_spec'.
-found in the 'plan_vivo_approach_excel_templates' folder.
-
-In the script below, comments with a double hash (##) are
-INSTRUCTIONS and require you to do something to the subsequent code.
-
-Comments marked with a single hash (#) are just notation to describe
-the subsequent code and shouldn't usually require any action (unless
-you want to develop the script to run differently)
-
-If you have feedback on the model code, please feel free to change the code
-and send the script with a short explanation to shamba.model@gmail.com
 """
 
 import csv
@@ -667,39 +640,12 @@ def main(n, arguments):
 
 
 if __name__ == "__main__":
-    """
-    ## STEP ## (OPTIONAL)
-    If you only want to run a selection of rows (i.e. scenarios) from the '_input.csv'
-    file, specify the number_of_rows value here. If you want to run all rows place a # in front
-    of the line of code below to deactivate them.
-    """
-
     number_of_rows = 1
     # Get command line arguments
     arguments = io_handler.get_arguments_interactively()
 
-    """
-    ## STEP 8 ##
-    Specify in the code below the title that will be attached to all of your
-    output folders and files
-    """
     mod_run = arguments["output-title"]
 
     emit_output_data = []
     for n in range(number_of_rows):
         emit_output_data.append(main(n, arguments))
-
-    """
-    ## STEP 9 ##
-    After you have completed all of the above steps, run the code.
-    
-    Results for each line of the _input.csv file will (i.e. each model run) 
-    will appear in a subfolder in the shamba/projects/"project"/output_/. 
-    
-    All results are in tCO2e.
-    
-    The .csv output files provided detailed information about the parameteres 
-    (params), baseline emissions (base) and intervention emissions (proj) for
-    each GHG sink or source. The .csv summarise '_emissions_all_pools_per_year.csv' this information.
-    You can analyse this information further using Excel.
-    """

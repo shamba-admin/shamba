@@ -81,3 +81,4 @@ DEFAULT_NO_OF_YEARS = 10
 #  Model configuration
 # =============================================================================
 DEFAULT_USE_API = True
+ROOT_IN_TOP_30 = 0.7

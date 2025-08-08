@@ -8,6 +8,7 @@ import numpy as np
 from marshmallow import Schema, fields, post_load
 
 from model.common import csv_handler
+import model.common.constants as CONSTANTS
 
 # --------------------------
 # Read species data from csv
@@ -65,9 +66,6 @@ for _i in range(len(SPP_LIST)):
         "carbon_above": _carbonAbove[_i],
         "root_to_shoot": _rootToShoot[_i],
     }
-
-
-ROOT_IN_TOP_30 = 0.7
 
 
 class CropParamsData:

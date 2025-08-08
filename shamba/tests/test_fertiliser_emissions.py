@@ -12,15 +12,15 @@ def test_fertiliser_model():
     csv_input_data = csv_handler.get_csv_input_data(0, file_path)
     N_YEARS = int(csv_input_data["yrs_proj"])
 
-    synthetic_fertiliser_base = LitterModel.synthetic_fert(
-        freq=int(csv_input_data["base_sf_int"]),
-        qty=float(csv_input_data["base_sf_qty"]),
+    synthetic_fertiliser_base = LitterModel.synthetic_fertiliser(
+        frequency=int(csv_input_data["base_sf_int"]),
+        quantity=float(csv_input_data["base_sf_qty"]),
         nitrogen=float(csv_input_data["base_sf_n"]),
         no_of_years=N_YEARS,
     )
-    synthetic_fertiliser_project = LitterModel.synthetic_fert(
-        freq=int(csv_input_data["proj_sf_int"]),
-        qty=float(csv_input_data["proj_sf_qty"]),
+    synthetic_fertiliser_project = LitterModel.synthetic_fertiliser(
+        frequency=int(csv_input_data["proj_sf_int"]),
+        quantity=float(csv_input_data["proj_sf_qty"]),
         nitrogen=float(csv_input_data["proj_sf_n"]),
         no_of_years=N_YEARS,
     )

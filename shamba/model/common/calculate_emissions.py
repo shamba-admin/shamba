@@ -247,7 +247,7 @@ def get_litter_model_data(
 ) -> GetLitterModelReturnData:
     # baseline external organic inputs
     litter_external_base = LitterModel.from_defaults(
-        litter_frequence=get_int(
+        litter_frequency=get_int(
             CONSTANTS.BASE_LITTER_INTERVAL_KEY, intervention_input
         ),
         litter_quantity=get_float(
@@ -272,7 +272,7 @@ def get_litter_model_data(
 
     # Project external organic inputs
     litter_external_project = LitterModel.from_defaults(
-        litter_frequence=get_int(
+        litter_frequency=get_int(
             CONSTANTS.PROJECT_LITTER_INTERVAL_KEY, intervention_input
         ),
         litter_quantity=get_float(

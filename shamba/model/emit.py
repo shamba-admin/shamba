@@ -24,6 +24,9 @@ gwp = {"N2O": 310, "CH4": 21}
 # combustion factor from IPCC AFOLU table
 cf = {"crop": 0.8, "tree": 0.74}
 
+# To convert from [t C/ha] to [t CO2/ha]
+conversion_factor = 44.0 / 12
+
 
 # Reduce crop/tree/litter outputs due to fire
 def reduce_from_fire(
@@ -205,9 +208,6 @@ def soc_sink(for_roth_C, no_of_years):
     # total of all pools
     soc = np.sum(for_roth_C.SOC, axis=1)
 
-    # To convert from [t C/ha] to [t CO2/ha]
-    conversion_factor = 44.0 / 12
-
     # IMPORTANT: make sure soc is of length N_YEARS+1
     # (N years, inclusive of beginning and end = N+1 array entries)
     delta_SOC = np.zeros(no_of_years)
@@ -225,7 +225,6 @@ def tree_sink(tree, no_of_years):
 
     Return vector with differences.
     """
-    conversion_factor = 44.0 / 12
 
     biomass = np.zeros(no_of_years + 1)
     for t in tree:

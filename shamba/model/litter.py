@@ -36,13 +36,13 @@ class LitterDataSchema(Schema):
 
 
 def create(
-    litter_params, litter_frequence, litter_quantity, no_of_years, litter_vector=None
+    litter_params, litter_frequency, litter_quantity, no_of_years, litter_vector=None
 ) -> LitterModelData:
     """Create LitterModelData object.
 
     Args:
         litter_params:  dict with litter params(keys='carbon','nitrogen')
-        litter_frequence:     frequency of litter application
+        litter_frequency:     frequency of litter application
         litter_quantity:      Quantity (in t C ha^-1) of litter when applied.
         litter_vector:   vector with custom litter additions (t DM / ha)
                         (e.g. for when litter isn't at regular freq.)
@@ -59,7 +59,7 @@ def create(
         "output": get_inputs(
             carbon=carbon,
             nitrogen=nitrogen,
-            litter_frequence=litter_frequence,
+            litter_frequency=litter_frequency,
             litter_quantity=litter_quantity,
             litter_vector=litter_vector,
             no_of_years=no_of_years,
@@ -76,7 +76,7 @@ def create(
 
 
 def from_csv(
-    litter_frequence,
+    litter_frequency,
     litter_quantity,
     no_of_years,
     filename="litter.csv",
@@ -93,7 +93,7 @@ def from_csv(
         params = {"carbon": data[row, 0], "nitrogen": data[row, 1]}
         litter = create(
             litter_params=params,
-            litter_frequence=litter_frequence,
+            litter_frequency=litter_frequency,
             litter_quantity=litter_quantity,
             no_of_years=no_of_years,
             litter_vector=litter_vector,
@@ -105,7 +105,7 @@ def from_csv(
     return litter
 
 
-def from_defaults(litter_frequence, litter_quantity, no_of_years, litter_vector=None):
+def from_defaults(litter_frequency, litter_quantity, no_of_years, litter_vector=None):
     """
     Same as create, but with default litter parameters.
     """
@@ -114,7 +114,7 @@ def from_defaults(litter_frequence, litter_quantity, no_of_years, litter_vector=
     params = {"carbon": 0.5, "nitrogen": 0.018}
     return create(
         litter_params=params,
-        litter_frequence=litter_frequence,
+        litter_frequency=litter_frequency,
         litter_quantity=litter_quantity,
         no_of_years=no_of_years,
         litter_vector=litter_vector,
@@ -129,7 +129,7 @@ def synthetic_fertiliser(frequency, quantity, nitrogen, no_of_years, vector=None
 
     return create(
         litter_params=params,
-        litter_frequence=frequency,
+        litter_frequency=frequency,
         litter_quantity=quantity,
         no_of_years=no_of_years,
         litter_vector=vector,
@@ -137,7 +137,7 @@ def synthetic_fertiliser(frequency, quantity, nitrogen, no_of_years, vector=None
 
 
 def get_inputs(
-    carbon, nitrogen, litter_frequence, litter_quantity, litter_vector, no_of_years
+    carbon, nitrogen, litter_frequency, litter_quantity, litter_vector, no_of_years
 ):
     """Calculate and return DM, C, and N inputs to
     soil from additional litter.
@@ -145,7 +145,7 @@ def get_inputs(
     Args:
         carbon: litter carbon content
         nitrogen: litter nitrogen content
-        litter_frequence: frequency of litter application
+        litter_frequency: frequency of litter application
         litter_quantity: amount of dry matter added to field when litter added in t DM ha^-1
         litter_vector: vector with custom litter additions (t DM / ha)
         no_of_years: number of years in the project
@@ -161,10 +161,10 @@ def get_inputs(
         DMinput = np.zeros(no_of_years)
 
         # loop through years when litter is added
-        if litter_frequence == 0:
+        if litter_frequency == 0:
             years = 0
         else:
-            years = list(range(-1, no_of_years, litter_frequence))
+            years = list(range(-1, no_of_years, litter_frequency))
             years = years[1:]
         DMinput[years] = litter_quantity
         Cinput[years] = litter_quantity * carbon

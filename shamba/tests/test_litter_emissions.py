@@ -27,13 +27,13 @@ def test_crop_model():
         fire_project[::proj_fire_interval] = int(csv_input_data["fire_pres_proj"])
 
     litter_external_base = LitterModel.from_defaults(
-        litterFreq=int(csv_input_data["base_lit_int"]),
-        litterQty=float(csv_input_data["base_lit_qty"]),
+        litter_frequency=int(csv_input_data["base_lit_int"]),
+        litter_quantity=float(csv_input_data["base_lit_qty"]),
         no_of_years=N_YEARS,
     )
     litter_external_project = LitterModel.from_defaults(
-        litterFreq=int(csv_input_data["proj_lit_int"]),
-        litterQty=float(csv_input_data["proj_lit_qty"]),
+        litter_frequency=int(csv_input_data["proj_lit_int"]),
+        litter_quantity=float(csv_input_data["proj_lit_qty"]),
         no_of_years=N_YEARS,
     )
 

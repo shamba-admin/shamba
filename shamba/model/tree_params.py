@@ -11,7 +11,6 @@ from model.common import csv_handler
 # # (run when this module is imported)
 # # ----------------------------------
 SPP_LIST = [1, 2, 3]  # Abridged species list
-ROOT_IN_TOP_30 = 0.7
 
 
 def read_csv(filename: str, cols: Tuple[int, ...]) -> np.ndarray:
@@ -25,17 +24,17 @@ def read_csv(filename: str, cols: Tuple[int, ...]) -> np.ndarray:
 def load_tree_species_data(
     filename: str = "tree_defaults_cl.csv",
 ) -> Dict[Union[int, str], Dict]:
-    data = csv_handler.read_csv("tree_defaults_cl.csv", cols=(2, 3, 4, 5, 6, 7, 8, 9))
+    data = csv_handler.read_csv(filename, cols=(2, 3, 4, 5, 6, 7, 8, 9))
 
     nitrogen = data[:, :5]
     carbon = data[:, 5]
     root_to_shoot = data[:, 6]
-    density = data[:, 7]
+    wood_density = data[:, 7]
 
     return {
         spp: {
             "species": spp,
-            "dens": density[i],
+            "dens": wood_density[i],
             "carbon": carbon[i],
             "nitrogen": nitrogen[i],
             "root_to_shoot": root_to_shoot[i],
@@ -55,10 +54,10 @@ class TreeParamsData:
     Instance variables
     ----------------
     species         tree species name
-    dens        tree density in g cm^-3
+    dens            tree density in g cm^-3
     carbon          tree carbon content as a fraction
     nitrogen        tree nitrogen content as a fraction
-    root_to_shoot     tree root-to-shoot ratio
+    root_to_shoot   tree root-to-shoot ratio
     """
 
     def __init__(
