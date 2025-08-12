@@ -10,6 +10,8 @@ from .common import csv_handler
 from .common_schema import OutputSchema as ClimateDataOutputSchema
 
 # from .crop_params import CropParams
+from .common.constants import ROOT_IN_TOP_30
+
 from .crop_params import (
     CropParamsData,
     CropParamsSchema,

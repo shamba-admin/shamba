@@ -10,23 +10,10 @@ import numpy as np
 
 from model import configuration
 from model.common import csv_handler
+from model.common.constants import (ef, N_ef, gwp, cf, C_to_CO2_conversion_factor, N_to_N2O_conversion_factor, volatile_frac_org, volatile_frac_synth)
 
 # Fire vector - can redefine from elsewhere if there are fires
 # fire = np.zeros(configuration.N_YEARS)
-
-# Emissions stuff
-# From table 2.5 IPCC 2006 GHG Inventory
-ef = {"crop_N2O": 0.07, "crop_CH4": 2.7, "tree_N2O": 0.2, "tree_CH4": 6.8}
-
-# Global warming potential from IPCC 2006 GHG Inventory
-gwp = {"N2O": 310, "CH4": 21}
-
-# combustion factor from IPCC AFOLU table
-cf = {"crop": 0.8, "tree": 0.74}
-
-# To convert from [t C/ha] to [t CO2/ha]
-conversion_factor = 44.0 / 12
-
 
 # Reduce crop/tree/litter outputs due to fire
 def reduce_from_fire(
@@ -213,7 +200,7 @@ def soc_sink(forward_soil_model, no_of_years):
     delta_SOC = np.zeros(no_of_years)
 
     for i in range(no_of_years):
-        delta_SOC[i] = (soc[i + 1] - soc[i]) * conversion_factor
+        delta_SOC[i] = (soc[i + 1] - soc[i]) * C_to_CO2_conversion_factor
 
     return delta_SOC
 
@@ -232,7 +219,7 @@ def tree_sink(tree, no_of_years):
 
     delta = np.zeros(no_of_years)
     for i in range(no_of_years):
-        delta[i] = (biomass[i + 1] - biomass[i]) * conversion_factor
+        delta[i] = (biomass[i + 1] - biomass[i]) * C_to_CO2_conversion_factor
 
     return delta
 
@@ -253,10 +240,9 @@ def nitrogen_emit(no_of_years, crop, tree, litter):
     )
     to_emit = toEmit_crop + toEmit_tree
 
-    ef = 0.01  # emission factor [kbN20-N/kg N]
-    mw = 44.0 / 28  # for N2O-N to N2O
 
-    return to_emit * ef * mw * gwp["N2O"]
+
+    return to_emit * N_ef * N_to_N2O_conversion_factor * gwp["N2O"]
 
 
 def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
@@ -316,12 +302,7 @@ def fert_emit(litter, fert, no_of_years):
         fert: list-like of fertiliser model object
                 (special case of litter model object)
     """
-    # Some parameters. See methodology
-    ef = 0.01
-    mw_ratio = 44.0 / 28
-    gwp = 310.0
-    volatile_frac_synth = 0.1
-    volatile_frac_org = 0.2
+
 
     # calculate emissions
     emit = np.zeros(no_of_years)
@@ -335,6 +316,6 @@ def fert_emit(litter, fert, no_of_years):
             1 - volatile_frac_synth
         )
 
-    emit *= ef * mw_ratio * gwp
+    emit *= N_ef * N_to_N2O_conversion_factor * gwp["N2O"]
 
     return emit
