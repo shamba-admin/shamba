@@ -241,86 +241,37 @@ def create(
 
     return schema.load(params)  # type: ignore
 
-
-def from_csv1(
+def from_csv(
     tree_params: List[TreeParams.TreeParamsData],
     allometric_key: str,
     csv_input_data: Dict[str, Any],
+    species_prefix: str = ""
 ):
     """Construct Growth object using data in a csv file.
 
-    When using intpu_csv from command line, constructing dictionary of
-    np.arrays for each new cohort
+    When using input_csv from command line, constructing dictionary of
+    np.arrays for each new cohort.
 
     Args:
         tree_params: TreeParams object (holds tree params)
         allometric_key: string with allometric key
         csv_input_data: dictionary with csv input data
+        species_prefix: prefix for species-specific columns (e.g., "sp2_")
 
     Returns:
         tree_growth: TreeGrowth object
     """
 
-    age_input = ["age1", "age2", "age3", "age4", "age5", "age6"]
-    age = {key: csv_input_data[key] for key in age_input}
-    age = np.array(list(age.values())).astype(
-        float
-    )  # https://stackoverflow.com/questions/45957968/float-arguments-and-dict-values-with-numpy
-    age = np.array(sorted(age, key=int))
+    print("XXXXX", species_prefix)
 
-    diam_input = ["diam1", "diam2", "diam3", "diam4", "diam5", "diam6"]
-    diam = {key: csv_input_data[key] for key in diam_input}
-    diam = np.array(list(diam.values())).astype(float)
-
-    params = {
-        "age": age,
-        "diam": diam,
-    }
-
-    growth = create(tree_params, params, allometric_key)
-
-    return growth
-
-
-def from_csv2(
-    tree_params: List[TreeParams.TreeParamsData],
-    allometric_key: str,
-    csv_input_data: Dict[str, Any],
-):
-    """Construct Growth object using data in a csv file.
-
-    When using intpu_csv from command line, constructing dictionary of
-    np.arrays for each new cohort
-
-    Args:
-        tree_params: TreeParams object (holds tree params)
-        allometric_key: string with allometric key
-        csv_input_data: dictionary with csv input data
-
-    Returns:
-        tree_growth: TreeGrowth object
-    """
-
-    age_input = [
-        "sp2_age1",
-        "sp2_age2",
-        "sp2_age3",
-        "sp2_age4",
-        "sp2_age5",
-        "sp2_age6",
-    ]
+    age_base = ["age1", "age2", "age3", "age4", "age5", "age6"]
+    age_input = [f"{species_prefix}{key}" for key in age_base]
     age = {key: csv_input_data[key] for key in age_input}
     age = np.array(list(age.values())).astype(float)
     age = np.array(sorted(age, key=int))
 
-    diam_input = [
-        "sp2_diam1",
-        "sp2_diam2",
-        "sp2_diam3",
-        "sp2_diam4",
-        "sp2_diam5",
-        "sp2_diam6",
-    ]
+    diam_base = ["diam1", "diam2", "diam3", "diam4", "diam5", "diam6"]
+    diam_input = [f"{species_prefix}{key}" for key in diam_base]
     diam = {key: csv_input_data[key] for key in diam_input}
     diam = np.array(list(diam.values())).astype(float)
 
@@ -332,59 +283,6 @@ def from_csv2(
     growth = create(tree_params, params, allometric_key)
 
     return growth
-
-
-def from_csv3(
-    tree_params: List[TreeParams.TreeParamsData],
-    allometric_key: str,
-    csv_input_data: Dict[str, Any],
-):
-    """Construct Growth object using data in a csv file.
-
-    When using intpu_csv from command line, constructing dictionary of
-    np.arrays for each new cohort
-
-    Args:
-        tree_params: TreeParams object (holds tree params)
-        allometric_key: string with allometric key
-        csv_input_data: dictionary with csv input data
-
-    Returns:
-        tree_growth: TreeGrowth object
-    """
-
-    age_input = [
-        "sp3_age1",
-        "sp3_age2",
-        "sp3_age3",
-        "sp3_age4",
-        "sp3_age5",
-        "sp3_age6",
-    ]
-    age = {key: csv_input_data[key] for key in age_input}
-    age = np.array(list(age.values())).astype(float)
-    age = np.array(sorted(age, key=int))
-
-    diam_input = [
-        "sp3_diam1",
-        "sp3_diam2",
-        "sp3_diam3",
-        "sp3_diam4",
-        "sp3_diam5",
-        "sp3_diam6",
-    ]
-    diam = {key: csv_input_data[key] for key in diam_input}
-    diam = np.array(list(diam.values())).astype(float)
-
-    params = {
-        "age": age,
-        "diam": diam,
-    }
-
-    growth = create(tree_params, params, allometric_key)
-
-    return growth
-
 
 def plot(tree_growth, fit=True, save_name=None):
     """Plot growth data and all four fits in a matplotlib figure."""
@@ -671,23 +569,21 @@ allometric = {
     "calculate_above_ground_biomass": calculate_above_ground_biomass,
 }
 
-
+# Uses spp_prefix_map to get the correct prefix for the species-specific columns
 def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
-    spp = int(csv_input_data[spp_key])
-    if spp == 1:
-        growth = from_csv1(
-            tree_params, allometric_key=allometric_key, csv_input_data=csv_input_data
-        )
-    elif spp == 2:
-        growth = from_csv2(
-            tree_params, allometric_key=allometric_key, csv_input_data=csv_input_data
-        )
-    else:
-        growth = from_csv3(
-            tree_params, allometric_key=allometric_key, csv_input_data=csv_input_data
-        )
+    default_prefix = "sp3_"
 
-    return growth
+    spp_prefix_map = {
+        1: "",
+        2: "sp2_",
+    }
+
+    return from_csv(
+        tree_params=tree_params,
+        allometric_key=allometric_key,
+        csv_input_data=csv_input_data,
+        species_prefix=spp_prefix_map.get(int(csv_input_data[spp_key]), default_prefix)
+    )
 
 
 def create_tree_growths(csv_input_data, tree_params, allometric_key, tree_count):
