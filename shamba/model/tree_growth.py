@@ -262,8 +262,6 @@ def from_csv(
         tree_growth: TreeGrowth object
     """
 
-    print("XXXXX", species_prefix)
-
     age_base = ["age1", "age2", "age3", "age4", "age5", "age6"]
     age_input = [f"{species_prefix}{key}" for key in age_base]
     age = {key: csv_input_data[key] for key in age_input}
