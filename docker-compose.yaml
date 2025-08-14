@@ -14,6 +14,7 @@ services:
       - ./shamba/rasters:/app/rasters
       - ./shamba/server:/app/server
       - ./shamba/shamba_command_line.py:/app/shamba_command_line.py
+      - ./shamba/tests:/app/tests
     working_dir: /app/server
     command: poetry run fastapi dev main.py --host 0.0.0.0 --port 8000 --reload
     depends_on:
