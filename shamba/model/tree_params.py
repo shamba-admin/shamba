@@ -34,7 +34,7 @@ def load_tree_species_data(
     return {
         spp: {
             "species": spp,
-            "dens": wood_density[i],
+            "wood_dens": wood_density[i],
             "carbon": carbon[i],
             "nitrogen": nitrogen[i],
             "root_to_shoot": root_to_shoot[i],
@@ -54,7 +54,7 @@ class TreeParamsData:
     Instance variables
     ----------------
     species         tree species name
-    dens            tree density in g cm^-3
+    wood_dens            tree density in g cm^-3
     carbon          tree carbon content as a fraction
     nitrogen        tree nitrogen content as a fraction
     root_to_shoot   tree root-to-shoot ratio
@@ -63,13 +63,13 @@ class TreeParamsData:
     def __init__(
         self,
         species,
-        dens,
+        wood_dens,
         nitrogen,
         carbon,
         root_to_shoot,
     ):
         self.species = species
-        self.dens = dens
+        self.wood_dens = wood_dens
         self.nitrogen = nitrogen
         self.carbon = carbon
         self.root_to_shoot = root_to_shoot
@@ -87,7 +87,7 @@ def validate_species(value):
 
 class TreeParamsSchema(Schema):
     species = fields.Raw(required=True, validate=lambda v: validate_species(v))
-    dens = fields.Float(required=True)
+    wood_dens = fields.Float(required=True)
     carbon = fields.Float(required=True)
     nitrogen = fields.List(fields.Float, required=True)
     root_to_shoot = fields.Float(required=True)
@@ -107,7 +107,7 @@ def create(tree_params) -> TreeParamsData:
     """
     params = {
         "species": tree_params["species"],
-        "dens": tree_params["dens"],
+        "wood_dens": tree_params["wood_dens"],
         "carbon": tree_params["carbon"],
         "nitrogen": tree_params["nitrogen"],
         "root_to_shoot": tree_params["root_to_shoot"],
@@ -168,7 +168,7 @@ def from_csv(species_name: str, filename: str, row=0):
         ),
         "carbon": data[row, 5],
         "root_to_shoot": data[row, 6],
-        "dens": data[row, 7],
+        "wood_dens": data[row, 7],
     }
     return create(params)
 
@@ -197,7 +197,7 @@ def save(tree_params: TreeParamsData, file="tree_params.csv"):
         tree_params.nitrogen[4],
         tree_params.carbon,
         tree_params.root_to_shoot,
-        tree_params.dens,
+        tree_params.wood_dens,
     ]
     cols = [
         "Sc",
@@ -209,7 +209,7 @@ def save(tree_params: TreeParamsData, file="tree_params.csv"):
         "N_froot",
         "C",
         "rw",
-        "dens",
+        "wood_dens",
     ]
     csv_handler.print_csv(file, data, col_names=cols)
 

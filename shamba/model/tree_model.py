@@ -31,7 +31,7 @@ class TreeModel:
 
     Instance variables
     ----------------
-    tree_params     TreeParams object with the params (dens, carbon, etc.)
+    tree_params     TreeParams object with the params (wood_dens, carbon, etc.)
     tree_growth     TreeGrowth object governing growth of trees
     alloc           vector with allocation for each year
     turnover        vector with turnover for each year
