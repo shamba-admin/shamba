@@ -335,9 +335,9 @@ def get_crop_model_data(
 
 
 class GetSoilCarbonReturnData(NamedTuple):
-    roth_base: ForwardRothC.ForwardRothCData
-    roth_project: ForwardRothC.ForwardRothCData
-    for_roth: ForwardRothC.ForwardRothCData
+    roth_base: ForwardRothC.ForwardSoilModelData
+    roth_project: ForwardRothC.ForwardSoilModelData
+    for_roth: ForwardRothC.ForwardSoilModelData
 
 
 def get_soil_carbon_data(
@@ -345,7 +345,7 @@ def get_soil_carbon_data(
     no_of_years: int,
     climate: Climate.ClimateData,
     soil: SoilParams.SoilParamsData,
-    inverse_roth: InverseRothC.InverseRothCData,
+    inverse_roth: InverseRothC.InverseSoilModelData,
     fire_base: np.ndarray,
     fire_project: np.ndarray,
     crop_base: List[CropModel.CropModelData],
@@ -422,8 +422,8 @@ class GetEmissionsReturnData(NamedTuple):
 
 def get_emissions_data(
     no_of_years: int,
-    roth_base: ForwardRothC.ForwardRothCData,
-    roth_project: ForwardRothC.ForwardRothCData,
+    roth_base: ForwardRothC.ForwardSoilModelData,
+    roth_project: ForwardRothC.ForwardSoilModelData,
     crop_base: List[CropModel.CropModelData],
     crop_project: List[CropModel.CropModelData],
     tree_base: TreeModel.TreeModel,
@@ -598,10 +598,10 @@ class InterventionReturnData(NamedTuple):
     crop_par_project: List[CropParams.CropParamsData]
     emit_base_emissions: np.ndarray
     emit_project_emissions: np.ndarray
-    for_roth: ForwardRothC.ForwardRothCData
-    roth_base: ForwardRothC.ForwardRothCData
-    roth_project: ForwardRothC.ForwardRothCData
-    inverse_roth: InverseRothC.InverseRothCData
+    for_roth: ForwardRothC.ForwardSoilModelData
+    roth_base: ForwardRothC.ForwardSoilModelData
+    roth_project: ForwardRothC.ForwardSoilModelData
+    inverse_roth: InverseRothC.InverseSoilModelData
 
 
 def handle_intervention(

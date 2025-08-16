@@ -5,43 +5,15 @@ from marshmallow import fields, post_load
 from scipy import optimize
 
 from ...common import csv_handler
-from .roth_c import RothCData, RothCSchema
-from .roth_c import create as create_roth_c
-from .roth_c import dC_dt
+from .roth_c import create as create_roth_c, dC_dt
+from ..soil_model_types import (
+    InverseSoilModelData,
+    BaseSoilModelData,
+    InverseSoilModelBaseSchema,
+)
 
 
-class InverseRothCData(RothCData):
-    """
-    Inverse RothC model. Extends RothCData class.
-
-    Instance variables
-    ------------------
-    eq_C     calculated equilibrium distribution of carbon
-    input_C  yearly input to soil giving eq_C
-    x       partitioning coefficients
-
-    """
-
-    def __init__(self, eq_C, input_C, x, **kwargs):
-        super().__init__(**kwargs)
-        self.eq_C = eq_C
-        self.input_C = input_C
-        self.x = x
-
-
-class InverseRothCSchema(RothCSchema):
-    eq_C = fields.List(fields.Float, required=True)
-    input_C = fields.Float(required=True)
-    x = fields.List(fields.Float, required=True)
-
-    @post_load
-    def build_inverse_roth_c(self, data, **kwargs):
-        roth_c_data = {k: data[k] for k in RothCSchema().fields.keys()}
-        inverse_data = {k: data[k] for k in ["eq_C", "input_C", "x"]}
-        return InverseRothCData(**inverse_data, **roth_c_data)
-
-
-def create(soil, climate, cover=np.ones(12)) -> InverseRothCData:
+def create(soil, climate, cover=np.ones(12)) -> InverseSoilModelData:
     """Creates inverse rothc object.
 
     Args:
@@ -64,7 +36,7 @@ def create(soil, climate, cover=np.ones(12)) -> InverseRothCData:
         "x": x,
     }
 
-    schema = InverseRothCSchema()
+    schema = InverseSoilModelBaseSchema()
     errors = schema.validate(params)
 
     if errors != {}:
@@ -134,35 +106,3 @@ def get_partitions(roth_c):
     # no crops at equil so p1 always 0.2
     p1 = 0.2
     return np.array([p1, 1 - p1, p3 * (1 - p2), (1 - p2) * (1 - p3)])
-
-
-def print_to_stdout(inverse_roth_c):
-    """Print data from inverse RothC run to stdout."""
-
-    pools = ["DPM", "RPM", "BIO", "HUM"]
-    print("\nINVERSE CALCULATIONS")
-    print("====================\n")
-    print("Equilibrium C -", inverse_roth_c.eq_C.sum() + inverse_roth_c.soil.iom)
-    for i in range(len(inverse_roth_c.eq_C)):
-        print("   ", pools[i], "- - - -", inverse_roth_c.eq_C[i])
-    print("    IOM", "- - - -", inverse_roth_c.soil.iom)
-    print("Equil. inputs -", inverse_roth_c.input_C)
-    print("")
-
-
-def save(inverse_roth_c, file="soil_model_inverse.csv"):
-    """Save data to csv. Default path is OUTPUT_DIR."""
-
-    data = np.array(
-        [
-            np.sum(inverse_roth_c.eq_C) + inverse_roth_c.soil.iom,
-            inverse_roth_c.eq_C[0],
-            inverse_roth_c.eq_C[1],
-            inverse_roth_c.eq_C[2],
-            inverse_roth_c.eq_C[3],
-            inverse_roth_c.soil.iom,
-            inverse_roth_c.input_C,
-        ]
-    )
-    cols = ["Ceq", "dpm", "rpm", "bio", "hum", "iom", "inputs"]
-    csv_handler.print_csv(file, data, col_names=cols)

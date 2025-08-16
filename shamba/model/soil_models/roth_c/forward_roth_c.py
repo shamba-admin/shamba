@@ -10,56 +10,10 @@ from typing import List, Tuple, Optional
 
 from ... import configuration, emit
 from ...common import csv_handler
-from .roth_c import RothCSchema
+from .roth_c import SoilModelBaseSchema
 from .roth_c import create as create_roth_c
 from .roth_c import dC_dt
-
-
-class ForwardRothCData:
-    """
-    Forward RothC object
-
-    Instance variables
-    ----------------
-    SOC            vector with soil distributions for each year
-    soil_params    SoilParams object with soil params (porosity, field capacity, etc.)
-    climate        Climate object with climate data (rain, evaporation, etc.)
-    cover          vector with cover for each year
-    k              vector with crop coefficient for each year
-    inputs         vector with inputs for each year
-    Cy0Year        vector with initial soil carbon for each year
-
-    """
-
-    def __init__(
-        self,
-        soil_params,
-        climate,
-        cover,
-        k,
-        SOC,
-        inputs,
-        Cy0Year,
-    ):
-        self.soil = soil_params
-        self.climate = climate
-        self.cover = cover
-        self.k = k
-        self.SOC = SOC
-        self.inputs = inputs
-        self.Cy0Year = Cy0Year
-
-
-class ForwardRothCSchema(RothCSchema):
-    SOC = fields.List(fields.List(fields.Float), required=True)
-    inputs = fields.List(fields.List(fields.Float), required=True)
-    Cy0Year = fields.Float(required=True)
-
-    @post_load
-    def build_forward_roth_c(self, data, **kwargs):
-        roth_c_data = {k: data[k] for k in RothCSchema().fields.keys()}
-        forward_data = {k: data[k] for k in ["SOC", "inputs", "Cy0Year"]}
-        return ForwardRothCData(**forward_data, **roth_c_data)
+from ..soil_model_types import ForwardSoilModelData, ForwardSoilModelBaseSchema
 
 
 def create(
@@ -73,8 +27,8 @@ def create(
     litter=[],
     fire=[],
     solve_to_value=False,
-) -> ForwardRothCData:
-    """Creates ForwardRothCData.
+) -> ForwardSoilModelData:
+    """Creates ForwardSoilModelData.
 
     Args:
         soil: soil object
@@ -103,7 +57,7 @@ def create(
         "Cy0Year": Cy0Year,
     }
 
-    schema = ForwardRothCSchema()
+    schema = ForwardSoilModelBaseSchema()
     errors = schema.validate(params)
 
     if errors != {}:
@@ -244,105 +198,3 @@ def get_partitions(roth_c, inputs, no_of_years):
     )
 
     return x
-
-
-def plot(forward_roth_c, legend_string, no_of_years, save_name=None):
-    """Plot total carbon vs year for forwardRothC run.
-
-    Args:
-        legend_string: string to put in legend
-
-    """
-    fig = plt.figure()
-    fig.suptitle("Soil Carbon")  # Replace set_window_title with suptitle
-    ax = fig.add_subplot(1, 1, 1)
-    ax.set_xlabel("Time (years)")
-    ax.set_ylabel("SOC (t C ha^-1)")
-    ax.set_title("Total soil carbon vs time")
-
-    tot_soc = np.sum(forward_roth_c.SOC, axis=1)
-    if len(tot_soc) == no_of_years + 1:
-        # baseline or project
-        x = list(range(len(tot_soc)))
-    else:
-        # initialisation run is before year 0
-        x = np.array(list(range(-len(tot_soc) + 2, 2)))
-        x = x - forward_roth_c.Cy0Year
-        x[-1] = 0
-
-    tot_soc = np.sum(forward_roth_c.SOC, axis=1)
-    ax.plot(x, tot_soc, label=legend_string)
-    ax.legend(loc="best")
-
-    if save_name is not None:
-        plt.savefig(os.path.join(configuration.OUTPUT_DIR, save_name))
-
-
-def create_row(
-    year: float, carbon: float, inputs: Optional[List[float]] = None
-) -> List[float]:
-    return [year, carbon] + (inputs or [])
-
-
-def generate_table_data(
-    tot_soc: np.ndarray,
-    soil_iom: float,
-    inputs: List[Tuple[float, float]],
-    years: np.ndarray,
-) -> List[List[float]]:
-    return [
-        create_row(year, soc + soil_iom, list(inputs[i]) if i < len(inputs) else [])
-        for i, (year, soc) in enumerate(zip(years, tot_soc))
-    ]
-
-
-def print_to_stdout(forward_roth_c, no_of_years: int, label: str) -> None:
-    """Print data from forward RothC run to stdout using tabulate with a functional approach."""
-    table_title = f"FORWARD CALCULATIONS for {label}"
-
-    tot_soc = np.sum(forward_roth_c.SOC, axis=1)
-    soil_iom = forward_roth_c.soil.iom
-
-    if len(tot_soc) == no_of_years + 1:
-        years = np.arange(len(tot_soc), dtype=float)
-    else:
-        years = np.arange(-len(tot_soc) + 2, 2, dtype=float) - forward_roth_c.Cy0Year
-        years[-1] = 0
-
-    table_data = generate_table_data(tot_soc, soil_iom, forward_roth_c.inputs, years)
-
-    headers = ["Year", "Carbon", "Crop In", "Tree In"]
-
-    print()  # Newline
-    print()  # Newline
-    print(table_title)
-    print("=" * len(table_title))
-    print(tabulate(table_data, headers=headers, floatfmt=".3f", tablefmt="fancy_grid"))
-
-
-def save(forward_roth_c, no_of_years, file="soil_model_forward.csv"):
-    """Save data from forward RothC run to a csv.
-    Default path is OUTPUT_DIR.
-
-    """
-    tot_soc = np.sum(forward_roth_c.SOC, axis=1)
-    inputs = np.append(forward_roth_c.inputs, [[0, 0]], axis=0)
-    data = np.column_stack(
-        (
-            tot_soc + forward_roth_c.soil.iom,
-            forward_roth_c.SOC,
-            np.array(len(tot_soc) * [forward_roth_c.soil.iom]),
-            inputs[:, 0],
-            inputs[:, 1],
-        )
-    )
-    cols = ["soc", "dpm", "rpm", "bio", "hum", "iom", "crop_in", "tree_in"]
-    if len(tot_soc) != no_of_years + 1:  # solve to value
-        cols.insert(0, "year")
-        x = np.array(list(range(-len(tot_soc) + 2, 2)))
-        x = x - forward_roth_c.Cy0Year
-        x[-1] = 0
-        data = np.column_stack((x, data))
-        csv_handler.print_csv(file, data, col_names=cols)
-    else:
-        csv_handler.print_csv(file, data, col_names=cols, print_years=True)

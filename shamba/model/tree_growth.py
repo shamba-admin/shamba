@@ -241,11 +241,12 @@ def create(
 
     return schema.load(params)  # type: ignore
 
+
 def from_csv(
     tree_params: List[TreeParams.TreeParamsData],
     allometric_key: str,
     csv_input_data: Dict[str, Any],
-    species_prefix: str = ""
+    species_prefix: str = "",
 ):
     """Construct Growth object using data in a csv file.
 
@@ -281,6 +282,7 @@ def from_csv(
     growth = create(tree_params, params, allometric_key)
 
     return growth
+
 
 def plot(tree_growth, fit=True, save_name=None):
     """Plot growth data and all four fits in a matplotlib figure."""
@@ -567,6 +569,7 @@ allometric = {
     "calculate_above_ground_biomass": calculate_above_ground_biomass,
 }
 
+
 # Uses spp_prefix_map to get the correct prefix for the species-specific columns
 def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
     default_prefix = "sp3_"
@@ -580,7 +583,7 @@ def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
         tree_params=tree_params,
         allometric_key=allometric_key,
         csv_input_data=csv_input_data,
-        species_prefix=spp_prefix_map.get(int(csv_input_data[spp_key]), default_prefix)
+        species_prefix=spp_prefix_map.get(int(csv_input_data[spp_key]), default_prefix),
     )
 
 

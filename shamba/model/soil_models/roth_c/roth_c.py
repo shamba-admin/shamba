@@ -6,42 +6,11 @@ from marshmallow import Schema, fields
 
 from ...climate import ClimateDataSchema
 from ...soil_params import SoilParamsSchema
+from ..soil_model_types import BaseSoilModelData, SoilModelBaseSchema
 
 
 # Class variables (defaults)
 K_BASE = np.array([10.0, 0.3, 0.66, 0.02])
-
-
-class RothCData:
-    """
-    Object for RothC soil models.
-    Includes methods and variables common to both forward and inverse.
-
-    Instance variables
-    ------------------
-    k       rate constants for the 4 soil pools (with RMF)
-    cover   vector with soil cover for each month (1 if covered, 0 else)
-
-    """
-
-    def __init__(
-        self,
-        soil_params,
-        climate,
-        cover,
-        k,
-    ):
-        self.soil = soil_params
-        self.climate = climate
-        self.cover = np.array(cover)
-        self.k = np.array(k)
-
-
-class RothCSchema(Schema):
-    soil_params = fields.Nested(SoilParamsSchema, required=True)
-    climate = fields.Nested(ClimateDataSchema, required=True)
-    cover = fields.List(fields.Float, required=True)
-    k = fields.List(fields.Float, required=True)
 
 
 # We probably do not need this `create` function
@@ -62,14 +31,14 @@ def create(soil, climate, cover):
         "k": get_rmf(climate=climate, cover=cover, soil=soil) * K_BASE,
     }
 
-    schema = RothCSchema()
+    schema = SoilModelBaseSchema()
     errors = schema.validate(params)
 
     if errors != {}:
         print(f"Errors in RothC data: {str(errors)}")
 
     validated_data = schema.load(params)
-    return RothCData(**validated_data)  # type: ignore
+    return BaseSoilModelData(**validated_data)  # type: ignore
 
 
 # Rate modifying-factor function - needed in forward and inverse
