@@ -42,6 +42,10 @@ def get_arguments_interactively():
     ).ask()
     arguments["allometric-key"] = selected_allometric_key
 
+    # Prompt for whether to print to stdout
+    print_to_stdout = questionary.confirm("Print to stdout?", default=False).ask()
+    arguments["print-to-stdout"] = print_to_stdout
+
     # Display instructions using a pure print — not necessary to prompt here
     print(
         """
@@ -88,18 +92,3 @@ parametres under 'trees in baseline' and 'trees in project'.
     log.basicConfig(format="%(levelname)s: %(message)s", level=log.INFO)
 
     return arguments
-
-def print_metadata():
-    """
-    Print the project metadata (timestamp and unique hex ID)
-    calculated in the cfg module.
-
-    """
-    filepath = os.path.join(configuration.SAVE_DIR, ".info")
-    with open(filepath, "w") as f:
-        id_str = configuration.ID if configuration.ID is not None else ""
-        time_str = configuration.TIME if configuration.TIME is not None else ""
-        proj_name_str = (
-            configuration.PROJ_NAME if configuration.PROJ_NAME is not None else ""
-        )
-        f.write(f"{id_str}\n{time_str}\n{proj_name_str}\n\n")

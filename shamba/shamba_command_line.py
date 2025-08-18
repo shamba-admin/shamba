@@ -369,80 +369,80 @@ def main(n, arguments):
     )
 
     # ----------
-    # Printing outputs
+    # Printing to stdout
     # ----------
+    if (arguments["print-to-stdout"]):
+        # Print some stuff?
+        Climate.print_to_stdout(intervention_emissions.climate)
+        SoilParams.print_to_stdout(intervention_emissions.soil)
 
-    # Print some stuff?
-    Climate.print_to_stdout(intervention_emissions.climate)
-    SoilParams.print_to_stdout(intervention_emissions.soil)
+        print_tree_growths(intervention_emissions.tree_growths)
 
-    print_tree_growths(intervention_emissions.tree_growths)
+        print_tree_projects(intervention_emissions.tree_projects)
 
-    print_tree_projects(intervention_emissions.tree_projects)
+        ForwardSoilModule.print_to_stdout(
+            intervention_emissions.for_roth, no_of_years=N_YEARS, label="initialisation"
+        )
+        ForwardSoilModule.print_to_stdout(
+            intervention_emissions.roth_base, no_of_years=N_YEARS, label="baseline"
+        )
+        ForwardSoilModule.print_to_stdout(
+            intervention_emissions.roth_project, no_of_years=N_YEARS, label="project"
+        )
+        # =============================================================================
 
-    ForwardSoilModule.print_to_stdout(
-        intervention_emissions.for_roth, no_of_years=N_YEARS, label="initialisation"
-    )
-    ForwardSoilModule.print_to_stdout(
-        intervention_emissions.roth_base, no_of_years=N_YEARS, label="baseline"
-    )
-    ForwardSoilModule.print_to_stdout(
-        intervention_emissions.roth_project, no_of_years=N_YEARS, label="project"
-    )
-    # =============================================================================
+        # Crop Emissions
+        print_crop_emissions(
+            intervention_emissions.crop_base_emissions,
+            intervention_emissions.crop_project_emissions,
+            intervention_emissions.crop_difference,
+        )
+        # =============================================================================
 
-    # Crop Emissions
-    print_crop_emissions(
-        intervention_emissions.crop_base_emissions,
-        intervention_emissions.crop_project_emissions,
-        intervention_emissions.crop_difference,
-    )
-    # =============================================================================
+        # Fertilizer Emissions
+        print_fertilizer_emissions(
+            fertiliser_base_emissions=intervention_emissions.fertiliser_base_emissions,
+            fertiliser_project_emissions=intervention_emissions.fertiliser_project_emissions,
+            fertiliser_difference=intervention_emissions.fertiliser_difference,
+            n_years=N_YEARS,
+        )
+        # =============================================================================
 
-    # Fertilizer Emissions
-    print_fertilizer_emissions(
-        fertiliser_base_emissions=intervention_emissions.fertiliser_base_emissions,
-        fertiliser_project_emissions=intervention_emissions.fertiliser_project_emissions,
-        fertiliser_difference=intervention_emissions.fertiliser_difference,
-        n_years=N_YEARS,
-    )
-    # =============================================================================
+        # Litter Emissions
+        print_litter_emissions(
+            litter_base_emissions=intervention_emissions.litter_base_emissions,
+            litter_project_emissions=intervention_emissions.litter_project_emissions,
+            litter_difference=intervention_emissions.litter_difference,
+            n_years=N_YEARS,
+        )
+        # =============================================================================
 
-    # Litter Emissions
-    print_litter_emissions(
-        litter_base_emissions=intervention_emissions.litter_base_emissions,
-        litter_project_emissions=intervention_emissions.litter_project_emissions,
-        litter_difference=intervention_emissions.litter_difference,
-        n_years=N_YEARS,
-    )
-    # =============================================================================
+        # Fire Emissions
+        print_fire_emissions(
+            fire_base_emissions=intervention_emissions.fire_base_emissions,
+            fire_project_emissions=intervention_emissions.fire_project_emissions,
+            fire_difference=intervention_emissions.fire_difference,
+            n_years=N_YEARS,
+        )
+        # =============================================================================
 
-    # Fire Emissions
-    print_fire_emissions(
-        fire_base_emissions=intervention_emissions.fire_base_emissions,
-        fire_project_emissions=intervention_emissions.fire_project_emissions,
-        fire_difference=intervention_emissions.fire_difference,
-        n_years=N_YEARS,
-    )
-    # =============================================================================
+        # Tree Eemissions
+        print_tree_emissions(
+            tree_base_emissions=intervention_emissions.tree_base_emissions,
+            tree_project_emissions=intervention_emissions.tree_project_emissions,
+            tree_difference=intervention_emissions.tree_difference,
+            n_years=N_YEARS,
+        )
+        # =============================================================================
 
-    # Tree Eemissions
-    print_tree_emissions(
-        tree_base_emissions=intervention_emissions.tree_base_emissions,
-        tree_project_emissions=intervention_emissions.tree_project_emissions,
-        tree_difference=intervention_emissions.tree_difference,
-        n_years=N_YEARS,
-    )
-    # =============================================================================
-
-    # Soil Emissions
-    print_soil_emissions(
-        soil_base_emissions=intervention_emissions.soil_base_emissions,
-        soil_project_emissions=intervention_emissions.soil_project_emissions,
-        soil_difference=intervention_emissions.soil_difference,
-        n_years=N_YEARS,
-    )
-    # =============================================================================
+        # Soil Emissions
+        print_soil_emissions(
+            soil_base_emissions=intervention_emissions.soil_base_emissions,
+            soil_project_emissions=intervention_emissions.soil_project_emissions,
+            soil_difference=intervention_emissions.soil_difference,
+            n_years=N_YEARS,
+        )
+        # =============================================================================
 
     # Total Emissions
     emit_difference = (
