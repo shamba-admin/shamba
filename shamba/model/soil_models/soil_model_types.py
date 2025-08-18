@@ -1,5 +1,6 @@
 from enum import Enum
-from marshmallow import Schema, fields
+import numpy as np
+from marshmallow import Schema, fields, post_load
 
 from ..climate import ClimateDataSchema
 from ..soil_params import SoilParamsSchema

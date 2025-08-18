@@ -26,8 +26,6 @@ import model.crop_model as CropModel
 import model.crop_params as CropParams
 import model.emit as Emit
 import model.litter as LitterModel
-import model.soil_models.roth_c.forward_roth_c as ForwardRothC
-import model.soil_models.roth_c.inverse_roth_c as InverseRothC
 import model.soil_params as SoilParams
 import model.tree_growth as TreeGrowth
 import model.tree_model as TreeModel
@@ -35,9 +33,15 @@ import model.tree_params as TreeParams
 from model import configuration
 from model.common.calculate_emissions import handle_intervention
 
+import model.soil_models.forward_soil_model as ForwardSoilModule
+import model.soil_models.inverse_soil_model as InverseSoilModule
+from model.soil_models.soil_model_types import SoilModelType
+
 _dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(_dir))
 
+ForwardSoilModel = ForwardSoilModule.get_soil_model(SoilModelType.ROTH_C)
+InverseSoilModel = InverseSoilModule.get_soil_model(SoilModelType.ROTH_C)
 
 def print_crop_emissions(
     crop_base_emissions: np.ndarray,
@@ -376,13 +380,13 @@ def main(n, arguments):
 
     print_tree_projects(intervention_emissions.tree_projects)
 
-    ForwardRothC.print_to_stdout(
+    ForwardSoilModule.print_to_stdout(
         intervention_emissions.for_roth, no_of_years=N_YEARS, label="initialisation"
     )
-    ForwardRothC.print_to_stdout(
+    ForwardSoilModule.print_to_stdout(
         intervention_emissions.roth_base, no_of_years=N_YEARS, label="baseline"
     )
-    ForwardRothC.print_to_stdout(
+    ForwardSoilModule.print_to_stdout(
         intervention_emissions.roth_project, no_of_years=N_YEARS, label="project"
     )
     # =============================================================================
@@ -537,20 +541,20 @@ def main(n, arguments):
         "crop_params",
     )
 
-    InverseRothC.save(intervention_emissions.inverse_roth, plot_name + "_invRoth.csv")
-    ForwardRothC.save(
-        forward_roth_c=intervention_emissions.for_roth,
+    InverseSoilModule.save(intervention_emissions.inverse_roth, plot_name + "_invRoth.csv")
+    ForwardSoilModule.save(
+        forward_soil_model=intervention_emissions.for_roth,
         no_of_years=N_YEARS,
         file=plot_name + "_forRoth.csv",
     )
 
-    ForwardRothC.save(
-        forward_roth_c=intervention_emissions.roth_base,
+    ForwardSoilModule.save(
+        forward_soil_model=intervention_emissions.roth_base,
         no_of_years=N_YEARS,
         file=plot_name + "_soil_model_base.csv",
     )
-    ForwardRothC.save(
-        forward_roth_c=intervention_emissions.roth_project,
+    ForwardSoilModule.save(
+        forward_soil_model=intervention_emissions.roth_project,
         no_of_years=N_YEARS,
         file=plot_name + "_soil_model_proj.csv",
     )
@@ -592,17 +596,17 @@ def main(n, arguments):
 
     plt.close()
 
-    ForwardRothC.plot(
+    ForwardSoilModule.plot(
         intervention_emissions.for_roth,
         no_of_years=N_YEARS,
         legend_string="initialisation",
     )
 
-    ForwardRothC.plot(
+    ForwardSoilModule.plot(
         intervention_emissions.roth_base, no_of_years=N_YEARS, legend_string="baseline"
     )
 
-    ForwardRothC.plot(
+    ForwardSoilModule.plot(
         intervention_emissions.roth_project,
         no_of_years=N_YEARS,
         legend_string="project",
