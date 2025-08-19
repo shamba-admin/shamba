@@ -1,9 +1,33 @@
 ## Getting Started
 
-### Local Installation
+### Docker Setup
+
+1. Ensure that Docker is installed on your system. Check the [official documentation](https://docs.docker.com/get-docker/) for how to install Docker for your specific operating system.
+2. Unzip the soil data file `./rasters/soil/hwsd.7z`.
+3. From the `shamba` directory, run the following command:
+```sh
+docker compose up
+```
+
+#### Web Application
+
+You can access the web application at `http://localhost:8000/main/#/`.
+
+#### Terminal
+
+To use the terminal interface from within the Docker container, follow these steps:
+
+1. Find the container ID of the running container: `docker ps`. Grab the ID of the `shamba-server` container.
+2. Run the following command: `docker exec -it <container-id> bash`
+3. Run `cd ..` to go back to the `shamba` directory.
+4. Run `poetry run python shamba_command_line.py` to run the model.
+
+**N.B.** The tests can also be run from within the Docker container. In step 4, run `poetry run pytest` to run the tests.
+
+### Local Setup
 
 1. Install `gdal`. The currently supported version of `gdal` is `3.11.3`. Check the [official documentation](https://gdal.org/en/stable/download.html#binaries) for how to install `gdal` for your specific operating system.
-2. Please unzip the soil data file `./rasters/soil/hwsd.7z`.
+2. Unzip the soil data file `./rasters/soil/hwsd.7z`.
 3. Install `pyenv` which is an easy-to-use tool to manage multiple Python versions. Check the [official documentation](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation) for how to install `pyenv` for your specific operating system.
 4. Install Python `3.10`: `pyenv install 3.10` then `pyenv local 3.10`.
 5. Install `poetry` by following the [official documentation](https://python-poetry.org/docs/).
