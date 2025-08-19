@@ -359,14 +359,14 @@ def main(n, arguments):
     # ----------
     # YEARS = length of tree data. ACCT = years in accounting period
     N_YEARS = int(csv_input_data["yrs_proj"])
-    N_TREES = 3  # TODO: parameteris this
+    N_COHORTS = arguments["n-cohorts"] #TODO: amend input questionnaire to allow variable number of cohorts. Consider baseline single cohort rule
 
     allometric_key = arguments["allometric-key"]
 
     intervention_emissions = handle_intervention(
         intervention_input=csv_input_data,
+        n_cohorts=N_COHORTS,
         allometry=allometric_key,
-        no_of_trees=N_TREES,
         use_api=arguments["use-api"],
         create_forward_soil_model=ForwardSoilModel.create,
         create_inverse_soil_model=InverseSoilModel.create,

@@ -215,9 +215,9 @@ def save(tree_params: TreeParamsData, file="tree_params.csv"):
 
 
 def create_tree_params_from_species_index(
-    csv_input_data: Dict[str, Any], tree_count: int
+    csv_input_data: Dict[str, Any], cohort_count: int
 ):
     return [
         from_species_index(int(csv_input_data[f"species{i + 1}"]))
-        for i in range(tree_count)
+        for i in range(cohort_count)
     ]

@@ -504,7 +504,7 @@ def create_tree_projects(
     mortality_project,
     mortality_fraction_left_project,
     no_of_years,
-    tree_count,
+    cohort_count,
 ):
     return [
         from_defaults(
@@ -518,5 +518,5 @@ def create_tree_projects(
             mortality_fraction=mortality_fraction_left_project,
             no_of_years=no_of_years,
         )
-        for i in range(tree_count)
+        for i in range(cohort_count)
     ]

@@ -52,7 +52,7 @@ class GetTreeModelReturnData(NamedTuple):
 def get_tree_model_data(
     intervention_input: Dict[str, Union[float, int]],
     no_of_years: int,
-    no_of_trees: int,
+    no_of_cohorts: int,
     allometry: str,
 ) -> GetTreeModelReturnData:
     # Linking tree cohort parameteres
@@ -64,7 +64,7 @@ def get_tree_model_data(
     )
 
     tree_params = TreeParams.create_tree_params_from_species_index(
-        intervention_input, no_of_trees
+        intervention_input, no_of_cohorts
     )
 
     # Linking tree growth
@@ -76,7 +76,7 @@ def get_tree_model_data(
     )
 
     tree_growths = TreeGrowth.create_tree_growths(
-        intervention_input, tree_params, allometry, no_of_trees
+        intervention_input, tree_params, allometry, no_of_cohorts
     )
 
     # Specify thinning regime and fraction left in field (lif)
@@ -194,7 +194,7 @@ def get_tree_model_data(
         mortality_project=mortality_project,
         mortality_fraction_left_project=mortality_fraction_left_project,
         no_of_years=no_of_years,
-        tree_count=no_of_trees,
+        cohort_count=no_of_cohorts,
     )
 
     return GetTreeModelReturnData(
@@ -611,8 +611,8 @@ def handle_intervention(
     intervention_input: Dict[str, Union[float, int]],
     create_forward_soil_model,
     create_inverse_soil_model,
+    n_cohorts: int,
     allometry: str = CONSTANTS.DEFAULT_ALLOMORPHY,
-    no_of_trees: int = CONSTANTS.DEFAULT_NO_OF_TREES,
     use_api: bool = CONSTANTS.DEFAULT_USE_API,
 ):
     no_of_years = (
@@ -652,7 +652,7 @@ def handle_intervention(
     tree_model_data = get_tree_model_data(
         no_of_years=no_of_years,
         intervention_input=intervention_input,
-        no_of_trees=no_of_trees,
+        no_of_cohorts=n_cohorts,
         allometry=allometry,
     )
 

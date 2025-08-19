@@ -587,7 +587,7 @@ def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
     )
 
 
-def create_tree_growths(csv_input_data, tree_params, allometric_key, tree_count):
+def create_tree_growths(csv_input_data, tree_params, allometric_key, cohort_count):
     return [
         get_growth(
             csv_input_data,
@@ -595,7 +595,7 @@ def create_tree_growths(csv_input_data, tree_params, allometric_key, tree_count)
             tree_params[i],
             allometric_key=allometric_key,
         )
-        for i in range(tree_count)
+        for i in range(cohort_count)
     ]
 
 

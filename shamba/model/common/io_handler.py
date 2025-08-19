@@ -35,6 +35,11 @@ def get_arguments_interactively():
     use_api = questionary.confirm("Use API?", default=False).ask()
     arguments["use-api"] = use_api
 
+    # Prompt for n_cohorts
+    # Default to 1 if integer not provided
+    n_cohorts = input("Enter number of tree cohorts (defaults to 1): ").strip()
+    arguments["n-cohorts"] = n_cohorts if n_cohorts and int(n_cohorts) == n_cohorts else 1
+
     # Prompt for allometric key
     allometric_keys = list(TreeGrowth.allometric.keys())
     selected_allometric_key = questionary.select(

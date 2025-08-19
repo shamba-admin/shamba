@@ -16,7 +16,7 @@ def test_crop_model():
     file_path = os.path.join(configuration.TESTS_DIR, "fixtures", input_csv)
     csv_input_data = csv_handler.get_csv_input_data(0, file_path)
     N_YEARS = int(csv_input_data["yrs_proj"])
-    N_TREES = 3
+    N_COHORTS = 3
 
     base_fire_interval = int(csv_input_data["fire_int_base"])
     if base_fire_interval == 0:
@@ -85,10 +85,10 @@ def test_crop_model():
     )
 
     tree_params = TreeParams.create_tree_params_from_species_index(
-        csv_input_data, N_TREES
+        csv_input_data, N_COHORTS
     )
     tree_growths = TreeGrowth.create_tree_growths(
-        csv_input_data, tree_params, "chave dry", N_TREES
+        csv_input_data, tree_params, "chave dry", N_COHORTS
     )
     thinning_project = np.zeros(N_YEARS + 1)
     thinning_project[int(csv_input_data["thin_proj_yr1"])] = float(
@@ -132,7 +132,7 @@ def test_crop_model():
         mortality_project=mortality_project,
         mortality_fraction_left_project=mortality_fraction_left_project,
         no_of_years=N_YEARS,
-        tree_count=N_TREES,
+        cohort_count=N_COHORTS,
     )
 
     tree_base_emissions = Emit.create(
