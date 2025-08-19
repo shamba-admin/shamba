@@ -383,9 +383,9 @@ def get_inputs(
         "DMoff": np.zeros(len(C[:, 0])),
     }
     output["below"] = {
-        "carbon": 0.001 * CONSTANTS.ROOT_IN_TOP_30 * (C[:, 3] + C[:, 4]),
-        "nitrogen": 0.001 * CONSTANTS.ROOT_IN_TOP_30 * (N[:, 3] + N[:, 4]),
-        "DMon": 0.001 * CONSTANTS.ROOT_IN_TOP_30 * (DM[:, 3] + DM[:, 4]),
+        "carbon": 0.001 * CONSTANTS.TREE_ROOT_IN_TOP_30 * (C[:, 3] + C[:, 4]),
+        "nitrogen": 0.001 * CONSTANTS.TREE_ROOT_IN_TOP_30 * (N[:, 3] + N[:, 4]),
+        "DMon": 0.001 * CONSTANTS.TREE_ROOT_IN_TOP_30 * (DM[:, 3] + DM[:, 4]),
         "DMoff": np.zeros(len(C[:, 0])),
     }
     return output, woody_biomass, mass_balance

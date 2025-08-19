@@ -9,9 +9,6 @@ from marshmallow import Schema, fields, post_load
 from .common import csv_handler
 from .common_schema import OutputSchema as ClimateDataOutputSchema
 
-# from .crop_params import CropParams
-from .common.constants import ROOT_IN_TOP_30
-
 from .crop_params import (
     CropParamsData,
     CropParamsSchema,
@@ -89,7 +86,7 @@ def get_inputs(crop_params, no_of_years, crop_yield, left_in_field):
     residue *= np.ones(no_of_years)  # convert to array
     residue_AG = residue * left_in_field
     residue_BG = crop_yield + residue
-    residue_BG *= crop_params.root_to_shoot * CONSTANTS.ROOT_IN_TOP_30
+    residue_BG *= crop_params.root_to_shoot * CONSTANTS.CROP_ROOT_IN_TOP_30
 
     output = {}
 

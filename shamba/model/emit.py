@@ -10,7 +10,7 @@ import numpy as np
 
 from model import configuration
 from model.common import csv_handler
-from model.common.constants import (ef, N_ef, gwp, cf, C_to_CO2_conversion_factor, N_to_N2O_conversion_factor, volatile_frac_org, volatile_frac_synth)
+from model.common.constants import (ef, N_ef, DEFAULT_GWP, cf, C_to_CO2_conversion_factor, N_to_N2O_conversion_factor, volatile_frac_org, volatile_frac_synth)
 
 # Fire vector - can redefine from elsewhere if there are fires
 # fire = np.zeros(configuration.N_YEARS)
@@ -242,7 +242,7 @@ def nitrogen_emit(no_of_years, crop, tree, litter):
 
 
 
-    return to_emit * N_ef * N_to_N2O_conversion_factor * gwp["N2O"]
+    return to_emit * N_ef * N_to_N2O_conversion_factor * DEFAULT_GWP["N2O"]
 
 
 def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
@@ -267,8 +267,8 @@ def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
     for li in litter:
         tree_inputs_on += li.output["above"]["DMon"]
 
-    crop_temperature = ef["crop_CH4"] * gwp["CH4"] + ef["crop_N2O"] * gwp["N2O"]
-    tree_temperature = ef["tree_CH4"] * gwp["CH4"] + ef["tree_N2O"] * gwp["N2O"]
+    crop_temperature = ef["crop_CH4"] * DEFAULT_GWP["CH4"] + ef["crop_N2O"] * DEFAULT_GWP["N2O"]
+    tree_temperature = ef["tree_CH4"] * DEFAULT_GWP["CH4"] + ef["tree_N2O"] * DEFAULT_GWP["N2O"]
 
     # Burned when fire == 1
     emit += crop_inputs_on * fire * cf["crop"] * crop_temperature
@@ -316,6 +316,6 @@ def fert_emit(litter, fert, no_of_years):
             1 - volatile_frac_synth
         )
 
-    emit *= N_ef * N_to_N2O_conversion_factor * gwp["N2O"]
+    emit *= N_ef * N_to_N2O_conversion_factor * DEFAULT_GWP["N2O"]
 
     return emit
