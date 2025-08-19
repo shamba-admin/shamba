@@ -16,12 +16,12 @@ from model.common import csv_handler
 from model.common.data_sources.climate import get_climate_data
 
 
-def validate_list_length(lst):
+def validate_monthly_list_length(lst):
     return ["List must contain 12 elements"] if len(lst) != 12 else []
 
 
 def validate_temperature(values):
-    length_errors = validate_list_length(values)
+    length_errors = validate_monthly_list_length(values)
     value_errors = [
         "Temperature out of expected range or is NaN"
         for val in values
@@ -31,7 +31,7 @@ def validate_temperature(values):
 
 
 def validate_rain(values):
-    length_errors = validate_list_length(values)
+    length_errors = validate_monthly_list_length(values)
     value_errors = [
         "Rain out of expected range or is NaN"
         for val in values
@@ -41,7 +41,7 @@ def validate_rain(values):
 
 
 def validate_evaporation(values):
-    length_errors = validate_list_length(values)
+    length_errors = validate_monthly_list_length(values)
     value_errors = [
         "Evaporation out of expected range or is NaN"
         for val in values
