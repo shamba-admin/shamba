@@ -7,9 +7,11 @@ import os
 from datetime import datetime
 import questionary
 from questionary import Validator, ValidationError
+from questionary import Choice
 
 from model import configuration
 import model.tree_growth as TreeGrowth
+from model.soil_models.soil_model_types import SoilModelType
 
 
 def get_arguments_interactively():
@@ -41,6 +43,19 @@ def get_arguments_interactively():
         default="chave dry"
     ).ask()
     arguments["allometric-key"] = selected_allometric_key
+
+    # Prompt for allometric key
+    soil_models = [
+        Choice(title="Roth C", value=SoilModelType.ROTH_C),
+        Choice(title="Example Soil Model", value=SoilModelType.EXAMPLE)
+    ]
+
+    selected_soil_model = questionary.select(
+        "Select a soil model:",
+        choices=soil_models,
+        default=SoilModelType.ROTH_C
+    ).ask()
+    arguments["soil-model"] = selected_soil_model
 
     # Prompt for whether to print to stdout
     print_to_stdout = questionary.confirm("Print to stdout?", default=False).ask()

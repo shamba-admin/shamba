@@ -35,13 +35,10 @@ from model.common.calculate_emissions import handle_intervention
 
 import model.soil_models.forward_soil_model as ForwardSoilModule
 import model.soil_models.inverse_soil_model as InverseSoilModule
-from model.soil_models.soil_model_types import SoilModelType
 
 _dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(_dir))
 
-ForwardSoilModel = ForwardSoilModule.get_soil_model(SoilModelType.ROTH_C)
-InverseSoilModel = InverseSoilModule.get_soil_model(SoilModelType.ROTH_C)
 
 def print_crop_emissions(
     crop_base_emissions: np.ndarray,
@@ -328,6 +325,11 @@ def main(n, arguments):
     # Create a new project directory
     setup_project_directory(project_name, arguments)
 
+    # Get soil model
+    soil_model_type = arguments["soil-model"]
+    ForwardSoilModel = ForwardSoilModule.get_soil_model(soil_model_type)
+    InverseSoilModel = InverseSoilModule.get_soil_model(soil_model_type)
+
     # Setup the project directory constants
     configuration.SAVE_DIR = os.path.join(configuration.PROJECT_DIR, project_name)
 
@@ -366,6 +368,8 @@ def main(n, arguments):
         allometry=allometric_key,
         no_of_trees=N_TREES,
         use_api=arguments["use-api"],
+        create_forward_soil_model=ForwardSoilModel.create,
+        create_inverse_soil_model=InverseSoilModel.create,
     )
 
     # ----------

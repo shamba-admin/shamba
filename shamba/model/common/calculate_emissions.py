@@ -20,9 +20,6 @@ from model.soil_models.soil_model_types import SoilModelType, ForwardSoilModelDa
 get_float: Callable[[str, Dict[str, Any]], float] = compose(float, get)  # type: ignore
 get_int: Callable[[str, Dict[str, Any]], int] = compose(int, get)  # type: ignore
 
-ForwardSoilModel = ForwardSoilModule.get_soil_model(SoilModelType.ROTH_C)
-InverseSoilModel = InverseSoilModule.get_soil_model(SoilModelType.ROTH_C)
-
 def get_location(year_input: Dict[str, Any]) -> Tuple[float, float]:
     return (
         get_float(CONSTANTS.LOCATION_LATITIUDE_KEY, year_input),
@@ -358,6 +355,8 @@ def get_soil_carbon_data(
     tree_projects: List[TreeModel.TreeModel],
     litter_external_base: LitterModel.LitterModelData,
     litter_external_project: LitterModel.LitterModelData,
+    create_forward_soil_model,
+    create_inverse_soil_model,
 ) -> GetSoilCarbonReturnData:
     # soil cover for baseline
     cover_base = np.zeros(12)
@@ -377,7 +376,7 @@ def get_soil_carbon_data(
     ] = get_int(CONSTANTS.PROJECT_COVER_PRES_KEY, intervention_input)
 
     # Solve to y=0
-    for_roth = ForwardSoilModel.create(
+    for_roth = create_forward_soil_model(
         soil,
         climate,
         cover_base,
@@ -390,7 +389,7 @@ def get_soil_carbon_data(
 
     # Soil carbon for baseline and project
     # TODO: check this one
-    roth_base = ForwardSoilModel.create(
+    roth_base = create_forward_soil_model(
         soil=soil,
         climate=climate,
         cover=cover_base,
@@ -402,7 +401,7 @@ def get_soil_carbon_data(
         fire=fire_base,
     )
 
-    roth_project = ForwardSoilModel.create(
+    roth_project = create_forward_soil_model(
         soil,
         climate,
         cover_proj,
@@ -610,6 +609,8 @@ class InterventionReturnData(NamedTuple):
 
 def handle_intervention(
     intervention_input: Dict[str, Union[float, int]],
+    create_forward_soil_model,
+    create_inverse_soil_model,
     allometry: str = CONSTANTS.DEFAULT_ALLOMORPHY,
     no_of_trees: int = CONSTANTS.DEFAULT_NO_OF_TREES,
     use_api: bool = CONSTANTS.DEFAULT_USE_API,
@@ -629,7 +630,7 @@ def handle_intervention(
     # SOIL EQUILIBRIUM SOLVE
     # ----------
     soil = SoilParams.from_location(location, use_api=use_api)
-    inverse_roth = InverseSoilModel.create(soil, climate)
+    inverse_roth = create_inverse_soil_model(soil, climate)
 
     # ----------
     # MODEL DATA
@@ -711,6 +712,8 @@ def handle_intervention(
         tree_projects=tree_model_data.tree_projects,
         litter_external_base=litter_model_data.litter_external_base,
         litter_external_project=litter_model_data.litter_external_project,
+        create_forward_soil_model=create_forward_soil_model,
+        create_inverse_soil_model=create_inverse_soil_model,
     )
 
     emissions = get_emissions_data(
