@@ -31,16 +31,31 @@ N_to_N2O_conversion_factor = 44.0 / 28  # for N2O-N to N2O
 #  Emission factors
 # =============================================================================
 
-# From table 2.5 IPCC 2006 GHG Inventory # TODO: make these 2019 numbers
-ef = {"crop_N2O": 0.07, "crop_CH4": 2.7, "tree_N2O": 0.2, "tree_CH4": 6.8}
-N_ef = 0.01  # emission factor [kbN20-N/kg N] # TODO: clarify where this is from and label better
+# From Table 2.5 IPCC 2006 GHG Inventory (unchanged in 2019)
+# "EMISSION FACTORS (g kg-1 DRY MATTER BURNT) FOR VARIOUS TYPES OF BURNING."
+# Tree based on "Tropical Forest".
+ef_burn = {"crop_N2O": 0.07, "crop_CH4": 2.7, "tree_N2O": 0.2, "tree_CH4": 6.8}
 
-# combustion factor from IPCC AFOLU table
-cf = {"crop": 0.8, "tree": 0.74}
+# From Table 11.1 IPCC 2019 GHG Inventory 
+#  "DEFAULT EMISSION FACTORS TO ESTIMATE DIRECT N2O EMISSIONS FROM MANAGED SOILS"
+# (EF_1)
+ef_N_inputs = 0.01  # [kg N20-N/kg N]
 
-# Some parameters. See methodology
-volatile_frac_synth = 0.1
-volatile_frac_org = 0.2
+# From Table 2.6 IPCC 2019 GHG Inventory
+# "COMBUSTION FACTOR VALUES (PROPORTION OF PREFIRE FUEL BIOMASS CONSUMED) 
+# FOR FIRES IN A RANGE OF VEGETATION TYPES"
+# Tree based on "Savanna Woodlands", crop based on "Other Crops"
+# TODO: confirm that these two mappings are correct: should it rather use tropical forest, and maize?
+combustion_factor = {"crop": 0.85, "tree": 0.74}
+
+# From Table 11.3 IPCC 2019 GHG Inventory
+# "DEFAULT EMISSION, VOLATILISATION AND LEACHING FACTORS FOR 
+# INDIRECT SOIL N2O EMISSIONS"
+# (Frac_gasf, Frac_gasm, EF_4)
+volatile_frac_synthetic_fertiliser = 0.11 # [(kg NH3-N + NOx-N) / kg N applied]
+volatile_frac_organic_fertiliser = 0.21 # [(kg NH3-N + NOx-N) / kg N applied]
+ef_N_deposition = 0.01  # [kg N20-N/ (kg NH3-N + NOx-N) volatilised]
+# TODO: implement ef_N_deposition: because it is numerically the same as ef_N_inputs, they were treated as identical, though represent different quantities
 
 # =============================================================================
 #  Default values
@@ -56,7 +71,7 @@ DEFAULT_YEAR = datetime.now().year # TODO: check that this is overwritten at com
 # -------------------------
 # b) values with a general default, that users may want to manually change:
 
-DEFAULT_GWP = GWP_SAR # TODO: change to AR5
+DEFAULT_GWP = GWP_SAR # TODO: change to AR5, will break tests
 TREE_ROOT_IN_TOP_30 = 0.7
 CROP_ROOT_IN_TOP_30 = 0.7
 # -------------------------

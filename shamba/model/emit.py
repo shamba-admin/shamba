@@ -10,7 +10,7 @@ import numpy as np
 
 from model import configuration
 from model.common import csv_handler
-from model.common.constants import (ef, N_ef, DEFAULT_GWP, cf, C_to_CO2_conversion_factor, N_to_N2O_conversion_factor, volatile_frac_org, volatile_frac_synth)
+from model.common.constants import (ef_burn, ef_N_inputs, ef_N_deposition, DEFAULT_GWP, combustion_factor, C_to_CO2_conversion_factor, N_to_N2O_conversion_factor, volatile_frac_organic_fertiliser, volatile_frac_synthetic_fertiliser)
 
 # Fire vector - can redefine from elsewhere if there are fires
 # fire = np.zeros(configuration.N_YEARS)
@@ -57,8 +57,9 @@ def reduce_from_fire(
 
     # Reduce above-ground inputs from fire
     for i in np.where(fire == 1):
-        crop_inputs["above"][i] *= 1 - cf["crop"]
-        tree_inputs["above"][i] *= 1 - cf["crop"]
+        crop_inputs["above"][i] *= 1 - combustion_factor["crop"]
+        tree_inputs["above"][i] *= 1 - combustion_factor["tree"]
+        # TODO: confirm this should say tree. It said crop - bug?
 
     # Return sum of above and below
     reduced = (sum(crop_inputs.values()), sum(tree_inputs.values()))
@@ -242,7 +243,7 @@ def nitrogen_emit(no_of_years, crop, tree, litter):
 
 
 
-    return to_emit * N_ef * N_to_N2O_conversion_factor * DEFAULT_GWP["N2O"]
+    return to_emit * ef_N_inputs * N_to_N2O_conversion_factor * DEFAULT_GWP["N2O"]
 
 
 def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
@@ -267,12 +268,12 @@ def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
     for li in litter:
         tree_inputs_on += li.output["above"]["DMon"]
 
-    crop_temperature = ef["crop_CH4"] * DEFAULT_GWP["CH4"] + ef["crop_N2O"] * DEFAULT_GWP["N2O"]
-    tree_temperature = ef["tree_CH4"] * DEFAULT_GWP["CH4"] + ef["tree_N2O"] * DEFAULT_GWP["N2O"]
+    crop_CO2_ef = ef_burn["crop_CH4"] * DEFAULT_GWP["CH4"] + ef_burn["crop_N2O"] * DEFAULT_GWP["N2O"]
+    tree_CO2_ef = ef_burn["tree_CH4"] * DEFAULT_GWP["CH4"] + ef_burn["tree_N2O"] * DEFAULT_GWP["N2O"]
 
     # Burned when fire == 1
-    emit += crop_inputs_on * fire * cf["crop"] * crop_temperature
-    emit += tree_inputs_on * fire * cf["tree"] * tree_temperature
+    emit += crop_inputs_on * fire * combustion_factor["crop"] * crop_CO2_ef
+    emit += tree_inputs_on * fire * combustion_factor["tree"] * tree_CO2_ef
 
     # whether to burn off-farm crop residues every year
     # construct a list if only one bool is given
@@ -289,7 +290,7 @@ def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
             if burn_off_lst[i]:
                 crop_inputs_off += c.output["above"]["DMoff"]
 
-        emit += crop_inputs_off * cf["crop"] * crop_temperature
+        emit += crop_inputs_off * combustion_factor["crop"] * crop_CO2_ef
 
     emit *= 0.001  # convert to tonnes
     return emit
@@ -306,16 +307,16 @@ def fert_emit(litter, fert, no_of_years):
 
     # calculate emissions
     emit = np.zeros(no_of_years)
-    # still need to add fertiliser ************
+    # still need to add fertiliser ************ TODO? also use ef_N_deposition
     for li in litter:
         emit += np.array(li.output["above"]["nitrogen"], dtype=float) * (
-            1 - volatile_frac_org
+            1 - volatile_frac_organic_fertiliser
         )
     for f in fert:
         emit += np.array(f.output["above"]["nitrogen"], dtype=float) * (
-            1 - volatile_frac_synth
+            1 - volatile_frac_synthetic_fertiliser
         )
 
-    emit *= N_ef * N_to_N2O_conversion_factor * DEFAULT_GWP["N2O"]
+    emit *= ef_N_inputs * N_to_N2O_conversion_factor * DEFAULT_GWP["N2O"]
 
     return emit
