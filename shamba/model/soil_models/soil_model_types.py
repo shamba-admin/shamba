@@ -10,7 +10,8 @@ class SoilModelType(Enum):
     ROTH_C = "RothC"
     EXAMPLE = "Example"
 
-
+# NB. the format of the following 3 classes currently matches requirements for RothC, 
+# which is the only soil C model currently available.
 class ForwardSoilModelData:
     """
     Forward RothC object
@@ -104,9 +105,9 @@ class ForwardSoilModelBaseSchema(SoilModelBaseSchema):
 
     @post_load
     def build_forward_soil_model(self, data, **kwargs):
-        roth_c_data = {k: data[k] for k in SoilModelBaseSchema().fields.keys()}
+        soil_c_data = {k: data[k] for k in SoilModelBaseSchema().fields.keys()}
         forward_data = {k: data[k] for k in ["SOC", "inputs", "Cy0Year"]}
-        return ForwardSoilModelData(**forward_data, **roth_c_data)
+        return ForwardSoilModelData(**forward_data, **soil_c_data)
 
 
 class InverseSoilModelBaseSchema(SoilModelBaseSchema):
@@ -116,6 +117,6 @@ class InverseSoilModelBaseSchema(SoilModelBaseSchema):
 
     @post_load
     def build_inverse_soil_model(self, data, **kwargs):
-        roth_c_data = {k: data[k] for k in SoilModelBaseSchema().fields.keys()}
+        soil_c_data = {k: data[k] for k in SoilModelBaseSchema().fields.keys()}
         inverse_data = {k: data[k] for k in ["eq_C", "input_C", "x"]}
-        return InverseSoilModelData(**inverse_data, **roth_c_data)
+        return InverseSoilModelData(**inverse_data, **soil_c_data)

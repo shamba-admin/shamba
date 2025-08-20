@@ -7,13 +7,15 @@ import model.soil_models.forward_soil_model as ForwardSoilModule
 import model.soil_models.inverse_soil_model as InverseSoilModule
 from model.soil_models.soil_model_types import SoilModelType
 
-ForwardSoilModel = ForwardSoilModule.get_soil_model(SoilModelType.ROTH_C)
-InverseSoilModel = InverseSoilModule.get_soil_model(SoilModelType.ROTH_C)
+
 
 def run(project_name, data, use_api: bool):
     inputs: Optional[List[Dict[str, Any]]] = get("inputs", data) or None  # type: ignore
+    # TODO: Static placeholder values. Instead, pick these up from user input
     allometry = str(get(CONSTANTS.ALLOMETRY_KEY, data, "chave dry"))
-    n_cohorts = int(get(CONSTANTS.EXAMPLE_N_COHORTS)) # TODO: pick this up from user input
+    n_cohorts = int(get(CONSTANTS.EXAMPLE_N_COHORTS)) 
+    ForwardSoilModel = ForwardSoilModule.get_soil_model(SoilModelType.ROTH_C)
+    InverseSoilModel = InverseSoilModule.get_soil_model(SoilModelType.ROTH_C)
 
     if inputs is None:
         return []
@@ -25,7 +27,6 @@ def run(project_name, data, use_api: bool):
                 n_cohorts=n_cohorts,
                 allometry=allometry,
                 use_api=use_api,
-                # Static placeholder values. Ideally these should come from the UI
                 no_of_trees=3,
                 create_forward_soil_model=ForwardSoilModel.create,
                 create_inverse_soil_model=InverseSoilModel.create,

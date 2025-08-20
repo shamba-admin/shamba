@@ -338,7 +338,7 @@ def get_crop_model_data(
 class GetSoilCarbonReturnData(NamedTuple):
     base_forward_soil_data: ForwardSoilModelData
     project_forward_soil_data: ForwardSoilModelData
-    for_roth: ForwardSoilModelData
+    for_soil: ForwardSoilModelData
 
 
 def get_soil_carbon_data(
@@ -376,7 +376,7 @@ def get_soil_carbon_data(
     ] = get_int(CONSTANTS.PROJECT_COVER_PRES_KEY, intervention_input)
 
     # Solve to y=0
-    for_roth = create_forward_soil_model(
+    for_soil = create_forward_soil_model(
         soil,
         climate,
         cover_base,
@@ -393,7 +393,7 @@ def get_soil_carbon_data(
         soil=soil,
         climate=climate,
         cover=cover_base,
-        Ci=for_roth.SOC[-1],
+        Ci=for_soil.SOC[-1],
         no_of_years=no_of_years,
         crop=crop_base,
         tree=[tree_base],
@@ -405,7 +405,7 @@ def get_soil_carbon_data(
         soil,
         climate,
         cover_proj,
-        Ci=for_roth.SOC[-1],
+        Ci=for_soil.SOC[-1],
         no_of_years=no_of_years,
         crop=crop_project,
         tree=tree_projects,
@@ -414,7 +414,7 @@ def get_soil_carbon_data(
     )
 
     return GetSoilCarbonReturnData(
-        base_forward_soil_data=base_forward_soil_data, project_forward_soil_data=project_forward_soil_data, for_roth=for_roth
+        base_forward_soil_data=base_forward_soil_data, project_forward_soil_data=project_forward_soil_data, for_soil=for_soil
     )
 
 
@@ -601,7 +601,7 @@ class InterventionReturnData(NamedTuple):
     crop_par_project: List[CropParams.CropParamsData]
     emit_base_emissions: np.ndarray
     emit_project_emissions: np.ndarray
-    for_roth: ForwardSoilModelData
+    for_soil: ForwardSoilModelData
     base_forward_soil_data: ForwardSoilModelData
     project_forward_soil_data: ForwardSoilModelData
     inverse_soil_model: InverseSoilModelData
@@ -767,7 +767,7 @@ def handle_intervention(
         fire_base_emissions=fire_emissions.base_emissions,
         fire_difference=fire_emissions.difference,
         fire_project_emissions=fire_emissions.project_emissions,
-        for_roth=soil_carbon_data.for_roth,
+        for_soil=soil_carbon_data.for_soil,
         inverse_soil_model=inverse_soil_model,
         litter_base_emissions=litter_emissions.base_emissions,
         litter_difference=litter_emissions.difference,

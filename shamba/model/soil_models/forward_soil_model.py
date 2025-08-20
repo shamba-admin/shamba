@@ -23,7 +23,7 @@ def get_soil_model(soil_model_type: SoilModelType):
 
 
 def print_to_stdout(forward_soil_model: ForwardSoilModelData, no_of_years: int, label: str) -> None:
-    """Print data from forward RothC run to stdout using tabulate with a functional approach."""
+    """Print data from forward soil model run to stdout using tabulate with a functional approach."""
     table_title = f"FORWARD CALCULATIONS for {label}"
 
     tot_soc = np.sum(forward_soil_model.SOC, axis=1)

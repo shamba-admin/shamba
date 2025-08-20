@@ -16,7 +16,8 @@ def get_soil_model(soil_model_type: SoilModelType):
         case _:
             raise ValueError(f"Unknown soil model type: {soil_model_type}")
 
-
+# NB the format of the following print_to_stdout currently matches requirements for RothC, 
+# which is the only soil C model currently available.
 def print_to_stdout(inverse_soil_model: InverseSoilModelData):
     pools = ["DPM", "RPM", "BIO", "HUM"]
     print("\nINVERSE CALCULATIONS")
