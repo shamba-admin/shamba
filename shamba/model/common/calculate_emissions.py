@@ -5,8 +5,6 @@ import numpy as np
 import model.climate as Climate
 import model.crop_model as CropModel
 import model.litter as LitterModel
-import model.soil_models.roth_c.forward_roth_c as ForwardRothC
-import model.soil_models.roth_c.inverse_roth_c as InverseRothC
 import model.soil_params as SoilParams
 import model.tree_growth as TreeGrowth
 import model.tree_model as TreeModel
@@ -15,9 +13,12 @@ import model.crop_params as CropParams
 import model.emit as Emit
 import model.common.constants as CONSTANTS
 
+import model.soil_models.forward_soil_model as ForwardSoilModule
+import model.soil_models.inverse_soil_model as InverseSoilModule
+from model.soil_models.soil_model_types import SoilModelType, ForwardSoilModelData, InverseSoilModelData
+
 get_float: Callable[[str, Dict[str, Any]], float] = compose(float, get)  # type: ignore
 get_int: Callable[[str, Dict[str, Any]], int] = compose(int, get)  # type: ignore
-
 
 def get_location(year_input: Dict[str, Any]) -> Tuple[float, float]:
     return (
@@ -335,9 +336,9 @@ def get_crop_model_data(
 
 
 class GetSoilCarbonReturnData(NamedTuple):
-    roth_base: ForwardRothC.ForwardRothCData
-    roth_project: ForwardRothC.ForwardRothCData
-    for_roth: ForwardRothC.ForwardRothCData
+    base_forward_soil_data: ForwardSoilModelData
+    project_forward_soil_data: ForwardSoilModelData
+    for_roth: ForwardSoilModelData
 
 
 def get_soil_carbon_data(
@@ -345,7 +346,7 @@ def get_soil_carbon_data(
     no_of_years: int,
     climate: Climate.ClimateData,
     soil: SoilParams.SoilParamsData,
-    inverse_roth: InverseRothC.InverseRothCData,
+    inverse_soil_model: InverseSoilModelData,
     fire_base: np.ndarray,
     fire_project: np.ndarray,
     crop_base: List[CropModel.CropModelData],
@@ -354,6 +355,8 @@ def get_soil_carbon_data(
     tree_projects: List[TreeModel.TreeModel],
     litter_external_base: LitterModel.LitterModelData,
     litter_external_project: LitterModel.LitterModelData,
+    create_forward_soil_model,
+    create_inverse_soil_model,
 ) -> GetSoilCarbonReturnData:
     # soil cover for baseline
     cover_base = np.zeros(12)
@@ -373,12 +376,12 @@ def get_soil_carbon_data(
     ] = get_int(CONSTANTS.PROJECT_COVER_PRES_KEY, intervention_input)
 
     # Solve to y=0
-    for_roth = ForwardRothC.create(
+    for_roth = create_forward_soil_model(
         soil,
         climate,
         cover_base,
         no_of_years=no_of_years,
-        Ci=inverse_roth.eq_C,
+        Ci=inverse_soil_model.eq_C,
         crop=crop_base,
         fire=fire_base,
         solve_to_value=True,
@@ -386,7 +389,7 @@ def get_soil_carbon_data(
 
     # Soil carbon for baseline and project
     # TODO: check this one
-    roth_base = ForwardRothC.create(
+    base_forward_soil_data = create_forward_soil_model(
         soil=soil,
         climate=climate,
         cover=cover_base,
@@ -398,7 +401,7 @@ def get_soil_carbon_data(
         fire=fire_base,
     )
 
-    roth_project = ForwardRothC.create(
+    project_forward_soil_data = create_forward_soil_model(
         soil,
         climate,
         cover_proj,
@@ -411,7 +414,7 @@ def get_soil_carbon_data(
     )
 
     return GetSoilCarbonReturnData(
-        roth_base=roth_base, roth_project=roth_project, for_roth=for_roth
+        base_forward_soil_data=base_forward_soil_data, project_forward_soil_data=project_forward_soil_data, for_roth=for_roth
     )
 
 
@@ -422,8 +425,8 @@ class GetEmissionsReturnData(NamedTuple):
 
 def get_emissions_data(
     no_of_years: int,
-    roth_base: ForwardRothC.ForwardRothCData,
-    roth_project: ForwardRothC.ForwardRothCData,
+    base_forward_soil_data: ForwardSoilModelData,
+    project_forward_soil_data: ForwardSoilModelData,
     crop_base: List[CropModel.CropModelData],
     crop_project: List[CropModel.CropModelData],
     tree_base: TreeModel.TreeModel,
@@ -438,7 +441,7 @@ def get_emissions_data(
     # Emissions stuff
     emit_base_emissions = Emit.create(
         no_of_years=no_of_years,
-        for_roth_C=roth_base,
+        forward_soil_model=base_forward_soil_data,
         crop=crop_base,
         tree=[tree_base],
         litter=[litter_external_base],
@@ -447,7 +450,7 @@ def get_emissions_data(
     )
     emit_project_emissions = Emit.create(
         no_of_years=no_of_years,
-        for_roth_C=roth_project,
+        forward_soil_model=project_forward_soil_data,
         crop=crop_project,
         tree=tree_projects,
         litter=[litter_external_project],
@@ -598,14 +601,16 @@ class InterventionReturnData(NamedTuple):
     crop_par_project: List[CropParams.CropParamsData]
     emit_base_emissions: np.ndarray
     emit_project_emissions: np.ndarray
-    for_roth: ForwardRothC.ForwardRothCData
-    roth_base: ForwardRothC.ForwardRothCData
-    roth_project: ForwardRothC.ForwardRothCData
-    inverse_roth: InverseRothC.InverseRothCData
+    for_roth: ForwardSoilModelData
+    base_forward_soil_data: ForwardSoilModelData
+    project_forward_soil_data: ForwardSoilModelData
+    inverse_soil_model: InverseSoilModelData
 
 
 def handle_intervention(
     intervention_input: Dict[str, Union[float, int]],
+    create_forward_soil_model,
+    create_inverse_soil_model,
     allometry: str = CONSTANTS.DEFAULT_ALLOMORPHY,
     no_of_trees: int = CONSTANTS.DEFAULT_NO_OF_TREES,
     use_api: bool = CONSTANTS.DEFAULT_USE_API,
@@ -625,7 +630,7 @@ def handle_intervention(
     # SOIL EQUILIBRIUM SOLVE
     # ----------
     soil = SoilParams.from_location(location, use_api=use_api)
-    inverse_roth = InverseRothC.create(soil, climate)
+    inverse_soil_model = create_inverse_soil_model(soil, climate)
 
     # ----------
     # MODEL DATA
@@ -698,7 +703,7 @@ def handle_intervention(
         no_of_years=no_of_years,
         climate=climate,
         soil=soil,
-        inverse_roth=inverse_roth,
+        inverse_soil_model=inverse_soil_model,
         fire_base=fire_model_data.fire_base,
         fire_project=fire_model_data.fire_project,
         crop_base=crop_model_data.crop_base,
@@ -707,12 +712,14 @@ def handle_intervention(
         tree_projects=tree_model_data.tree_projects,
         litter_external_base=litter_model_data.litter_external_base,
         litter_external_project=litter_model_data.litter_external_project,
+        create_forward_soil_model=create_forward_soil_model,
+        create_inverse_soil_model=create_inverse_soil_model,
     )
 
     emissions = get_emissions_data(
         no_of_years=no_of_years,
-        roth_base=soil_carbon_data.roth_base,
-        roth_project=soil_carbon_data.roth_project,
+        base_forward_soil_data=soil_carbon_data.base_forward_soil_data,
+        project_forward_soil_data=soil_carbon_data.project_forward_soil_data,
         crop_base=crop_model_data.crop_base,
         crop_project=crop_model_data.crop_project,
         tree_base=tree_model_data.tree_base,
@@ -761,12 +768,12 @@ def handle_intervention(
         fire_difference=fire_emissions.difference,
         fire_project_emissions=fire_emissions.project_emissions,
         for_roth=soil_carbon_data.for_roth,
-        inverse_roth=inverse_roth,
+        inverse_soil_model=inverse_soil_model,
         litter_base_emissions=litter_emissions.base_emissions,
         litter_difference=litter_emissions.difference,
         litter_project_emissions=litter_emissions.project_emissions,
-        roth_base=soil_carbon_data.roth_base,
-        roth_project=soil_carbon_data.roth_project,
+        base_forward_soil_data=soil_carbon_data.base_forward_soil_data,
+        project_forward_soil_data=soil_carbon_data.project_forward_soil_data,
         soil_base_emissions=soil_base_emissions,
         soil_difference=soil_difference,
         soil_project_emissions=soil_project_emissions,

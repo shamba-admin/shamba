@@ -92,7 +92,7 @@ emissions   vector of yearly GHG emissions in t CO2e/ha
 
 def create(
     no_of_years,
-    for_roth_C=None,
+    forward_soil_model=None,
     crop=[],
     tree=[],
     litter=[],
@@ -105,7 +105,7 @@ def create(
     emissions to calculate
 
     Args:
-        for_roth_C: ForwardRothC object
+        forward_soil_model: ForwardSoilModelData object
         crop: list of crop objects
         tree: list of tree objects
         litter: list of litter objects
@@ -122,7 +122,7 @@ def create(
     # += the sources (nitrogen, fire, fertiliser)
     # and -= the sinks (biomass, soil)
 
-    emissions_soc = -soc_sink(for_roth_C, no_of_years) if for_roth_C is not None else 0
+    emissions_soc = -soc_sink(forward_soil_model, no_of_years) if forward_soil_model is not None else 0
     emissions_tree = -tree_sink(tree, no_of_years) if tree else 0
     emissions_nitro = (
         nitrogen_emit(no_of_years=no_of_years, crop=crop, tree=tree, litter=litter)
@@ -198,7 +198,7 @@ def save(emit_base_emissions, emit_proj_emissions=None, file="emissions.csv"):
     csv_handler.print_csv(file, data, col_names=cols, print_column=True)
 
 
-def soc_sink(for_roth_C, no_of_years):
+def soc_sink(forward_soil_model, no_of_years):
     """
     Calculate SOC differences from year to year (carbon sink)
     Instance of ForwardRothC is the argument.
@@ -206,7 +206,7 @@ def soc_sink(for_roth_C, no_of_years):
     Return vector with differences.
     """
     # total of all pools
-    soc = np.sum(for_roth_C.SOC, axis=1)
+    soc = np.sum(forward_soil_model.SOC, axis=1)
 
     # IMPORTANT: make sure soc is of length N_YEARS+1
     # (N years, inclusive of beginning and end = N+1 array entries)
