@@ -158,7 +158,7 @@ class SoilProperty(Enum):
 
 DEFAULT_SOIL_PROPERTIES = [
     SoilProperty.PROPORTION_OF_CLAY_IN_FINE_FRACTION,
-    SoilProperty.SOIL_ORGANIC_CARBON_CONTENT_IN_FINE_FRACTION,
+    SoilProperty.ORGANIC_CARBON_STOCKS,
     SoilProperty.PROPORTION_OF_SILT_IN_FINE_FRACTION,
     SoilProperty.PROPORTION_OF_SAND_IN_FINE_FRACTION,
 ]
@@ -184,6 +184,7 @@ DEFAULT_DEPTHS = [
     Depth.ZERO_TO_FIVE_CM,
     Depth.FIVE_TO_FIFTEEN_CM,
     Depth.FIFTEEN_TO_THIRTY_CM,
+    Depth.ZERO_TO_THIRTY_CM
 ]
 
 
@@ -213,7 +214,7 @@ UNIT_CONVERSIONS = {
     SoilProperty.TOTAL_NITROGEN: 100,
     SoilProperty.PH: 10,
     SoilProperty.ORGANIC_CARBON_DENSITY: 10,
-    SoilProperty.ORGANIC_CARBON_STOCKS: 10,
+    SoilProperty.ORGANIC_CARBON_STOCKS: 1, # Not converted: soil model wants t ha-1, not kg m-2
     SoilProperty.PROPORTION_OF_SAND_IN_FINE_FRACTION: 10,
     SoilProperty.PROPORTION_OF_SILT_IN_FINE_FRACTION: 10,
     SoilProperty.SOIL_ORGANIC_CARBON_CONTENT_IN_FINE_FRACTION: 10,
@@ -284,11 +285,19 @@ def get_soc_and_clay(
 
 
 def process_data(api_response: Dict[str, Any]) -> List[Tuple[str, float]]:
+    """
+    In the SoilGrids API response, data are either available for 0-5, 5-15, 15-30 cm OR for 
+    0-30 cm (SOC stocks only).
+    This function calculates the overall values for 0-30cm.
+    """
     data = api_response["properties"]["layers"]
-    return [
-        (layer["name"], mean(depth["values"]["mean"] for depth in layer["depths"]))
+
+    zero_to_thirty_cm = [
+        (layer["name"], sum(depth["values"]["mean"]*(depth["range"]["bottom_depth"]-depth["range"]["top_depth"]) for depth in layer["depths"])/30)
         for layer in data
     ]
+
+    return zero_to_thirty_cm
 
 
 def convert_value(value: float, conversion_factor: float) -> float:
