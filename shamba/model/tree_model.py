@@ -275,7 +275,7 @@ def get_inputs(
     # NOTE - initially quantities are in kg C
     #   -> woody_biomass and output get converted at end before returning
 
-    # First get params from bpFile and ppFile
+    # Get params
     stand_density = np.zeros(no_of_years + 1)
     stand_density[year_planted] = initial_stand_dens
 
