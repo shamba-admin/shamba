@@ -214,7 +214,7 @@ def get_fire_model_data(
     intervention_input: Dict[str, Union[float, int]], no_of_years: int
 ) -> GetFireModelReturnData:
     # Return interval of fire, [::2] = 1 is return interval of two years
-    base_fire_interval = get_int(CONSTANTS.FIRE_INTERNAL_BASE_KEY, intervention_input)
+    base_fire_interval = get_int(CONSTANTS.FIRE_INTERVAL_BASE_KEY, intervention_input)
     if base_fire_interval == 0:
         fire_base = np.zeros(no_of_years)
     else:
@@ -224,7 +224,7 @@ def get_fire_model_data(
         )
 
     project_fire_interval = get_int(
-        CONSTANTS.FIRE_INTERNAL_PROJECT_KEY, intervention_input
+        CONSTANTS.FIRE_INTERVAL_PROJECT_KEY, intervention_input
     )
     if project_fire_interval == 0:
         fire_project = np.zeros(no_of_years)

@@ -130,10 +130,10 @@ MORTALITY_PROJECT_ST_KEY = "mort_proj_st"
 # ----------
 BASE_PLANT_DENSITY_KEY = "base_plant_dens"
 # ----------
-FIRE_INTERNAL_BASE_KEY = "fire_int_base"
+FIRE_INTERVAL_BASE_KEY = "fire_int_base"
 FIRE_PRES_BASE_KEY = "fire_pres_base"
 # ----------
-FIRE_INTERNAL_PROJECT_KEY = "fire_int_proj"
+FIRE_INTERVAL_PROJECT_KEY = "fire_int_proj"
 FIRE_PRES_PROJECT_KEY = "fire_pres_proj"
 # ----------
 BASE_LITTER_INTERVAL_KEY = "base_lit_int"
