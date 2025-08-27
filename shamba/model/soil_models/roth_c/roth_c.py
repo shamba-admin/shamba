@@ -78,7 +78,7 @@ def get_rmf(climate, cover, soil):
         if accumulator_tsmd >= 0.444 * max:
             b[m] = 1
         elif accumulator_tsmd >= max:
-            b[m] = 0.2 + 0.8 * (max - accumulator_tsmd) / (0.556 * max)
+            b[m] = 0.2 + 0.8 * (max - accumulator_tsmd) / ((1 - 0.444) * max)
         else:
             log.error("DEFICIT = %5.2f" % accumulator_tsmd)
             sys.exit(1)
@@ -148,14 +148,14 @@ def get_acc_tsmd(smd, def_m, cover_m, max):
             if smd < max:
                 smd = max
         else:
-            # Crop not present
-            if smd < 0.556 * max:
+            # Crop not present (see BareSMD in RothC user guide)
+            if smd < max / 1.8:
                 pass
             else:
                 # Increase SMD
                 smd += def_m
-                if smd < 0.556 * max:
-                    smd = 0.556 * max
+                if smd < max / 1.8 :
+                    smd = max / 1.8
     # End if-else for deficit > 0
     return smd
 
