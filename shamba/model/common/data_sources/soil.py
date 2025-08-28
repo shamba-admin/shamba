@@ -108,7 +108,7 @@ def get_data_from_identifier(mu: int) -> Optional[Tuple[float, float]]:
 
 
 def get_soil_data(
-    localtion: Tuple[float, float], use_api: bool
+    location_coordinates: Tuple[float, float], use_api: bool
 ) -> Optional[Tuple[float, float]]:
     """Get soil data from soilgrids api.
     If data is not available, get data from local csv file.
@@ -117,12 +117,12 @@ def get_soil_data(
         None
         if not use_api
         else get_properties_from_soilgrids_api(
-            location=Point(localtion[1], localtion[0])
+            location=Point(location_coordinates[1], location_coordinates[0])
         )
     )
 
     if api_response is None:
-        return compose(get_data_from_identifier, get_identifier)(localtion)
+        return compose(get_data_from_identifier, get_identifier)(location_coordinates)
 
     return compose(
         get_soc_and_clay,
