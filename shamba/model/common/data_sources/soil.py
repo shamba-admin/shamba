@@ -1,5 +1,3 @@
-import os
-from osgeo import gdal
 from typing import Tuple, List, Optional, NamedTuple, Any, Dict
 import logging as log
 from toolz import compose
@@ -14,104 +12,34 @@ from model.common import csv_handler
 from rasters import soil as soil_raster
 from model.common.data_sources.helpers import return_none_on_exception
 
-CSV_FILENAME = os.path.join(
-    os.path.dirname(os.path.abspath(soil_raster.__file__)), "HWSD_data.csv"
-)
-BIL_FILENAME = os.path.join(
-    os.path.dirname(os.path.abspath(soil_raster.__file__)), "hwsd.bil"
-)
 
 API_URL = "https://rest.isric.org/soilgrids/v2.0/"
 
-
-def open_raster(filename: str) -> gdal.Dataset:
-    """Open a raster file using GDAL."""
-    gdal.AllRegister()
-    driver = gdal.GetDriverByName("HFA")
-    driver.Register()
-    gdal.UseExceptions()
-
-    try:
-        return gdal.Open(filename)
-    except RuntimeError:
-        raise csv_handler.FileOpenError(filename)
-
-
-def get_raster_value(ds: gdal.Dataset, x: float, y: float) -> int:
-    """Get the raster value at a given location."""
-    # Georeference information
-    transform = ds.GetGeoTransform()
-    x_origin, y_origin = transform[0], transform[3]
-    width, height = transform[1], transform[5]
-
-    x_int = int((x - x_origin) / width)
-    y_int = int((y - y_origin) / height)
-
-    band = ds.GetRasterBand(1)
-    data = band.ReadAsArray(x_int, y_int, 1, 1)
-    return data[0, 0]  # MU_GLOBAL for input to HWSD_data.csv
-
-
-def get_identifier(location: Tuple[float, float]) -> int:
-    """Find MU_GLOBAL for given location from the HWSD .bil raster."""
-    y, x = location
-
-    ds = open_raster(BIL_FILENAME)
-    return get_raster_value(ds, x, y)
-
-
-def read_soil_table(filename: str) -> np.ndarray:
-    """Read the soil data from CSV file."""
-    return csv_handler.read_mixed_csv(
+def read_soil_table(filename: str, plot_index: int, plot_id: int):
+    """Read the soil data from user CSV file.
+    Data values are validated in soil_params.py."""
+    plot_data = csv_handler.get_csv_input_data(
         filename,
-        cols=tuple(range(13)),
-        types=(
-            int,
-            int,
-            float,
-            int,
-            "|S25",
-            float,
-            float,
-            float,
-            "|S15",
-            float,
-            float,
-            float,
-            float,
-        ),
+        plot_index-1
     )
 
+    try:
+        plot_name = plot_data["plot_name"]
+        cy0 = plot_data["Cy0"]
+        clay = plot_data["clay"]
+    except KeyError:
+        raise ValueError("Soil data keys 'Cy0' and 'clay' not found in CSV data")
+    
+    if plot_name != plot_id:
+        raise ValueError("Ensure soil csv data is in the same plot order as in the input file")
 
-def filter_rows_by_mu(soil_table: np.ndarray, mu: int) -> List[Tuple]:
-    """Filter rows from soil table by MU_GLOBAL value."""
-    return [row for row in soil_table if row[1] == mu]
-
-
-def calculate_weighted_sum(mu_rows: List[Tuple]) -> Tuple[float, float]:
-    """Calculate weighted sum of SOC and clay from soil data rows."""
-    cy0 = sum(row[12] * row[2] for row in mu_rows) / 100
-    clay = sum(row[7] * row[2] for row in mu_rows) / 100
     return cy0, clay
 
 
-def get_data_from_identifier(mu: int) -> Optional[Tuple[float, float]]:
-    """Get soil data from csv given MU_GLOBAL from the raster."""
-    soil_table = read_soil_table(CSV_FILENAME)
-    mu_rows = filter_rows_by_mu(soil_table, mu)
-
-    if not mu_rows:
-        log.warning("COULD NOT FIND %d IN HWSD_DATA.csv", mu)
-        return None
-
-    return calculate_weighted_sum(mu_rows)
-
-
 def get_soil_data(
-    location_coordinates: Tuple[float, float], use_api: bool
+    location_coordinates: Tuple[float, float], use_api: bool, plot_index: int, plot_id: int, filename: str
 ) -> Optional[Tuple[float, float]]:
-    """Get soil data from soilgrids api.
-    If data is not available, get data from local csv file.
+    """Get soil data from soilgrids api or from local csv file.
     """
     api_response: Optional[Dict[str, Any]] = (
         None
@@ -122,7 +50,10 @@ def get_soil_data(
     )
 
     if api_response is None:
-        return compose(get_data_from_identifier, get_identifier)(location_coordinates)
+        try:
+            return compose(read_soil_table)(plot_index, filename)
+        except:
+            raise ValueError("Soil data not found in API or local file. Please provide local file.")
 
     return compose(
         get_soc_and_clay,

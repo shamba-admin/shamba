@@ -78,24 +78,22 @@ def create(soil_params: Dict[str, Any]) -> SoilParamsData:
     return schema.load(params)  # type: ignore
 
 
-def from_csv(filename="soil.csv"):
-    """Construct Soil object from csv data."""
-    data = csv_handler.read_csv(filename)
-
-    params = {"Cy0": data[0], "clay": data[1]}
-    return create(params)
-
-
-def from_location(location: Tuple[float, float], use_api: bool):
-    """Construct Soil object from HWSD data for given location
-
+def get_soil_params(location: Tuple[float, float], use_api: bool, plot_index, plot_id, filename="soil.csv"):
+    """
+    Construct SoilParamsData object from SoilGrids API or local CSV for given location.
+    
     Args:
-        location: location to look for in HWSD
+        location: Tuple of (latitude, longitude) coordinates
+        use_api: Whether to use SoilGrids API or local CSV file
+        plot_index: Index of the plot in the data (0-based)
+        plot_id: Identifier of the plot 
+        filename: Name of local CSV file (default: "soil.csv")
+        
     Returns:
-        Soil object
+        SoilParamsData: Soil parameters object
     """
 
-    result = get_soil_data(location, use_api)
+    result = get_soil_data(location, use_api, plot_index, plot_id, filename)
 
     if result is None:
         raise

@@ -612,13 +612,15 @@ def handle_intervention(
     create_forward_soil_model,
     create_inverse_soil_model,
     n_cohorts: int,
+    plot_index: int,
     allometry: str = CONSTANTS.DEFAULT_ALLOMORPHY,
     use_api: bool = CONSTANTS.DEFAULT_USE_API,
 ):
     no_of_years = (
         get_int(CONSTANTS.NO_OF_YEARS_KEY, intervention_input)
-        or CONSTANTS.DEFAULT_NO_OF_YEARS
+        or CONSTANTS.DEFAULT_NO_OF_YEARS # TODO
     )
+    plot_id = get_int("plot_name", intervention_input) # TODO: use key
 
     # ----------
     # LOCATION INFORMATION
@@ -629,7 +631,7 @@ def handle_intervention(
     # ----------
     # SOIL EQUILIBRIUM SOLVE
     # ----------
-    soil = SoilParams.from_location(location, use_api=use_api)
+    soil = SoilParams.get_soil_params(location=location, use_api=use_api, plot_index=plot_index, plot_id=plot_id)
     inverse_soil_model = create_inverse_soil_model(soil, climate)
 
     # ----------

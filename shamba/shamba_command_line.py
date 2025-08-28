@@ -366,6 +366,7 @@ def main(n, arguments):
     intervention_emissions = handle_intervention(
         intervention_input=csv_input_data,
         n_cohorts=N_COHORTS,
+        plot_index=n,
         allometry=allometric_key,
         use_api=arguments["use-api"],
         create_forward_soil_model=ForwardSoilModel.create,
@@ -498,7 +499,7 @@ def main(n, arguments):
         ["Total Difference", f"{sum(emit_difference):.2f}", "t CO2 ha^-1"],
     ]
 
-    accounting_year = csv_input_data["yrs_acct"]
+    accounting_year = csv_input_data["yrs_proj"]
 
     summary_difference_title = (
         f"SUMMARY OF EMISSIONS for Year {accounting_year} (t CO2)"
@@ -648,7 +649,7 @@ def main(n, arguments):
 
 
 if __name__ == "__main__":
-    number_of_rows = 1
+    number_of_rows = 1 # TODO: ask for number of plots as an arg
     # Get command line arguments
     arguments = io_handler.get_arguments_interactively()
 
