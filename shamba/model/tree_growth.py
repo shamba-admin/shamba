@@ -22,19 +22,19 @@ from .common import csv_handler
 
 
 # Functions to fit to
-def hyperbolic_function(x, a, b):
+def hyperbolic_function(x, a, b): # Eq. 6.3, SHAMBA model description
     return a * (1 - np.exp(-b * x))
 
 
-def exponential_function(x, a):
+def exponential_function(x, a): # Eq. 6.2, SHAMBA model description
     return (1 + a) ** x - 1
 
 
-def linear_function(x, a):
+def linear_function(x, a): # Eq. 6.1, SHAMBA model description
     return a * x
 
 
-def logarithmic_function(x, a, b, c):
+def logistic_function(x, a, b, c): # Eq. 6.4, SHAMBA model description
     return a / (1 + np.exp(-b * (x - c)))
 
 
@@ -42,30 +42,48 @@ fitting_functions = {
     "exp": exponential_function,
     "hyp": hyperbolic_function,
     "lin": linear_function,
-    "log": logarithmic_function,
+    "log": logistic_function,
 }
 
+def exponential_function_inverse(fit_params, y):
+    if math.fabs(y) < 0.00000001:
+        x = 0
+    else:
+        a = fit_params[0]
+        x = math.log(y+1) / math.log(a+1)
+    return x
 
-def exponential_function_derivative(fit_params, x):
+def exponential_function_derivative(fit_params, y): # Eq. 7.2, SHAMBA model description
     a = fit_params[0]
+    x = exponential_function_inverse(fit_params, y)
     return ((1 + a) ** x) * (np.log(1 + a))
 
 
-def hyperbolic_function_derivative(fit_params, x):
+def hyperbolic_function_inverse(fit_params, y):        
+    if math.fabs(y) < 0.00000001:
+        x = 0
+    else:
+        a = fit_params[0]
+        b = fit_params[1]
+        if y > a:
+            x = a
+        else:
+            x = (math.log(a) - math.log(a-y)) / b
+    return x 
+
+def hyperbolic_function_derivative(fit_params, y): # Eq. 7.3, SHAMBA model description
     a = fit_params[0]
     b = fit_params[1]
+    x = hyperbolic_function_inverse(fit_params,y)
     return a * b * np.exp(-b * x)
 
 
-def linear_function_derivative(fit_params, lin_fn_inv, y):
-    # TODO: this isn't being used and it doesn't do any side effects
-    # x = lin_fn_inv(y)
-
+def linear_function_derivative(fit_params, y): # Eq. 7.1, SHAMBA model description
     a = fit_params[0]
     return a
 
 
-def logarithmic_function_inverse(fit_params, y):
+def logistic_function_inverse(fit_params, y):
     if math.fabs(y) < 0.00000001:
         x = 0
     else:
@@ -80,8 +98,8 @@ def logarithmic_function_inverse(fit_params, y):
     return x
 
 
-def logarithmic_function_derivative(fit_params, y):
-    x = logarithmic_function_inverse(fit_params, y)
+def logistic_function_derivative(fit_params, y): # Eq. 7.4, SHAMBA model description
+    x = logistic_function_inverse(fit_params, y)
 
     a = fit_params[0]
     b = fit_params[1]
@@ -95,7 +113,7 @@ derivative_functions = {
     "exp": exponential_function_derivative,
     "hyp": hyperbolic_function_derivative,
     "lin": linear_function_derivative,
-    "log": logarithmic_function_derivative,
+    "log": logistic_function_derivative,
 }
 
 
@@ -572,7 +590,7 @@ allometric = {
 
 # Uses spp_prefix_map to get the correct prefix for the species-specific columns
 def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
-    default_prefix = "sp3_"
+    default_prefix = "sp3_" # TODO: amend for >3 species
 
     spp_prefix_map = {
         1: "",
