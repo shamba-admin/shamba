@@ -88,15 +88,7 @@ def from_location(location, use_api: bool) -> ClimateData:
         latitude=latitude, longitude=longitude, use_api=use_api
     )
 
-    # Account for scaling factor in CRU-TS dataset
-    climate_data *= 0.1
-
-    # Get the number of days in every month
-    days_in_months = np.array([calendar.monthrange(2000, i)[1] for i in range(1, 13)])
-    # Convert pet to mm/month from mm/day
-    climate_data[2] = climate_data[2] * days_in_months
-
-    # pet given in CRU-TS 3.1 instead of evaporation, so convert
+    # pet given in OpenMeteo instead of evaporation, so convert
     climate_data[2] /= 0.75
 
     params = {
@@ -200,7 +192,7 @@ def print_to_stdout(climate):
         "DEC",
     ]
 
-    table_title = "CLIMATE 2 DATA"
+    table_title = "CLIMATE 2 DATA" # TODO: why 2?
 
     # Prepare the data for tabulate
     table_data = [
