@@ -45,7 +45,7 @@ def get_soil_data(
     )
 
     if api_response is None:
-        print(filename)
+
         try:
             return read_soil_table(plot_index=plot_index, plot_id=plot_id, filename=filename)
         except:
