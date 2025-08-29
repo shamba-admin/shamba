@@ -78,7 +78,7 @@ def create(soil_params: Dict[str, Any]) -> SoilParamsData:
     return schema.load(params)  # type: ignore
 
 
-def get_soil_params(location: Tuple[float, float], use_api: bool, plot_index, plot_id, filename="soil.csv"):
+def get_soil_params(location: Tuple[float, float], use_api: bool, plot_index, plot_id, filename="soil-info.csv"):
     """
     Construct SoilParamsData object from SoilGrids API or local CSV for given location.
     
@@ -87,7 +87,7 @@ def get_soil_params(location: Tuple[float, float], use_api: bool, plot_index, pl
         use_api: Whether to use SoilGrids API or local CSV file
         plot_index: Index of the plot in the data (0-based)
         plot_id: Identifier of the plot 
-        filename: Name of local CSV file (default: "soil.csv")
+        filename: Name of local CSV file (default: "soil-info.csv")
         
     Returns:
         SoilParamsData: Soil parameters object

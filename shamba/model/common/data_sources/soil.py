@@ -7,9 +7,7 @@ import socket
 from enum import Enum
 from copy import deepcopy
 from statistics import mean
-
 from model.common import csv_handler
-from rasters import soil as soil_raster
 from model.common.data_sources.helpers import return_none_on_exception
 
 
@@ -18,20 +16,17 @@ API_URL = "https://rest.isric.org/soilgrids/v2.0/"
 def read_soil_table(filename: str, plot_index: int, plot_id: int):
     """Read the soil data from user CSV file.
     Data values are validated in soil_params.py."""
-    plot_data = csv_handler.get_csv_input_data(
-        filename,
-        plot_index-1
+    data = csv_handler.read_csv(
+            filename,
     )
 
-    try:
-        plot_name = plot_data["plot_name"]
-        cy0 = plot_data["Cy0"]
-        clay = plot_data["clay"]
-    except KeyError:
-        raise ValueError("Soil data keys 'Cy0' and 'clay' not found in CSV data")
-    
-    if plot_name != plot_id:
-        raise ValueError("Ensure soil csv data is in the same plot order as in the input file")
+    data = np.atleast_2d(data)
+
+    if int(data[plot_index,0]) != int(plot_id):
+        raise ValueError("Plot order in soil data does not match input data")
+
+    cy0 = data[plot_index,1]
+    clay = data[plot_index, 2]
 
     return cy0, clay
 
@@ -50,8 +45,9 @@ def get_soil_data(
     )
 
     if api_response is None:
+        print(filename)
         try:
-            return compose(read_soil_table)(plot_index, filename)
+            return read_soil_table(plot_index=plot_index, plot_id=plot_id, filename=filename)
         except:
             raise ValueError("Soil data not found in API or local file. Please provide local file.")
 
