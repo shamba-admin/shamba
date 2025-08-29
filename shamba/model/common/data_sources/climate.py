@@ -68,6 +68,12 @@ def calculate_monthly_average(
     month, values = month_group
     return month, np.mean(values[:, 1])
 
+def calculate_monthly_sum(
+    month_group: Tuple[int, np.ndarray],
+) -> Tuple[int, np.floating[Any]]:
+    month, values = month_group
+    return month, np.sum(values[:, 1])
+
 
 def segment_and_average_by_month(daily_values: np.ndarray, year: int) -> np.ndarray:
     dates = generate_dates(year)
@@ -78,6 +84,14 @@ def segment_and_average_by_month(daily_values: np.ndarray, year: int) -> np.ndar
     )
     return monthly_averages
 
+def segment_and_sum_by_month(daily_values: np.ndarray, year: int) -> np.ndarray:
+    dates = generate_dates(year)
+    date_value_pairs = pair_dates_with_values(dates, daily_values)
+    grouped_by_month = group_by_month(date_value_pairs)
+    monthly_sums = np.array(
+        [calculate_monthly_sum(group) for group in grouped_by_month]
+    )
+    return monthly_sums
 
 def get_climate_data(longitude: float, latitude: float, use_api: bool) -> np.ndarray:
     """
@@ -128,8 +142,8 @@ def get_climate_data(longitude: float, latitude: float, use_api: bool) -> np.nda
     temperature = segment_and_average_by_month(
         np.array(daily_data["temperature_2m_mean"]), previous_year
     )
-    rain = segment_and_average_by_month(np.array(daily_data["rain_sum"]), previous_year)
-    evapotranspiration = segment_and_average_by_month(
+    rain = segment_and_sum_by_month(np.array(daily_data["rain_sum"]), previous_year)
+    evapotranspiration = segment_and_sum_by_month(
         np.array(daily_data["et0_fao_evapotranspiration"]), previous_year
     )
 
