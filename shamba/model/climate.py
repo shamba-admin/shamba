@@ -84,26 +84,31 @@ def from_location(location, use_api: bool) -> ClimateData:
     latitude = location[0]
     longitude = location[1]
 
-    climate_data = get_climate_data(
-        latitude=latitude, longitude=longitude, use_api=use_api
-    )
+    if use_api:
+        climate_data = get_climate_data(
+            latitude=latitude, longitude=longitude, use_api=use_api
+        )
 
-    # pet given in OpenMeteo instead of evaporation, so convert
-    climate_data[2] /= 0.75
+        # pet given in OpenMeteo instead of evaporation, so convert
+        climate_data[2] /= 0.75
 
-    params = {
-        "temperature": climate_data[0],
-        "rain": climate_data[1],
-        "evaporation": climate_data[2],
-    }
+        params = {
+            "temperature": climate_data[0],
+            "rain": climate_data[1],
+            "evaporation": climate_data[2],
+        }
 
-    schema = ClimateDataSchema()
-    errors = schema.validate(params)
+        schema = ClimateDataSchema()
+        errors = schema.validate(params)
+        climate = schema.load(params)
 
-    if errors != {}:
-        print(f"Errors in climate data: {str(errors)}")
+        if errors != {}:
+            print(f"Errors in climate data: {str(errors)}")
 
-    return schema.load(params)  # type: ignore
+    else:
+        climate = from_csv()
+
+    return climate  # type: ignore
 
 
 def from_csv(
