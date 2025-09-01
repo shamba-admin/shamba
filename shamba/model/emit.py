@@ -10,7 +10,7 @@ import numpy as np
 
 from model import configuration
 from model.common import csv_handler
-from model.common.constants import (ef_burn, ef_N_inputs, ef_N_deposition, DEFAULT_GWP, combustion_factor, C_to_CO2_conversion_factor, N_to_N2O_conversion_factor, volatile_frac_organic_fertiliser, volatile_frac_synthetic_fertiliser)
+from model.common.constants import (ef_burn, ef_N_inputs, ef_N_deposition, GWP_list, DEFAULT_GWP, combustion_factor, C_to_CO2_conversion_factor, N_to_N2O_conversion_factor, volatile_frac_organic_fertiliser, volatile_frac_synthetic_fertiliser)
 
 # Reduce crop/tree/litter outputs due to fire
 def reduce_from_fire(
@@ -50,13 +50,13 @@ def reduce_from_fire(
             for li in litter:
                 tree_inputs[s] += li.output[s][output_type]
         except KeyError:
-            log.exception("Invalude output_type parameter in reduce_from_fire")
+            log.exception("Invalid output_type parameter in reduce_from_fire")
 
     # Reduce above-ground inputs from fire
     for i in np.where(fire == 1):
         crop_inputs["above"][i] *= 1 - combustion_factor["crop"]
         tree_inputs["above"][i] *= 1 - combustion_factor["tree"]
-        # TODO: confirm this should say tree. It said crop - bug?
+        # tree_inputs used combustion_factor["crop"] - BUG
 
     # Return sum of above and below
     reduced = (sum(crop_inputs.values()), sum(tree_inputs.values()))
@@ -84,6 +84,7 @@ def create(
     fert=[],
     fire=[],
     burn_off=True,
+    gwp=GWP_list[DEFAULT_GWP]
 ) -> np.ndarray:
     """Create an array.
     Optional arguments gives flexibility about what/what kind of
@@ -110,16 +111,16 @@ def create(
     emissions_soc = -soc_sink(forward_soil_model, no_of_years) if forward_soil_model is not None else 0
     emissions_tree = -tree_sink(tree, no_of_years) if tree else 0
     emissions_nitro = (
-        nitrogen_emit(no_of_years=no_of_years, crop=crop, tree=tree, litter=litter)
+        nitrogen_emit(no_of_years=no_of_years, crop=crop, tree=tree, litter=litter, fire = fire, gwp = gwp)
         if (crop or tree or litter)
         else 0
     )
     emissions_fire = (
-        fire_emit(crop, tree, litter, fire, no_of_years, burn_off=burn_off)
+        fire_emit(crop, tree, litter, fire, no_of_years, gwp = gwp, burn_off=burn_off)
         if (crop or tree or litter)
         else 0
     )
-    emissions_fert = fert_emit(litter, fert, no_of_years) if (fert or litter) else 0
+    emissions_fert = fert_emit(litter, fert, no_of_years, gwp) if (fert or litter) else 0
 
     total_emissions = (
         emissions
@@ -222,28 +223,26 @@ def tree_sink(tree, no_of_years):
     return delta
 
 
-def nitrogen_emit(no_of_years, crop, tree, litter):
+def nitrogen_emit(no_of_years, crop, tree, litter, fire, gwp): # fire was not included here - BUG
     """
     Calculate and return emissions due to nitrogen.
-    crop_out == list of output dicts from crops
-    tree_out == list of output dicts from trees
-    litter_out == list of output dicts from litter
+    toEmit_crop = crop N inputs after fire
+    toEmit_tree = tree N inputs after fire
     """
     toEmit_crop, toEmit_tree = reduce_from_fire(
         no_of_years=no_of_years,
         crop=crop,
         tree=tree,
         litter=litter,
+        fire = fire,
         output_type="nitrogen",
     )
     to_emit = toEmit_crop + toEmit_tree
 
+    return to_emit * ef_N_inputs * N_to_N2O_conversion_factor * gwp["N2O"]
 
 
-    return to_emit * ef_N_inputs * N_to_N2O_conversion_factor * DEFAULT_GWP["N2O"]
-
-
-def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
+def fire_emit(crop, tree, litter, fire, no_of_years, gwp, burn_off=True):
     """Calculate and return emissions due to fire.
     crop: list of crop models
     tree: list of tree models
@@ -265,8 +264,8 @@ def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
     for li in litter:
         tree_inputs_on += li.output["above"]["DMon"]
 
-    crop_CO2_ef = ef_burn["crop_CH4"] * DEFAULT_GWP["CH4"] + ef_burn["crop_N2O"] * DEFAULT_GWP["N2O"]
-    tree_CO2_ef = ef_burn["tree_CH4"] * DEFAULT_GWP["CH4"] + ef_burn["tree_N2O"] * DEFAULT_GWP["N2O"]
+    crop_CO2_ef = ef_burn["crop_CH4"] * gwp["CH4"] + ef_burn["crop_N2O"] * gwp["N2O"]
+    tree_CO2_ef = ef_burn["tree_CH4"] * gwp["CH4"] + ef_burn["tree_N2O"] * gwp["N2O"]
 
     # Burned when fire == 1
     emit += crop_inputs_on * fire * combustion_factor["crop"] * crop_CO2_ef
@@ -293,7 +292,7 @@ def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
     return emit
 
 
-def fert_emit(litter, fert, no_of_years):
+def fert_emit(litter, fert, no_of_years, gwp):
     """Calculate and return emissions due to fertiliser use.
     Args:
         litter: list-like of litter model objects
@@ -314,6 +313,6 @@ def fert_emit(litter, fert, no_of_years):
             1 - volatile_frac_synthetic_fertiliser
         )
 
-    emit *= ef_N_inputs * N_to_N2O_conversion_factor * DEFAULT_GWP["N2O"]
+    emit *= ef_N_inputs * N_to_N2O_conversion_factor * gwp["N2O"]
 
     return emit

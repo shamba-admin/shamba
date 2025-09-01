@@ -12,6 +12,7 @@ from questionary import Choice
 from model import configuration
 import model.tree_growth as TreeGrowth
 from model.soil_models.soil_model_types import SoilModelType
+from model.common.constants import DEFAULT_USE_API, DEFAULT_ALLOMORPHY, DEFAULT_GWP, GWP_list
 
 
 def get_arguments_interactively():
@@ -32,7 +33,7 @@ def get_arguments_interactively():
     arguments["project-name"] = project_name
 
     # Prompt for use-api (boolean)
-    use_api = questionary.confirm("Use API?", default=False).ask()
+    use_api = questionary.confirm("Use API?", default=DEFAULT_USE_API).ask()
     arguments["use-api"] = use_api
 
     # Prompt for n_cohorts
@@ -45,11 +46,20 @@ def get_arguments_interactively():
     selected_allometric_key = questionary.select(
         "Select an Allometric Key:",
         choices=allometric_keys,
-        default="chave dry"
+        default=DEFAULT_ALLOMORPHY
     ).ask()
     arguments["allometric-key"] = selected_allometric_key
 
-    # Prompt for allometric key
+    # Prompt for GWP
+    gwp_keys = list(GWP_list.keys())
+    selected_gwp_key = questionary.select(
+        "Select Global Warming Potential values:",
+        choices=gwp_keys,
+        default= DEFAULT_GWP
+    ).ask()
+    arguments["gwp"] = GWP_list[selected_gwp_key]
+
+    # Prompt for soil model
     soil_models = [
         Choice(title="Roth C", value=SoilModelType.ROTH_C),
         Choice(title="Example Soil Model", value=SoilModelType.EXAMPLE)

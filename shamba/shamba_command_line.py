@@ -362,12 +362,14 @@ def main(n, arguments):
     N_COHORTS = arguments["n-cohorts"] #TODO: amend input questionnaire to allow variable number of cohorts. Consider baseline single cohort rule
 
     allometric_key = arguments["allometric-key"]
+    gwp = arguments["gwp"]
 
     intervention_emissions = handle_intervention(
         intervention_input=csv_input_data,
         n_cohorts=N_COHORTS,
         plot_index=n,
         allometry=allometric_key,
+        gwp=gwp,
         use_api=arguments["use-api"],
         create_forward_soil_model=ForwardSoilModel.create,
         create_inverse_soil_model=InverseSoilModel.create,

@@ -437,6 +437,7 @@ def get_emissions_data(
     synthetic_fertiliser_project: LitterModel.LitterModelData,
     fire_base: np.ndarray,
     fire_project: np.ndarray,
+    gwp: dict,
 ) -> GetEmissionsReturnData:
     # Emissions stuff
     emit_base_emissions = Emit.create(
@@ -447,6 +448,7 @@ def get_emissions_data(
         litter=[litter_external_base],
         fert=[synthetic_fertiliser_base],
         fire=fire_base,
+        gwp=gwp,
     )
     emit_project_emissions = Emit.create(
         no_of_years=no_of_years,
@@ -456,6 +458,7 @@ def get_emissions_data(
         litter=[litter_external_project],
         fert=[synthetic_fertiliser_project],
         fire=fire_project,
+        gwp=gwp,
     )
 
     return GetEmissionsReturnData(
@@ -476,12 +479,13 @@ def get_crop_emissions(
     crop_project: List[CropModel.CropModelData],
     fire_base: np.ndarray,
     fire_project: np.ndarray,
+    gwp: dict,
 ) -> GetEmissionsWithDifferenceReturnData:
     crop_base_emissions = Emit.create(
-        no_of_years=no_of_years, crop=crop_base, fire=fire_base
+        no_of_years=no_of_years, crop=crop_base, fire=fire_base,gwp=gwp,
     )
     crop_project_emissions = Emit.create(
-        no_of_years=no_of_years, crop=crop_project, fire=fire_project
+        no_of_years=no_of_years, crop=crop_project, fire=fire_project, gwp=gwp,
     )
     crop_difference = crop_project_emissions - crop_base_emissions
 
@@ -496,12 +500,13 @@ def get_fertiliser_emissions(
     no_of_years: int,
     synthetic_fertiliser_base: LitterModel.LitterModelData,
     synthetic_fertiliser_project: LitterModel.LitterModelData,
+    gwp: dict,
 ) -> GetEmissionsWithDifferenceReturnData:
     fertiliser_base_emissions = Emit.create(
-        no_of_years=no_of_years, fert=[synthetic_fertiliser_base]
+        no_of_years=no_of_years, fert=[synthetic_fertiliser_base], gwp=gwp,
     )
     fertiliser_project_emissions = Emit.create(
-        no_of_years=no_of_years, fert=[synthetic_fertiliser_project]
+        no_of_years=no_of_years, fert=[synthetic_fertiliser_project], gwp=gwp,
     )
     fertiliser_difference = fertiliser_project_emissions - fertiliser_base_emissions
 
@@ -518,12 +523,13 @@ def get_litter_emissions(
     fire_project: np.ndarray,
     litter_external_base: LitterModel.LitterModelData,
     litter_external_project: LitterModel.LitterModelData,
+    gwp: dict,
 ) -> GetEmissionsWithDifferenceReturnData:
     litter_base_emissions = Emit.create(
-        no_of_years=no_of_years, litter=[litter_external_base], fire=fire_base
+        no_of_years=no_of_years, litter=[litter_external_base], fire=fire_base, gwp=gwp,
     )
     litter_project_emissions = Emit.create(
-        no_of_years=no_of_years, litter=[litter_external_project], fire=fire_project
+        no_of_years=no_of_years, litter=[litter_external_project], fire=fire_project, gwp=gwp,
     )
     litter_difference = litter_project_emissions - litter_base_emissions
 
@@ -535,10 +541,10 @@ def get_litter_emissions(
 
 
 def get_fire_emissions(
-    no_of_years: int, fire_base: np.ndarray, fire_project: np.ndarray
+    no_of_years: int, fire_base: np.ndarray, fire_project: np.ndarray, gwp: dict,
 ) -> GetEmissionsWithDifferenceReturnData:
-    fire_base_emissions = Emit.create(no_of_years=no_of_years, fire=fire_base)
-    fire_project_emissions = Emit.create(no_of_years=no_of_years, fire=fire_project)
+    fire_base_emissions = Emit.create(no_of_years=no_of_years, fire=fire_base, gwp=gwp,)
+    fire_project_emissions = Emit.create(no_of_years=no_of_years, fire=fire_project, gwp=gwp,)
     fire_difference = fire_project_emissions - fire_base_emissions
 
     return GetEmissionsWithDifferenceReturnData(
@@ -554,14 +560,16 @@ def get_tree_emissions(
     fire_project: np.ndarray,
     tree_base: TreeModel.TreeModel,
     tree_projects: List[TreeModel.TreeModel],
+    gwp: dict,
 ) -> GetEmissionsWithDifferenceReturnData:
     tree_base_emissions = Emit.create(
-        no_of_years=no_of_years, tree=[tree_base], fire=fire_base
+        no_of_years=no_of_years, tree=[tree_base], fire=fire_base, gwp=gwp,
     )
     tree_project_emissions = Emit.create(
         no_of_years=no_of_years,
         tree=tree_projects,
         fire=fire_project,
+        gwp=gwp,
     )
     tree_difference = tree_project_emissions - tree_base_emissions
 
@@ -614,11 +622,11 @@ def handle_intervention(
     n_cohorts: int,
     plot_index: int,
     allometry: str = CONSTANTS.DEFAULT_ALLOMORPHY,
+    gwp: dict = CONSTANTS.GWP_list[CONSTANTS.DEFAULT_GWP],
     use_api: bool = CONSTANTS.DEFAULT_USE_API,
 ):
     no_of_years = (
         get_int(CONSTANTS.NO_OF_YEARS_KEY, intervention_input)
-        or CONSTANTS.DEFAULT_NO_OF_YEARS # TODO
     )
     plot_id = get_int("plot_name", intervention_input) # TODO: use key
 
@@ -667,12 +675,14 @@ def handle_intervention(
         crop_project=crop_model_data.crop_project,
         fire_base=fire_model_data.fire_base,
         fire_project=fire_model_data.fire_project,
+        gwp=gwp,
     )
 
     fertiliser_emissions = get_fertiliser_emissions(
         no_of_years=no_of_years,
         synthetic_fertiliser_base=litter_model_data.synthetic_fertiliser_base,
         synthetic_fertiliser_project=litter_model_data.synthetic_fertiliser_project,
+        gwp=gwp,
     )
 
     litter_emissions = get_litter_emissions(
@@ -681,12 +691,14 @@ def handle_intervention(
         fire_project=fire_model_data.fire_project,
         litter_external_base=litter_model_data.litter_external_base,
         litter_external_project=litter_model_data.litter_external_project,
+        gwp=gwp,
     )
 
     fire_emissions = get_fire_emissions(
         no_of_years=no_of_years,
         fire_base=fire_model_data.fire_base,
         fire_project=fire_model_data.fire_project,
+        gwp=gwp,
     )
 
     tree_emissions = get_tree_emissions(
@@ -695,6 +707,7 @@ def handle_intervention(
         fire_project=fire_model_data.fire_project,
         tree_base=tree_model_data.tree_base,
         tree_projects=tree_model_data.tree_projects,
+        gwp=gwp,
     )
 
     # ----------
@@ -732,6 +745,7 @@ def handle_intervention(
         synthetic_fertiliser_project=litter_model_data.synthetic_fertiliser_project,
         fire_base=fire_model_data.fire_base,
         fire_project=fire_model_data.fire_project,
+        gwp=gwp,
     )
 
     soil_base_emissions = emissions.emit_base_emissions - (

@@ -23,6 +23,14 @@ This file contains constants used in SHAMBA.
 GWP_SAR = {"N2O": 310, "CH4": 21}
 GWP_AR4 = {"N2O": 298, "CH4": 25}
 GWP_AR5 = {"N2O": 265, "CH4": 28}
+GWP_AR6 = {"N20": 273, "CH4": 27}
+
+GWP_list = {
+    "GWP SAR (1995)": GWP_SAR,
+    "GWP AR4 (2007)": GWP_AR4,
+    "GWP AR5 (2013)": GWP_AR5,
+    "GWP AR6 (2021)": GWP_AR6
+}
 
 C_to_CO2_conversion_factor = 44.0 / 12  # for CO2-C to CO2
 N_to_N2O_conversion_factor = 44.0 / 28  # for N2O-N to N2O
@@ -55,7 +63,6 @@ combustion_factor = {"crop": 0.85, "tree": 0.74}
 volatile_frac_synthetic_fertiliser = 0.11 # [(kg NH3-N + NOx-N) / kg N applied]
 volatile_frac_organic_fertiliser = 0.21 # [(kg NH3-N + NOx-N) / kg N applied]
 ef_N_deposition = 0.01  # [kg N20-N/ (kg NH3-N + NOx-N) volatilised]
-# TODO: implement ef_N_deposition: because it is numerically the same as ef_N_inputs, they were treated as identical, though represent different quantities
 
 # =============================================================================
 #  Default values
@@ -64,14 +71,14 @@ ef_N_deposition = 0.01  # [kg N20-N/ (kg NH3-N + NOx-N) volatilised]
 # -------------------------
 # a) values overwritten by the user's input when shamba_command_line.py is run:
 
-DEFAULT_USE_API = True # TODO: check as think shamba_command_line.py defaults to FALSE?
+DEFAULT_USE_API = True
 DEFAULT_ALLOMORPHY = "chave dry"
 DEFAULT_YEAR = datetime.now().year # TODO: check that this is overwritten at command line
 
 # -------------------------
 # b) values with a general default, that users may want to manually change:
 
-DEFAULT_GWP = GWP_SAR # TODO: change to AR5, will break tests
+DEFAULT_GWP = "GWP SAR (1995)" # TODO: change to AR6, will break tests
 TREE_ROOT_IN_TOP_30 = 0.7
 CROP_ROOT_IN_TOP_30 = 0.7
 # -------------------------
