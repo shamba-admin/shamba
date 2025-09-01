@@ -12,9 +12,6 @@ from model import configuration
 from model.common import csv_handler
 from model.common.constants import (ef_burn, ef_N_inputs, ef_N_deposition, DEFAULT_GWP, combustion_factor, C_to_CO2_conversion_factor, N_to_N2O_conversion_factor, volatile_frac_organic_fertiliser, volatile_frac_synthetic_fertiliser)
 
-# Fire vector - can redefine from elsewhere if there are fires
-# fire = np.zeros(configuration.N_YEARS)
-
 # Reduce crop/tree/litter outputs due to fire
 def reduce_from_fire(
     no_of_years, crop=[], tree=[], litter=[], fire=[], output_type="carbon"

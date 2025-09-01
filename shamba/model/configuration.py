@@ -16,13 +16,6 @@ SAVE_DIR = os.path.join(PROJECT_DIR, "default")  # overwrite this later
 INPUT_DIR = os.path.join(SAVE_DIR, "input")
 OUTPUT_DIR = os.path.join(SAVE_DIR, "output")
 
-# Number of years for model to run and accounting period
-# NOTE: change this in main after tree max age data is read
-# no need to specify years if specified in cl file
-N_YEARS = 30
-N_ACCT = 30
-
-
 # Save the time (that cfg is imported) and generate
 # universally unique identifier (uuid) for the project
 
