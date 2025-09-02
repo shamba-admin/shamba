@@ -217,7 +217,13 @@ def save(tree_params: TreeParamsData, file="tree_params.csv"):
 def create_tree_params_from_species_index(
     csv_input_data: Dict[str, Any], cohort_count: int
 ):
-    return [
-        from_species_index(int(csv_input_data[f"species{i + 1}"]))
-        for i in range(cohort_count)
-    ]
+    tree_params = []
+
+    for i in range(cohort_count):
+        key = f"species{i + 1}"
+        try:
+            species_index = int(csv_input_data[key])
+            tree_params.append(from_species_index(species_index))
+        except KeyError:
+            raise KeyError(f"Warning: Missing key '{key}' in input data.")
+    return tree_params

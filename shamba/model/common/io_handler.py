@@ -39,7 +39,7 @@ def get_arguments_interactively():
     # Prompt for n_cohorts
     # Default to 1 if integer not provided
     n_cohorts = input("Enter number of tree cohorts (defaults to 1): ").strip()
-    arguments["n-cohorts"] = n_cohorts if n_cohorts and int(n_cohorts) == n_cohorts else 1
+    arguments["n-cohorts"] = int(n_cohorts) if str(n_cohorts).isdigit() else 1
 
     # Prompt for allometric key
     allometric_keys = list(TreeGrowth.allometric.keys())

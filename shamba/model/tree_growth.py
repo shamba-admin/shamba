@@ -590,18 +590,18 @@ allometric = {
 
 # Uses spp_prefix_map to get the correct prefix for the species-specific columns
 def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
-    default_prefix = "sp3_" # TODO: amend for >3 species
 
-    spp_prefix_map = {
-        1: "",
-        2: "sp2_",
-    }
+    spp_number = int(csv_input_data[spp_key])
+    if spp_number == 1:
+        prefix = ""
+    else:
+        prefix = f"sp{spp_number}_"
 
     return from_csv(
         tree_params=tree_params,
         allometric_key=allometric_key,
         csv_input_data=csv_input_data,
-        species_prefix=spp_prefix_map.get(int(csv_input_data[spp_key]), default_prefix),
+        species_prefix=prefix,
     )
 
 

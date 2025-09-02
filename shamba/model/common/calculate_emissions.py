@@ -68,6 +68,7 @@ def get_tree_model_data(
     )
 
     # Linking tree growth
+    # Baseline growth: single species # identified in species_base
     growth_base = TreeGrowth.get_growth(
         intervention_input,
         CONSTANTS.SPECIES_BASE_KEY,
@@ -75,6 +76,8 @@ def get_tree_model_data(
         allometric_key=allometry,
     )
 
+    # Intervention growth: species # identified in no_of_cohorts different cases, 
+    # so uses a wrapper function to identify species info for each cohort
     tree_growths = TreeGrowth.create_tree_growths(
         intervention_input, tree_params, allometry, no_of_cohorts
     )
