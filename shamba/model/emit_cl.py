@@ -70,7 +70,7 @@ def reduceFromFire(crop=[], tree=[], litter=[], fire=[], outputType='carbon'):
                 tree_inputs[s] += li.output[s][outputType]
         except KeyError:
             log.exception("Invalude outputType parameter in reduceFromFire")
-
+    fire = np.array(fire)
     # Reduce above-ground inputs from fire
     for i in np.where(fire == 1):
         crop_inputs['above'][i] *= (1 - cf['crop'])

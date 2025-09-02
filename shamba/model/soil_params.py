@@ -7,7 +7,7 @@ import os
 import sys
 
 import numpy as np
-from osgeo import gdal, gdalconst
+# import gdal, gdalconst
 
 from shamba.model import io_, cfg
 from shamba.rasters import soil as soil_raster

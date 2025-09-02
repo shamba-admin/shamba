@@ -149,7 +149,7 @@ def main(n):
     # location information
     # ----------
     loc = (float(val['lat']), float(val['lon']))
-    climate = Climate.from_location(loc)
+    climate = Climate.from_csv()
     
     # ----------
     # project length
@@ -161,7 +161,7 @@ def main(n):
     # ----------
     # soil equilibrium solve
     # ----------
-    soil = SoilParams.from_location(loc)
+    soil = SoilParams.from_csv()
     invRoth = InverseRothC(soil,climate)
 
     # ----------

@@ -7,7 +7,7 @@ import os
 import sys
 
 import numpy as np
-from osgeo import gdal, gdalconst
+#import gdal, gdalconst
 
 from shamba.model import io_, cfg
 from shamba.rasters import soil as soil_raster
@@ -55,7 +55,7 @@ class SoilParams(object):
             sys.exit(1)
 
     @classmethod
-    def from_csv(cls, filename='soil.csv'):
+    def from_csv(cls, filename='soilInfo.csv'):
         """Construct Soil object from csv data."""
         data = io_.read_csv(filename)
 
