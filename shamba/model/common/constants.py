@@ -23,7 +23,7 @@ This file contains constants used in SHAMBA.
 GWP_SAR = {"N2O": 310, "CH4": 21}
 GWP_AR4 = {"N2O": 298, "CH4": 25}
 GWP_AR5 = {"N2O": 265, "CH4": 28}
-GWP_AR6 = {"N20": 273, "CH4": 27}
+GWP_AR6 = {"N2O": 273, "CH4": 27}
 
 GWP_list = {
     "GWP SAR (1995)": GWP_SAR,
