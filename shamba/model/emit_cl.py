@@ -23,8 +23,8 @@ ef = {
 
 # Global warming potential from IPCC 2006 GHG Inventory
 gwp = {
-    'N2O': 310,
-    'CH4': 21
+    'N2O': 273, #'N2O': 310,
+    'CH4': 27 #'CH4': 21
 }
 
 # combustion factor from IPCC AFOLU table
@@ -132,7 +132,7 @@ class Emission(object):
             self.emissions += self.emissions_tree 
         # nitrogen and fire emissions
         if crop or tree or litter:
-            self.emissions_nitro = self._nitrogen_emit(crop, tree, litter)
+            self.emissions_nitro = self._nitrogen_emit(crop, tree, litter, fire)
             self.emissions += self.emissions_nitro
             
             self.emissions_fire = self._fire_emit(
@@ -240,7 +240,7 @@ class Emission(object):
 
         return delta
 
-    def _nitrogen_emit(self, crop, tree, litter):
+    def _nitrogen_emit(self, crop, tree, litter, fire):
         """
         Calculate and return emissions due to nitrogen.
         crop_out == list of output dicts from crops
@@ -248,7 +248,7 @@ class Emission(object):
         litter_out == list of output dicts from litter
         """
         toEmit_crop, toEmit_tree = reduceFromFire(
-                crop, tree, litter, outputType='nitrogen')
+                crop, tree, litter, fire, outputType='nitrogen')
         toEmit = toEmit_crop + toEmit_tree
         
         ef = 0.01       # emission factor [kbN20-N/kg N]
@@ -315,7 +315,7 @@ class Emission(object):
         # Some parameters. See methodology
         ef = 0.01
         mw_ratio = 44.0/28
-        gwp = 310.0
+        gwp = 273 # 310.0
         volatile_frac_synth = 0.1
         volatile_frac_org = 0.2
     

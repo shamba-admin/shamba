@@ -23,8 +23,8 @@ ef = {
 
 # Global warming potential from IPCC 2006 GHG Inventory
 gwp = {
-    'N2O': 310,
-    'CH4': 21
+    'N2O': 273, #'N2O': 310,
+    'CH4': 27 #'CH4': 21
 }
 
 # combustion factor from IPCC AFOLU table
@@ -74,7 +74,7 @@ def reduceFromFire(crop=[], tree=[], litter=[], outputType='carbon'):
     # Reduce above-ground inputs from fire
     for i in np.where(FIRE == 1):
         crop_inputs['above'][i] *= (1 - cf['crop'])
-        tree_inputs['above'][i] *= (1 - cf['crop'])
+        tree_inputs['above'][i] *= (1 - cf['tree'])
 
     # Return sum of above and below
     reduced = (sum(crop_inputs.values()), sum(tree_inputs.values()))

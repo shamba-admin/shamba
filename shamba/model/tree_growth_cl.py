@@ -356,7 +356,7 @@ class TreeGrowth(object):
             x = 0
         else:
             a = self.fitParams[0]
-            b = self.fitParmas[1]
+            b = self.fitParams[1]
             if y > a:
                 x = a
             else:
@@ -364,10 +364,11 @@ class TreeGrowth(object):
 
         return x 
 
-    def hyp_fn_deriv(self, x):
+    def hyp_fn_deriv(self, y):
         a = self.fitParams[0]
         b = self.fitParams[1]
-        return a * b * np.exp(-b*x)
+        x = self.hyp_fn_inv(y)
+        return a * b * np.exp(-b * x)
     
     def lin_fn(self, x, a):
         return a * x 
@@ -628,7 +629,7 @@ def chave_dry(dbh, tree_params):
     with < 1500 mm/year rainfall, > 5 months dry season
         
     """
-    agb = log_allom([-0.0281,0.207,1.784,-0.667], dbh, dens=tree_params.dens)
+    agb = log_allom([-0.0281,0.207,1.784,-0.730], dbh, dens=tree_params.dens)
     return agb * tree_params.carbon
 
 def chave_moist(dbh, tree_params):
