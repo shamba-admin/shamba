@@ -651,7 +651,7 @@ def main(n, arguments):
 
 
 if __name__ == "__main__":
-    number_of_rows = 1 # TODO: ask for number of plots as an arg
+    number_of_rows = 1
     # Get command line arguments
     arguments = io_handler.get_arguments_interactively()
 

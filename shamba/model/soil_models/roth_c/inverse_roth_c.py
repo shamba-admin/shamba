@@ -67,7 +67,6 @@ def solver(roth_c):
     # Loop through range of inputs
     for input in np.arange(0.1, 10, 0.1):
         C = optimize.fsolve(dC_dt, C0, args=(t, x, roth_c.k, input))
-        # TODO: Is this correct
         Ctot = np.sum(np.array(C)) + roth_c.soil.iom
         current_difference = math.fabs(Ctot - roth_c.soil.Ceq)
 

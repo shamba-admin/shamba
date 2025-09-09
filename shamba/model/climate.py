@@ -197,7 +197,7 @@ def print_to_stdout(climate):
         "DEC",
     ]
 
-    table_title = "CLIMATE 2 DATA" # TODO: why 2?
+    table_title = "CLIMATE DATA"
 
     # Prepare the data for tabulate
     table_data = [
