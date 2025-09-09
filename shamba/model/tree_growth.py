@@ -45,68 +45,71 @@ fitting_functions = {
     "log": logistic_function,
 }
 
-def exponential_function_inverse(fit_params, y):
-    if math.fabs(y) < 0.00000001:
+def exponential_function_inverse(fit_params, agb):
+    if math.fabs(agb) < 0.00000001:
         x = 0
     else:
         a = fit_params[0]
-        x = math.log(y+1) / math.log(a+1)
+        x = math.log(agb+1) / math.log(a+1)
     return x
 
-def exponential_function_derivative(fit_params, y): # Eq. 7.2, SHAMBA model description
+def exponential_function_derivative(fit_params, agb): # Eq. 7.2, SHAMBA model description
     a = fit_params[0]
-    x = exponential_function_inverse(fit_params, y)
-    return ((1 + a) ** x) * (np.log(1 + a))
+    x = exponential_function_inverse(fit_params, agb)
+    dagb_dx = ((1 + a) ** x) * (np.log(1 + a))
+    return dagb_dx
 
 
-def hyperbolic_function_inverse(fit_params, y):        
-    if math.fabs(y) < 0.00000001:
+def hyperbolic_function_inverse(fit_params, agb):        
+    if math.fabs(agb) < 0.00000001:
         x = 0
     else:
         a = fit_params[0]
         b = fit_params[1]
-        if y > a:
+        if agb > a:
             x = a
         else:
-            x = (math.log(a) - math.log(a-y)) / b
+            x = (math.log(a) - math.log(a-agb)) / b
     return x 
 
-def hyperbolic_function_derivative(fit_params, y): # Eq. 7.3, SHAMBA model description
+def hyperbolic_function_derivative(fit_params, agb): # Eq. 7.3, SHAMBA model description
     a = fit_params[0]
     b = fit_params[1]
-    x = hyperbolic_function_inverse(fit_params,y)
-    return a * b * np.exp(-b * x)
+    x = hyperbolic_function_inverse(fit_params,agb)
+    dagb_dx = a * b * np.exp(-b * x)
+    return dagb_dx
 
 
-def linear_function_derivative(fit_params, y): # Eq. 7.1, SHAMBA model description
+def linear_function_derivative(fit_params, agb): # Eq. 7.1, SHAMBA model description
     a = fit_params[0]
-    return a
+    dagb_dx = a
+    return dagb_dx
 
 
-def logistic_function_inverse(fit_params, y):
-    if math.fabs(y) < 0.00000001:
+def logistic_function_inverse(fit_params, agb):
+    if math.fabs(agb) < 0.00000001:
         x = 0
     else:
         a = fit_params[0]
         b = fit_params[1]
         c = fit_params[2]
-        if y > a:  # should tend towards a
+        if agb > a:  # should tend towards a
             x = a
         else:
-            x = c + (math.log(y) - math.log(a - y)) / b
+            x = c + (math.log(agb) - math.log(a - agb)) / b
 
     return x
 
 
-def logistic_function_derivative(fit_params, y): # Eq. 7.4, SHAMBA model description
-    x = logistic_function_inverse(fit_params, y)
+def logistic_function_derivative(fit_params, agb): # Eq. 7.4, SHAMBA model description
+    x = logistic_function_inverse(fit_params, agb)
 
     a = fit_params[0]
     b = fit_params[1]
     c = fit_params[2]
-    ret = (a * b * np.exp(-b * (x - c))) / ((np.exp(-b * (x - c)) + 1) ** 2)
+    dagb_dx = (a * b * np.exp(-b * (x - c))) / ((np.exp(-b * (x - c)) + 1) ** 2)
 
-    return ret
+    return dagb_dx
 
 
 derivative_functions = {
