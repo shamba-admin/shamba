@@ -44,11 +44,13 @@ def populate_climate_data(folder: str, x: int, y: int) -> np.ndarray:
     return climate_data
 
 
-def generate_dates(year: int) -> np.ndarray:
-    start_date = datetime(year, 1, 1)
-    return np.array(
-        [start_date + timedelta(days=i) for i in range(365 + calendar.isleap(year))]
-    )
+def generate_dates(start_year: int, end_year: int) -> np.ndarray:
+    all_dates_in_range = []
+    for year in range(start_year, end_year +1):
+        start_date = datetime(year, 1, 1)
+        year_dates = [start_date + timedelta(days=i) for i in range(365 + calendar.isleap(year))]
+        all_dates_in_range.extend(year_dates)
+    return np.array(all_dates_in_range)
 
 
 def pair_dates_with_values(dates: np.ndarray, values: np.ndarray) -> np.ndarray:
@@ -75,8 +77,8 @@ def calculate_monthly_sum(
     return month, np.sum(values[:, 1])
 
 
-def segment_and_average_by_month(daily_values: np.ndarray, year: int) -> np.ndarray:
-    dates = generate_dates(year)
+def segment_and_average_by_month(daily_values: np.ndarray, start_year: int, end_year: int) -> np.ndarray:
+    dates = generate_dates(start_year, end_year)
     date_value_pairs = pair_dates_with_values(dates, daily_values)
     grouped_by_month = group_by_month(date_value_pairs)
     monthly_averages = np.array(
@@ -84,8 +86,8 @@ def segment_and_average_by_month(daily_values: np.ndarray, year: int) -> np.ndar
     )
     return monthly_averages
 
-def segment_and_sum_by_month(daily_values: np.ndarray, year: int) -> np.ndarray:
-    dates = generate_dates(year)
+def segment_and_sum_by_month(daily_values: np.ndarray, start_year: int, end_year: int) -> np.ndarray:
+    dates = generate_dates(start_year, end_year)
     date_value_pairs = pair_dates_with_values(dates, daily_values)
     grouped_by_month = group_by_month(date_value_pairs)
     monthly_sums = np.array(
@@ -100,8 +102,7 @@ def get_climate_data(longitude: float, latitude: float, use_api: bool) -> np.nda
     If use_api is True, use the API to get the data. Otherwise, use the local data.
 
     Each piece of climate data is a 12-month average. For the API response, the data is
-    grouped by month, and then averaged over the months. Only the current year's data is
-    used and extrapolated to previous years. This is not ideal, but it is the best we can given exact years are not available.
+    grouped by month, and then averaged over the months.
 
     Args:
         longitude (float): The longitude of the location.
@@ -112,9 +113,11 @@ def get_climate_data(longitude: float, latitude: float, use_api: bool) -> np.nda
         np.ndarray: The climate data for the given location.
     """
     current_year = datetime.now().year
-    previous_year = current_year - 1
-    start_date = datetime(previous_year, 1, 1).strftime("%Y-%m-%d")
-    end_date = datetime(previous_year, 12, 31).strftime("%Y-%m-%d")
+    last_full_year = current_year - 1
+    start_year = last_full_year - 29
+
+    start_date = datetime(start_year, 1, 1).strftime("%Y-%m-%d")
+    end_date = datetime(last_full_year, 12, 31).strftime("%Y-%m-%d")
 
     api_response = (
         get_weather_forecast(
@@ -140,11 +143,11 @@ def get_climate_data(longitude: float, latitude: float, use_api: bool) -> np.nda
 
     daily_data = api_response["daily"]
     temperature = segment_and_average_by_month(
-        np.array(daily_data["temperature_2m_mean"]), previous_year
+        np.array(daily_data["temperature_2m_mean"]), start_year= start_year, end_year = last_full_year
     )
-    rain = segment_and_sum_by_month(np.array(daily_data["rain_sum"]), previous_year)
+    rain = segment_and_sum_by_month(np.array(daily_data["rain_sum"]), start_year= start_year, end_year = last_full_year)
     evapotranspiration = segment_and_sum_by_month(
-        np.array(daily_data["et0_fao_evapotranspiration"]), previous_year
+        np.array(daily_data["et0_fao_evapotranspiration"]), start_year= start_year, end_year = last_full_year
     )
 
     result = np.vstack([temperature[:, 1], rain[:, 1], evapotranspiration[:, 1]])
@@ -166,8 +169,8 @@ def get_weather_forecast(
         "start_date": start_date,
         "end_date": end_date,
         "timezone": "GMT",
-        "format": "json",
-        "timeformat": "unixtime",
+        #"format": "json",
+        #"timeformat": "unixtime",
     }
 
     response = requests.get(API_URL, params=params)
