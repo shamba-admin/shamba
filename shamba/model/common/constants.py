@@ -59,10 +59,9 @@ combustion_factor = {"crop": 0.85, "tree": 0.74}
 # From Table 11.3 IPCC 2019 GHG Inventory
 # "DEFAULT EMISSION, VOLATILISATION AND LEACHING FACTORS FOR 
 # INDIRECT SOIL N2O EMISSIONS"
-# (Frac_gasf, Frac_gasm, EF_4)
+# (Frac_gasf, Frac_gasm)
 volatile_frac_synthetic_fertiliser = 0.11 # [(kg NH3-N + NOx-N) / kg N applied]
 volatile_frac_organic_fertiliser = 0.21 # [(kg NH3-N + NOx-N) / kg N applied]
-ef_N_deposition = 0.01  # [kg N20-N/ (kg NH3-N + NOx-N) volatilised]
 
 # =============================================================================
 #  Default values

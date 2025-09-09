@@ -10,7 +10,7 @@ import numpy as np
 
 from model import configuration
 from model.common import csv_handler
-from model.common.constants import (ef_burn, ef_N_inputs, ef_N_deposition, GWP_list, DEFAULT_GWP, combustion_factor, C_to_CO2_conversion_factor, N_to_N2O_conversion_factor, volatile_frac_organic_fertiliser, volatile_frac_synthetic_fertiliser)
+from model.common.constants import (ef_burn, ef_N_inputs, GWP_list, DEFAULT_GWP, combustion_factor, C_to_CO2_conversion_factor, N_to_N2O_conversion_factor, volatile_frac_organic_fertiliser, volatile_frac_synthetic_fertiliser)
 
 # Reduce crop/tree/litter outputs due to fire
 def reduce_from_fire(
@@ -303,7 +303,7 @@ def fert_emit(litter, fert, no_of_years, gwp):
 
     # calculate emissions
     emit = np.zeros(no_of_years)
-    # still need to add fertiliser ************ TODO? also use ef_N_deposition
+    # still need to add fertiliser ************ TODO?
     for li in litter:
         emit += np.array(li.output["above"]["nitrogen"], dtype=float) * (
             1 - volatile_frac_organic_fertiliser
