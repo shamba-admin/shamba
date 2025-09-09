@@ -22,15 +22,52 @@ def get_arguments_interactively():
     """
     arguments = {}
 
+        # Display instructions using a pure print — not necessary to prompt here
+    print(
+        """
+INSTRUCTIONS
+
+Complete in full the Excel worksheet 'SHAMBA input output template v1.2',
+(located in the 'data-input-templates' folder)    
+including all references for information. The reviewer will reject the
+modelling unless it is fully referenced. See the instructions in the Excel
+worksheet.
+
+On the '_questionnaire' worksheet, you must enter a value in each of the
+blue cells in the 'Input data' column (column N) in response to each 
+'data collection question', otherwise the model will not run properly. 
+If the question is not relevant to the land use you are modelling, enter zero.
+
+To run the model for a particular intervention, save the relevant 
+'_input.csv' file into the new shamba/projects/"project-name"/input
+folder, along with other input files needed. This is the 'source directory'
+you must specify when prompted at the command line.'
+
+If nitrogen allocations, carbon, root/shoot and/or wood density attributes
+differ between tree cohorts, add a new row specifying these tree parameters
+to the tree_defaults.csv in the shamba/default_input folder and make sure the 
+'_input.csv' file correctly attributes each tree cohort to the relevant 
+parameters under 'trees in baseline' and 'trees in project'.
+        """
+    )
+
     # Generate timestamp for default project name
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     # Prompt for project name
     project_name = questionary.text(
-        "Enter project name (or leave blank to auto-generate)",
+        "Enter project name (or use auto-generated name)",
         default=f"project_{timestamp}"
     ).ask()
     arguments["project-name"] = project_name
+
+    # Prompt for source directory
+    source_directory = questionary.text(
+        "Enter source directory path relative to /projects/"
+        " (or use example)",
+        default=f"examples/UG_TS_2016/input"
+    ).ask()
+    arguments["source-directory"] = source_directory
 
     # Prompt for use-api (boolean)
     use_api = questionary.confirm("Use API?", default=DEFAULT_USE_API).ask()
@@ -65,44 +102,16 @@ def get_arguments_interactively():
         Choice(title="Example Soil Model", value=SoilModelType.EXAMPLE)
     ]
 
-    selected_soil_model = questionary.select(
-        "Select a soil model:",
-        choices=soil_models,
-        default=SoilModelType.ROTH_C
-    ).ask()
-    arguments["soil-model"] = selected_soil_model
+    # selected_soil_model = questionary.select(
+    #     "Select a soil model:",
+    #     choices=soil_models,
+    #     default=SoilModelType.ROTH_C
+    # ).ask()
+    arguments["soil-model"] = SoilModelType.ROTH_C
 
     # Prompt for whether to print to stdout
     print_to_stdout = questionary.confirm("Print to stdout?", default=False).ask()
     arguments["print-to-stdout"] = print_to_stdout
-
-    # Display instructions using a pure print — not necessary to prompt here
-    print(
-        """
-INSTRUCTIONS
-
-Complete in full the Excel worksheet 'SHAMBA input output template v1',
-(located in the 'data-input-templates' folder)    
-including all references for information. The reviewer will reject the
-modelling unless it is fully referenced. See the instructions in the Excel
-worksheet.
-
-On the '_questionnaire' worksheet, you must enter a value in each of the
-blue cells in the 'Input data' column (column N) in response to each 
-'data collection question'. Otherwise the model will not run properly. 
-If the question is not relevant to the land use you are modelling, enter zero.
-
-To run the model for a particular intervention, save the relevant 
-'_input.csv' file into the new shamba/projects/"project-name"/input
-folder. 
-
-If nitrogen allocations, carbon, root/shoot and/or wood density attributes
-differ between tree cohorts, add a new row specifying these tree parametres
-to the tree_defaults.csv in the shamba/default_input folder and make sure the 
-'_input.csv' file correctly attributes each tree cohort to the relevant 
-parametres under 'trees in baseline' and 'trees in project'.
-        """
-    )
 
     # Prompt for input file name with default
     input_file_name = questionary.text(

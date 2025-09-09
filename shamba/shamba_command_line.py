@@ -305,7 +305,7 @@ def setup_project_directory(project_name, arguments):
 
     # Source directory (using an existing project as an example)
     source_dir = os.path.join(
-        configuration.PROJECT_DIR, "examples", "UG_TS_2016", "input"
+        configuration.PROJECT_DIR, arguments["source-directory"]
     )
 
     # Copy each file
