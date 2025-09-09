@@ -142,15 +142,28 @@ def plot(emissions, legend_string, save_name=None):
         legend_string: string to put in legend
 
     """
-    fig = plt.figure()
-    fig.suptitle("Emissions")
-    ax = fig.add_subplot(1, 1, 1)
-    ax.set_title("Emissions vs time")
-    ax.set_xlabel("Time (years)")
-    ax.set_ylabel("Emissions (t CO2 ha^-1)")
+    # Check if there's already an active figure with the title "Emissions"
+    # If so, reuse it for multiple plots on the same figure
+    current_fig = plt.gcf()
+    if (plt.get_fignums() and 
+        hasattr(current_fig, '_suptitle') and 
+        current_fig._suptitle is not None and 
+        'Emissions' in str(current_fig._suptitle)):
+        # Reuse existing emissions figure
+        ax = current_fig.gca()
+        ax.plot(emissions, label=legend_string)
+        ax.legend(loc="best")
+    else:
+        # Create new figure
+        fig = plt.figure()
+        fig.suptitle("Emissions")
+        ax = fig.add_subplot(1, 1, 1)
+        ax.set_title("Emissions vs time")
+        ax.set_xlabel("Time (years)")
+        ax.set_ylabel("Emissions (t CO2 ha^-1)")
 
-    ax.plot(emissions, label=legend_string)
-    ax.legend(loc="best")
+        ax.plot(emissions, label=legend_string)
+        ax.legend(loc="best")
 
     if save_name is not None:
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, save_name))

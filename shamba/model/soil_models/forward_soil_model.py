@@ -75,26 +75,50 @@ def save(forward_soil_model: ForwardSoilModelData, no_of_years: int, file="soil_
 
 
 def plot(forward_soil_model: ForwardSoilModelData, legend_string, no_of_years: int, save_name=None):
-    fig = plt.figure()
-    fig.suptitle("Soil Carbon")  # Replace set_window_title with suptitle
-    ax = fig.add_subplot(1, 1, 1)
-    ax.set_xlabel("Time (years)")
-    ax.set_ylabel("SOC (t C ha^-1)")
-    ax.set_title("Total soil carbon vs time")
-
-    tot_soc = np.sum(forward_soil_model.SOC, axis=1)
-    if len(tot_soc) == no_of_years + 1:
-        # baseline or project
-        x = list(range(len(tot_soc)))
+    # Check if there's already an active figure with the title "Soil Carbon"
+    # If so, reuse it for multiple plots on the same figure
+    current_fig = plt.gcf()
+    if (plt.get_fignums() and 
+        hasattr(current_fig, '_suptitle') and 
+        current_fig._suptitle is not None and 
+        'Soil Carbon' in str(current_fig._suptitle)):
+        # Reuse existing soil carbon figure
+        ax = current_fig.gca()
+        
+        # Calculate x and y data for plotting
+        tot_soc = np.sum(forward_soil_model.SOC, axis=1)
+        if len(tot_soc) == no_of_years + 1:
+            # baseline or project
+            x = list(range(len(tot_soc)))
+        else:
+            # initialisation run is before year 0
+            x = np.array(list(range(-len(tot_soc) + 2, 2)))
+            x = x - forward_soil_model.Cy0Year
+            x[-1] = 0
+        
+        ax.plot(x, tot_soc, label=legend_string)
+        ax.legend(loc="best")
     else:
-        # initialisation run is before year 0
-        x = np.array(list(range(-len(tot_soc) + 2, 2)))
-        x = x - forward_soil_model.Cy0Year
-        x[-1] = 0
+        # Create new figure
+        fig = plt.figure()
+        fig.suptitle("Soil Carbon")
+        ax = fig.add_subplot(1, 1, 1)
+        ax.set_xlabel("Time (years)")
+        ax.set_ylabel("SOC (t C ha^-1)")
+        ax.set_title("Total soil carbon vs time")
 
-    tot_soc = np.sum(forward_soil_model.SOC, axis=1)
-    ax.plot(x, tot_soc, label=legend_string)
-    ax.legend(loc="best")
+        tot_soc = np.sum(forward_soil_model.SOC, axis=1)
+        if len(tot_soc) == no_of_years + 1:
+            # baseline or project
+            x = list(range(len(tot_soc)))
+        else:
+            # initialisation run is before year 0
+            x = np.array(list(range(-len(tot_soc) + 2, 2)))
+            x = x - forward_soil_model.Cy0Year
+            x[-1] = 0
+
+        ax.plot(x, tot_soc, label=legend_string)
+        ax.legend(loc="best")
 
     if save_name is not None:
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, save_name))

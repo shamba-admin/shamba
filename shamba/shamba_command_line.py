@@ -624,11 +624,6 @@ def main(n, arguments):
     Emit.plot(intervention_emissions.emit_base_emissions, legend_string="baseline")
     Emit.plot(intervention_emissions.emit_project_emissions, legend_string="project")
 
-    # TODO: what is this? How could `ax` be attached to Emission?
-    # Why is it done here instead of in the plot function?
-    # Commenting out for now
-    # emit.Emission.ax.plot(emit_difference, label="difference")
-    # emit.Emission.ax.legend(loc="best")
 
     plt.savefig(os.path.join(configuration.OUTPUT_DIR, plot_name + "_emissions.png"))
     plt.close()
