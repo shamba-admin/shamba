@@ -316,7 +316,7 @@ def fert_emit(litter, fert, no_of_years, gwp):
 
     # calculate emissions
     emit = np.zeros(no_of_years)
-    # still need to add fertiliser ************ TODO?
+
     for li in litter:
         emit += np.array(li.output["above"]["nitrogen"], dtype=float) * (
             1 - volatile_frac_organic_fertiliser

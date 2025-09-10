@@ -649,7 +649,7 @@ def handle_intervention(
     no_of_years = (
         get_int(CONSTANTS.NO_OF_YEARS_KEY, intervention_input)
     )
-    plot_id = get_int("plot_name", intervention_input) # TODO: use key
+    plot_id = get_int("plot_name", intervention_input)
 
     # ----------
     # LOCATION INFORMATION

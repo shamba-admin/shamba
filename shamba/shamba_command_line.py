@@ -359,7 +359,7 @@ def main(n, arguments):
     # ----------
     # YEARS = length of tree data. ACCT = years in accounting period
     N_YEARS = int(csv_input_data["yrs_proj"])
-    N_COHORTS = arguments["n-cohorts"] #TODO: amend input questionnaire to allow variable number of cohorts. Consider baseline single cohort rule
+    N_COHORTS = arguments["n-cohorts"]
 
     allometric_key = arguments["allometric-key"]
     gwp = arguments["gwp"]

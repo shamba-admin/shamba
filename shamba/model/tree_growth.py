@@ -199,7 +199,6 @@ class TreeGrowthSchema(Schema):
 
 
 def get_biomass(tree_diameter, allometric_key, tree_params):
-    # TODO: double check! modified code
     allometric_function = allometric[allometric_key]
 
     return np.array(

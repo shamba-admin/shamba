@@ -53,7 +53,6 @@ ef_N_inputs = 0.01  # [kg N20-N/kg N]
 # "COMBUSTION FACTOR VALUES (PROPORTION OF PREFIRE FUEL BIOMASS CONSUMED) 
 # FOR FIRES IN A RANGE OF VEGETATION TYPES"
 # Tree based on "Savanna Woodlands", crop based on "Other Crops"
-# TODO: confirm that these two mappings are correct: should it rather use tropical forest, and maize?
 combustion_factor = {"crop": 0.85, "tree": 0.74}
 
 # From Table 11.3 IPCC 2019 GHG Inventory
@@ -72,7 +71,6 @@ volatile_frac_organic_fertiliser = 0.21 # [(kg NH3-N + NOx-N) / kg N applied]
 
 DEFAULT_USE_API = True
 DEFAULT_ALLOMORPHY = "chave dry"
-DEFAULT_YEAR = datetime.now().year # TODO: check that this is overwritten at command line
 
 # -------------------------
 # b) values with a general default, that users may want to manually change:
