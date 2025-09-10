@@ -26,12 +26,10 @@ To use the terminal interface from within the Docker container, follow these ste
 
 ### Local Setup
 
-1. Install `gdal`. The currently supported version of `gdal` is `3.11.3`. Check the [official documentation](https://gdal.org/en/stable/download.html#binaries) for how to install `gdal` for your specific operating system.
-2. Unzip the soil data file `./rasters/soil/hwsd.7z`.
-3. Install `pyenv` which is an easy-to-use tool to manage multiple Python versions. Check the [official documentation](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation) for how to install `pyenv` for your specific operating system.
-4. Install Python `3.10`: `pyenv install 3.10` then `pyenv local 3.10`.
-5. Install `poetry` by following the [official documentation](https://python-poetry.org/docs/).
-6. Go to the `shamba` directory and install dependencies:
+1. Install `pyenv` which is an easy-to-use tool to manage multiple Python versions. Check the [official documentation](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation) for how to install `pyenv` for your specific operating system.
+2. Install Python `3.10`: `pyenv install 3.10` then `pyenv local 3.10`.
+3. Install `poetry` by following the [official documentation](https://python-poetry.org/docs/).
+4. Go to the `shamba` directory and install dependencies:
 ```sh
 cd shamba
 poetry install

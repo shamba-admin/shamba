@@ -28,7 +28,6 @@ conda activate $shamba_env_name
 Write-Host "`We are now installing the Shamba dependencies in '$shamba_env_name' environment. This can take several minutes."
 
 conda install -y -c conda-forge basemap;
-conda install -y -c conda-forge gdal;
 conda install -y -c conda-forge scipy;
 conda install -y -c conda-forge pandas;
 conda install -y -c conda-forge pyqt;

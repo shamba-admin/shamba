@@ -649,20 +649,6 @@ unicode = ["unicodedata2 (>=15.1.0) ; python_version <= \"3.12\""]
 woff = ["brotli (>=1.0.1) ; platform_python_implementation == \"CPython\"", "brotlicffi (>=0.8.0) ; platform_python_implementation != \"CPython\"", "zopfli (>=0.1.4)"]
 
 [[package]]
-name = "gdal"
-version = "3.11.3"
-description = "GDAL: Geospatial Data Abstraction Library"
-optional = false
-python-versions = ">=3.8.0"
-groups = ["main"]
-files = [
-    {file = "gdal-3.11.3.tar.gz", hash = "sha256:4c3ad0fae393b5ddb093a7e4b890077839b2a6acdbd19202657fe4e881886efa"},
-]
-
-[package.extras]
-numpy = ["numpy (>1.0.0)"]
-
-[[package]]
 name = "h11"
 version = "0.14.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
@@ -2412,4 +2398,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "==3.10.16"
-content-hash = "66b4f876c6b69c8d74483199afec31737c92112218c29038de005672e7902173"
+content-hash = "936bb9431b7028bb8bed1b5d1a2da596a71709fc080aac276d47a9972489e0f0"

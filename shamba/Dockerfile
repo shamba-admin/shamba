@@ -1,4 +1,4 @@
-FROM ghcr.io/osgeo/gdal:ubuntu-small-3.11.3 
+FROM python:3.10.16-slim
 
 # Install minimal build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libbz2-dev \
     libreadline-dev \
     libsqlite3-dev \
-    libgeos-dev \
     wget \
     curl \
     llvm \
