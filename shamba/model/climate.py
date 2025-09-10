@@ -6,6 +6,8 @@ import logging as log
 import math
 import calendar
 import sys
+import os
+from model import configuration
 
 import matplotlib.pyplot as plt
 from tabulate import tabulate
@@ -111,34 +113,48 @@ def from_location(location, use_api: bool) -> ClimateData:
     return climate  # type: ignore
 
 
-def from_csv(
-    filename="climate.csv", order=("temp", "rain", "evap"), is_evaporation=True
-) -> ClimateData:
+def from_csv(filename="climate.csv") -> ClimateData:
     """Construct Climate object from a csv file.
 
     Args:
-        filename
-        order: tuple of str specifying the column order in csv
-        is_evaporation: whether data has evap or PET - convert to evap
-                if not is_evaporation
+        filename: path to csv file containing climate data
     Returns:
         Climate object
     Raises:
-        ValueError: if order doesn't contain 'temp,'rain', and 'evap'
-                    in some order
+        ValueError: if headers don't contain 'temp', 'rain', and either 'evap' or 'pet'
 
     """
     data = csv_handler.read_csv(filename)
+    headers = np.genfromtxt(
+            os.path.join(configuration.INPUT_DIR, filename), max_rows = 1, delimiter=",", dtype = None, encoding = None
+        )
+    headers = np.char.lower(headers)
 
     try:
+        # Check if PET or evaporation data is present
+        has_pet = 'pet' in headers
+        has_evap = 'evap' in headers
+        
+        if has_pet and has_evap:
+            raise ValueError("Climate data cannot contain both 'pet' and 'evap'")
+        elif not has_pet and not has_evap:
+            raise ValueError("Climate data must contain either 'pet' or 'evap'")
+        
+        # Set the correct order based on what's available
+        if has_pet:
+            correct_order = ("temp", "rain", "pet")
+        else:
+            correct_order = ("temp", "rain", "evap")
+        
         # Create clim array with the correct rows
         climate_data = np.zeros((3, 12))
-        correct_order = ("temp", "rain", "evap")
         for i in range(3):
-            climate_data[i] = data[:, order.index(correct_order[i])]
+            climate_data[i] = data[:, np.where(headers == correct_order[i])[0][0]]
 
-        if not is_evaporation:  # pet given, so convert to evap
+        # Convert PET to evaporation if PET data was used
+        if has_pet:
             climate_data[2] /= 0.75
+            
         climate: ClimateData = ClimateDataSchema().load(
             {
                 "temperature": climate_data[0],
@@ -146,8 +162,8 @@ def from_csv(
                 "evaporation": climate_data[2],
             }
         )  # type: ignore
-    except ValueError:
-        log.exception("INCORRECT VALUE(S) IN ORDER ARGUMENT")
+    except ValueError as e:
+        log.exception(f"Error in climate data headers: {str(e)}")
         sys.exit(1)
     except IndexError:
         log.exception("Data not in correct format")
