@@ -95,7 +95,7 @@ def segment_and_sum_by_month(daily_values: np.ndarray, start_year: int, end_year
     )
     return monthly_sums
 
-def get_climate_data(longitude: float, latitude: float, use_api: bool) -> np.ndarray:
+def get_climate_data(longitude: float, latitude: float, use_api = True) -> np.ndarray:
     """
     Get climate data for a given location.
 
@@ -119,8 +119,7 @@ def get_climate_data(longitude: float, latitude: float, use_api: bool) -> np.nda
     start_date = datetime(start_year, 1, 1).strftime("%Y-%m-%d")
     end_date = datetime(last_full_year, 12, 31).strftime("%Y-%m-%d")
 
-    api_response = (
-        get_weather_forecast(
+    api_response = get_weather_forecast(
             latitude=latitude,
             longitude=longitude,
             daily_params=[
@@ -130,17 +129,7 @@ def get_climate_data(longitude: float, latitude: float, use_api: bool) -> np.nda
             ],
             start_date=start_date,
             end_date=end_date,
-        )
-        if use_api
-        else None
-    )
-
-    if api_response is None:
-        x = math.ceil(180 - 2 * latitude)
-        y = math.ceil(360 + 2 * longitude)  # Fixed the multiplication
-        folder = os.path.dirname(os.path.abspath(climate_raster.__file__))
-        return populate_climate_data(folder, x, y)
-
+            )
     daily_data = api_response["daily"]
     temperature = segment_and_average_by_month(
         np.array(daily_data["temperature_2m_mean"]), start_year= start_year, end_year = last_full_year
@@ -166,6 +155,7 @@ def get_weather_forecast(
         "latitude": latitude,
         "longitude": longitude,
         "daily": ",".join(daily_params),
+        "models": "era5",
         "start_date": start_date,
         "end_date": end_date,
         "timezone": "GMT",

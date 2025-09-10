@@ -131,7 +131,7 @@ def from_csv(filename="climate.csv") -> ClimateData:
     headers = np.char.lower(headers)
 
     try:
-        # Check if PET or evaporation data is present
+        # Check if PET or open-pan evaporation data is present
         has_pet = 'pet' in headers
         has_evap = 'evap' in headers
         
@@ -151,7 +151,7 @@ def from_csv(filename="climate.csv") -> ClimateData:
         for i in range(3):
             climate_data[i] = data[:, np.where(headers == correct_order[i])[0][0]]
 
-        # Convert PET to evaporation if PET data was used
+        # Convert PET to open-pan evaporation if PET data was used
         if has_pet:
             climate_data[2] /= 0.75
             
