@@ -211,6 +211,8 @@ def get_tree_model_data(
 class GetFireModelReturnData(NamedTuple):
     fire_base: np.ndarray
     fire_project: np.ndarray
+    fire_off_base: bool
+    fire_off_proj: bool
 
 
 def get_fire_model_data(
@@ -225,6 +227,11 @@ def get_fire_model_data(
         fire_base[::base_fire_interval] = get_int(
             CONSTANTS.FIRE_PRES_BASE_KEY, intervention_input
         )
+    base_fire_off_field = get_int("fire_off_base",intervention_input)
+    if base_fire_off_field == 1:
+        burn_off_base = True
+    else:
+        burn_off_base = False
 
     project_fire_interval = get_int(
         CONSTANTS.FIRE_INTERVAL_PROJECT_KEY, intervention_input
@@ -236,7 +243,14 @@ def get_fire_model_data(
         fire_project[::project_fire_interval] = get_int(
             CONSTANTS.FIRE_PRES_PROJECT_KEY, intervention_input
         )
-    return GetFireModelReturnData(fire_base=fire_base, fire_project=fire_project)
+    
+    proj_fire_off_field = get_int("fire_off_proj",intervention_input)
+    if proj_fire_off_field == 1:
+        burn_off_proj = True
+    else:
+        burn_off_proj = False
+
+    return GetFireModelReturnData(fire_base=fire_base, fire_project=fire_project, fire_off_base=burn_off_base, fire_off_proj=burn_off_proj)
 
 
 class GetLitterModelReturnData(NamedTuple):
@@ -439,7 +453,9 @@ def get_emissions_data(
     synthetic_fertiliser_base: LitterModel.LitterModelData,
     synthetic_fertiliser_project: LitterModel.LitterModelData,
     fire_base: np.ndarray,
+    fire_off_base: bool,
     fire_project: np.ndarray,
+    fire_off_project: bool,
     gwp: dict,
 ) -> GetEmissionsReturnData:
     # Emissions stuff
@@ -451,6 +467,7 @@ def get_emissions_data(
         litter=[litter_external_base],
         fert=[synthetic_fertiliser_base],
         fire=fire_base,
+        burn_off=fire_off_base,
         gwp=gwp,
     )
     emit_project_emissions = Emit.create(
@@ -461,6 +478,7 @@ def get_emissions_data(
         litter=[litter_external_project],
         fert=[synthetic_fertiliser_project],
         fire=fire_project,
+        burn_off=fire_off_project,
         gwp=gwp,
     )
 
@@ -747,7 +765,9 @@ def handle_intervention(
         synthetic_fertiliser_base=litter_model_data.synthetic_fertiliser_base,
         synthetic_fertiliser_project=litter_model_data.synthetic_fertiliser_project,
         fire_base=fire_model_data.fire_base,
+        fire_off_base=fire_model_data.fire_off_base,
         fire_project=fire_model_data.fire_project,
+        fire_off_project=fire_model_data.fire_off_proj,
         gwp=gwp,
     )
 
