@@ -373,7 +373,7 @@ def get_inputs(
     DM = C / tree_params.carbon
     N = np.zeros((no_of_years, 5))
     for i in range(no_of_years):
-        N[i] = tree_params.nitrogen[0:no_of_years] * DM[i]
+        N[i] = tree_params.nitrogen * DM[i]
 
     output = {}
     output["above"] = {
