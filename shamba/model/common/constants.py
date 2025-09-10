@@ -77,7 +77,7 @@ DEFAULT_YEAR = datetime.now().year # TODO: check that this is overwritten at com
 # -------------------------
 # b) values with a general default, that users may want to manually change:
 
-DEFAULT_GWP = "GWP SAR (1995)" # TODO: change to AR6, will break tests
+DEFAULT_GWP = "GWP AR6 (2021)"
 TREE_ROOT_IN_TOP_30 = 0.7
 CROP_ROOT_IN_TOP_30 = 0.7
 # -------------------------
