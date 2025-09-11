@@ -405,7 +405,6 @@ def get_soil_carbon_data(
     )
 
     # Soil carbon for baseline and project
-    # TODO: check this one
     base_forward_soil_data = create_forward_soil_model(
         soil=soil,
         climate=climate,

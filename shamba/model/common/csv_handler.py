@@ -144,8 +144,7 @@ def read_mixed_csv(file_in, cols=None, types=None):
     """Read data from a mixed csv (strings and numbers).
     Uses numpy.loadfromtxt
 
-    NOTE: when used to read HWSD stuff (probably the primary
-    use of this method), make sure to use usecols=(0,1,2,3..12)
+    NOTE: when used to read HWSD stuff, make sure to use usecols=(0,1,2,3..12)
     since genfromtxt seems to think there's 15 cols and gives an error
 
     Args:
