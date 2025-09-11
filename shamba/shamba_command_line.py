@@ -647,6 +647,11 @@ def main(n, arguments):
 
 if __name__ == "__main__":
     number_of_rows = 1
+    # number_of_rows = number of plots
+    # NOTE: as of v1.2, this code is not fully set up to process multiple plots during the same run.
+    # This is on a list of intended updates for the future. To run multiple plots, please
+    # run the command line script with individual input files for each plot.
+
     # Get command line arguments
     arguments = io_handler.get_arguments_interactively()
 
