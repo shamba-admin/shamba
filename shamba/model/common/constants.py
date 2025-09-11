@@ -76,10 +76,10 @@ DEFAULT_ALLOMORPHY = "chave dry"
 # b) values with a general default, that users may want to manually change:
 
 DEFAULT_GWP = "GWP AR6 (2021)"
-TREE_ROOT_IN_TOP_30 = 0.7
-CROP_ROOT_IN_TOP_30 = 0.7
-ORGANIC_INPUT_N = 0.018
-ORGANIC_INPUT_C = 0.5
+TREE_ROOT_IN_TOP_30 = 0.7 # %
+CROP_ROOT_IN_TOP_30 = 0.7 # %
+ORGANIC_INPUT_N = 0.018 # kg N/ kg input
+ORGANIC_INPUT_C = 0.5 # kg C/kg input
 # -------------------------
 
 # =============================================================================
@@ -87,7 +87,7 @@ ORGANIC_INPUT_C = 0.5
 # =============================================================================
 
 EXAMPLE_N_COHORTS = 3
-EXAMPLE_TREE_STANDARD_DENSITY = 100
+EXAMPLE_TREE_STANDARD_DENSITY = 100 # trees / ha
 EXAMPLE_NO_OF_YEARS = 10
 
 # =============================================================================
