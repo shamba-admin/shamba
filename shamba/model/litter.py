@@ -5,6 +5,7 @@ from marshmallow import Schema, fields, post_load
 
 from .common import csv_handler
 from .common_schema import OutputSchema as LitterDataOutputSchema
+import model.common.constants as CONSTANTS
 
 
 class LitterModelData:
@@ -111,7 +112,7 @@ def from_defaults(litter_frequency, litter_quantity, no_of_years, litter_vector=
     """
 
     # Carbon and nitrogen content of litter input defaults
-    params = {"carbon": 0.5, "nitrogen": 0.018}
+    params = {"carbon": CONSTANTS.ORGANIC_INPUT_C, "nitrogen": CONSTANTS.ORGANIC_INPUT_N}
     return create(
         litter_params=params,
         litter_frequency=litter_frequency,

@@ -78,6 +78,8 @@ DEFAULT_ALLOMORPHY = "chave dry"
 DEFAULT_GWP = "GWP AR6 (2021)"
 TREE_ROOT_IN_TOP_30 = 0.7
 CROP_ROOT_IN_TOP_30 = 0.7
+ORGANIC_INPUT_N = 0.018
+ORGANIC_INPUT_C = 0.5
 # -------------------------
 
 # =============================================================================
