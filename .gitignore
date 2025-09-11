@@ -111,7 +111,6 @@ dmypy.json
 
 shamba/projects/*
 !shamba/projects/examples
-shamba/rasters/soil/hwsd.bil
 
 # MacOS
 **/.DS_Store

@@ -11,7 +11,6 @@ services:
       - ./shamba/fixtures:/app/fixtures
       - ./shamba/model:/app/model
       - ./shamba/projects:/app/projects
-      - ./shamba/rasters:/app/rasters
       - ./shamba/server:/app/server
       - ./shamba/shamba_command_line.py:/app/shamba_command_line.py
       - ./shamba/tests:/app/tests
