@@ -88,12 +88,13 @@ def segment_and_average_by_month(daily_values: np.ndarray, start_year: int, end_
 
 def segment_and_sum_by_month(daily_values: np.ndarray, start_year: int, end_year: int) -> np.ndarray:
     dates = generate_dates(start_year, end_year)
+    no_of_years = end_year - start_year + 1
     date_value_pairs = pair_dates_with_values(dates, daily_values)
     grouped_by_month = group_by_month(date_value_pairs)
     monthly_sums = np.array(
         [calculate_monthly_sum(group) for group in grouped_by_month]
     )
-    return monthly_sums
+    return monthly_sums/no_of_years
 
 def get_climate_data(longitude: float, latitude: float, use_api = True) -> np.ndarray:
     """
