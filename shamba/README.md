@@ -3,15 +3,10 @@
 ### Docker Setup
 
 1. Ensure that Docker is installed on your system. Check the [official documentation](https://docs.docker.com/get-docker/) for how to install Docker for your specific operating system.
-2. Unzip the soil data file `./rasters/soil/hwsd.7z`.
-3. From the `shamba` directory, run the following command:
+2. From the `shamba` directory, run the following command:
 ```sh
 docker compose up
 ```
-
-#### Web Application
-
-You can access the web application at `http://localhost:8000/main/#/`.
 
 #### Terminal
 
@@ -37,7 +32,7 @@ poetry env use 3.10
 eval $(poetry env activate)
 ```
 
-The SHAMBA model can be used in two ways:
+In v1.2, SHAMBA is only available as a command-line version. A web application is targeted for future versions. You may find some proof-of-concept files in this repo, but it is not set up for full use yet.
 
 ### Command-line version
 
@@ -50,6 +45,11 @@ python shamba_command_line.py
 The script will prompt you for the information it needs to run the model. It will also print out instructions on how to prepare input data to run the model.
 
 ### UI version
+
+#### Web Application
+
+In a Docker container, you can access the web application at `http://localhost:8000/main/#/`.
+
 
 The SHAMBA model can be run as a client-server application using the `shamba/server` and `shamba/client` directories. The server is a _FastAPI_ application that runs the model and returns the results. The client is a [Preact](https://preactjs.com/) application that is built using [Esbuild](https://esbuild.github.io/). The client is used to display the results of the model in a web browser.
 
