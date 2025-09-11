@@ -127,8 +127,8 @@ def create(
     tree_growth,
     pool_params,
     no_of_years,
+    initial_stand_density,
     year_planted=0,
-    initial_stand_density=0,  # Should initial_stand_density be 200?
     thinning=None,
     mortality=None,
 ) -> TreeModel:
@@ -196,8 +196,8 @@ def from_defaults(
     tree_params,
     tree_growth,
     no_of_years,
+    stand_density,
     year_planted=0,
-    stand_density=100,  # Should stand_density be 200?
     thinning=None,
     thinning_fraction=None,
     mortality=None,
