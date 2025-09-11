@@ -5,7 +5,7 @@ This software is provided under the University of Edinburgh's Open Technology By
 downloading this software you accept the University of Edinburgh's Open Technology
 terms and conditions.
 
-These can be viewed here: 
+These can be viewed here:
 https://files.edinburgh-innovations.ed.ac.uk/ei-web/production/images/Small-holder-agriculture-mitigation-benefit-assessment-tool_Terms-and-Conditions-EI.pdf
 """
 
@@ -304,9 +304,7 @@ def setup_project_directory(project_name, arguments):
     ]
 
     # Source directory (using an existing project as an example)
-    source_dir = os.path.join(
-        configuration.PROJECT_DIR, arguments["source-directory"]
-    )
+    source_dir = os.path.join(configuration.PROJECT_DIR, arguments["source-directory"])
 
     # Copy each file
     for file in files_to_copy:
@@ -378,7 +376,7 @@ def main(n, arguments):
     # ----------
     # Printing to stdout
     # ----------
-    if (arguments["print-to-stdout"]):
+    if arguments["print-to-stdout"]:
         # Print some stuff?
         Climate.print_to_stdout(intervention_emissions.climate)
         SoilParams.print_to_stdout(intervention_emissions.soil)
@@ -391,10 +389,14 @@ def main(n, arguments):
             intervention_emissions.for_soil, no_of_years=N_YEARS, label="initialisation"
         )
         ForwardSoilModule.print_to_stdout(
-            intervention_emissions.base_forward_soil_data, no_of_years=N_YEARS, label="baseline"
+            intervention_emissions.base_forward_soil_data,
+            no_of_years=N_YEARS,
+            label="baseline",
         )
         ForwardSoilModule.print_to_stdout(
-            intervention_emissions.project_forward_soil_data, no_of_years=N_YEARS, label="project"
+            intervention_emissions.project_forward_soil_data,
+            no_of_years=N_YEARS,
+            label="project",
         )
         # =============================================================================
 
@@ -548,7 +550,9 @@ def main(n, arguments):
         "crop_params",
     )
 
-    InverseSoilModule.save(intervention_emissions.inverse_soil_model, plot_name + "_invSoil.csv")
+    InverseSoilModule.save(
+        intervention_emissions.inverse_soil_model, plot_name + "_invSoil.csv"
+    )
     ForwardSoilModule.save(
         forward_soil_model=intervention_emissions.for_soil,
         no_of_years=N_YEARS,
@@ -610,7 +614,9 @@ def main(n, arguments):
     )
 
     ForwardSoilModule.plot(
-        intervention_emissions.base_forward_soil_data, no_of_years=N_YEARS, legend_string="baseline"
+        intervention_emissions.base_forward_soil_data,
+        no_of_years=N_YEARS,
+        legend_string="baseline",
     )
 
     ForwardSoilModule.plot(
@@ -623,7 +629,6 @@ def main(n, arguments):
 
     Emit.plot(intervention_emissions.emit_base_emissions, legend_string="baseline")
     Emit.plot(intervention_emissions.emit_project_emissions, legend_string="project")
-
 
     plt.savefig(os.path.join(configuration.OUTPUT_DIR, plot_name + "_emissions.png"))
     plt.close()

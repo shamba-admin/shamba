@@ -10,7 +10,8 @@ class SoilModelType(Enum):
     ROTH_C = "RothC"
     EXAMPLE = "Example"
 
-# NB. the format of the following 3 classes currently matches requirements for RothC, 
+
+# NB. the format of the following 3 classes currently matches requirements for RothC,
 # which is the only soil C model currently available.
 class ForwardSoilModelData:
     """

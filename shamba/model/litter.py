@@ -8,6 +8,7 @@ from .common_schema import OutputSchema as LitterDataOutputSchema
 import model.common.constants as CONSTANTS
 from .common.validations import validate_between_0_and_1
 
+
 class LitterModelData:
     """
     Litter model object. Read litter params
@@ -51,11 +52,13 @@ def create(
     Returns:
         LitterModelData: object containing litter parameters
     """
-    errors = validate_between_0_and_1([litter_params["carbon"], litter_params["nitrogen"]])
+    errors = validate_between_0_and_1(
+        [litter_params["carbon"], litter_params["nitrogen"]]
+    )
 
-    if errors: 
-       raise ValidationError(errors)
-        
+    if errors:
+        raise ValidationError(errors)
+
     carbon = litter_params["carbon"]
     nitrogen = litter_params["nitrogen"]
     params = {
@@ -116,7 +119,10 @@ def from_defaults(litter_frequency, litter_quantity, no_of_years, litter_vector=
     """
 
     # Carbon and nitrogen content of litter input defaults
-    params = {"carbon": CONSTANTS.ORGANIC_INPUT_C, "nitrogen": CONSTANTS.ORGANIC_INPUT_N}
+    params = {
+        "carbon": CONSTANTS.ORGANIC_INPUT_C,
+        "nitrogen": CONSTANTS.ORGANIC_INPUT_N,
+    }
     return create(
         litter_params=params,
         litter_frequency=litter_frequency,

@@ -92,17 +92,17 @@ def get_partitions(roth_c):
     """
 
     # Determine p_2 (fraction of input going to CO2) based on clay content
-    z = 1.67 * (1.85 + 1.6 * math.exp(-0.0786 * roth_c.soil.clay)) # CO2/(BIO + HUM)
-    p2 = z / (z + 1) # CO2
+    z = 1.67 * (1.85 + 1.6 * math.exp(-0.0786 * roth_c.soil.clay))  # CO2/(BIO + HUM)
+    p2 = z / (z + 1)  # CO2
 
     # p_3 is always 0.46 (see RothC user guide)
-    p3 = 0.46 # BIO proportion of BIO+HUM
+    p3 = 0.46  # BIO proportion of BIO+HUM
 
     # p_1 is dpm fraction of input:
     #   deciduous tropical woodland: dpm=0.2, rpm=0.8
     #   crops: dpm=0.59, rpm=0.41
     # no crops at equil so p1 always 0.2
     p1 = 0.2
-    
+
     # DPM fraction, RPM fraction, BIO fraction, HUM fraction
     return np.array([p1, 1 - p1, p3 * (1 - p2), (1 - p2) * (1 - p3)])

@@ -15,10 +15,15 @@ import model.common.constants as CONSTANTS
 
 import model.soil_models.forward_soil_model as ForwardSoilModule
 import model.soil_models.inverse_soil_model as InverseSoilModule
-from model.soil_models.soil_model_types import SoilModelType, ForwardSoilModelData, InverseSoilModelData
+from model.soil_models.soil_model_types import (
+    SoilModelType,
+    ForwardSoilModelData,
+    InverseSoilModelData,
+)
 
 get_float: Callable[[str, Dict[str, Any]], float] = compose(float, get)  # type: ignore
 get_int: Callable[[str, Dict[str, Any]], int] = compose(int, get)  # type: ignore
+
 
 def get_location(year_input: Dict[str, Any]) -> Tuple[float, float]:
     return (
@@ -76,7 +81,7 @@ def get_tree_model_data(
         allometric_key=allometry,
     )
 
-    # Intervention growth: species # identified in no_of_cohorts different cases, 
+    # Intervention growth: species # identified in no_of_cohorts different cases,
     # so uses a wrapper function to identify species info for each cohort
     tree_growths = TreeGrowth.create_tree_growths(
         intervention_input, tree_params, allometry, no_of_cohorts
@@ -227,7 +232,7 @@ def get_fire_model_data(
         fire_base[::base_fire_interval] = get_int(
             CONSTANTS.FIRE_PRES_BASE_KEY, intervention_input
         )
-    base_fire_off_field = get_int("fire_off_base",intervention_input)
+    base_fire_off_field = get_int("fire_off_base", intervention_input)
     if base_fire_off_field == 1:
         burn_off_base = True
     else:
@@ -243,14 +248,19 @@ def get_fire_model_data(
         fire_project[::project_fire_interval] = get_int(
             CONSTANTS.FIRE_PRES_PROJECT_KEY, intervention_input
         )
-    
-    proj_fire_off_field = get_int("fire_off_proj",intervention_input)
+
+    proj_fire_off_field = get_int("fire_off_proj", intervention_input)
     if proj_fire_off_field == 1:
         burn_off_proj = True
     else:
         burn_off_proj = False
 
-    return GetFireModelReturnData(fire_base=fire_base, fire_project=fire_project, fire_off_base=burn_off_base, fire_off_proj=burn_off_proj)
+    return GetFireModelReturnData(
+        fire_base=fire_base,
+        fire_project=fire_project,
+        fire_off_base=burn_off_base,
+        fire_off_proj=burn_off_proj,
+    )
 
 
 class GetLitterModelReturnData(NamedTuple):
@@ -430,7 +440,9 @@ def get_soil_carbon_data(
     )
 
     return GetSoilCarbonReturnData(
-        base_forward_soil_data=base_forward_soil_data, project_forward_soil_data=project_forward_soil_data, for_soil=for_soil
+        base_forward_soil_data=base_forward_soil_data,
+        project_forward_soil_data=project_forward_soil_data,
+        for_soil=for_soil,
     )
 
 
@@ -502,10 +514,16 @@ def get_crop_emissions(
     gwp: dict,
 ) -> GetEmissionsWithDifferenceReturnData:
     crop_base_emissions = Emit.create(
-        no_of_years=no_of_years, crop=crop_base, fire=fire_base,gwp=gwp,
+        no_of_years=no_of_years,
+        crop=crop_base,
+        fire=fire_base,
+        gwp=gwp,
     )
     crop_project_emissions = Emit.create(
-        no_of_years=no_of_years, crop=crop_project, fire=fire_project, gwp=gwp,
+        no_of_years=no_of_years,
+        crop=crop_project,
+        fire=fire_project,
+        gwp=gwp,
     )
     crop_difference = crop_project_emissions - crop_base_emissions
 
@@ -523,10 +541,14 @@ def get_fertiliser_emissions(
     gwp: dict,
 ) -> GetEmissionsWithDifferenceReturnData:
     fertiliser_base_emissions = Emit.create(
-        no_of_years=no_of_years, fert=[synthetic_fertiliser_base], gwp=gwp,
+        no_of_years=no_of_years,
+        fert=[synthetic_fertiliser_base],
+        gwp=gwp,
     )
     fertiliser_project_emissions = Emit.create(
-        no_of_years=no_of_years, fert=[synthetic_fertiliser_project], gwp=gwp,
+        no_of_years=no_of_years,
+        fert=[synthetic_fertiliser_project],
+        gwp=gwp,
     )
     fertiliser_difference = fertiliser_project_emissions - fertiliser_base_emissions
 
@@ -546,10 +568,16 @@ def get_litter_emissions(
     gwp: dict,
 ) -> GetEmissionsWithDifferenceReturnData:
     litter_base_emissions = Emit.create(
-        no_of_years=no_of_years, litter=[litter_external_base], fire=fire_base, gwp=gwp,
+        no_of_years=no_of_years,
+        litter=[litter_external_base],
+        fire=fire_base,
+        gwp=gwp,
     )
     litter_project_emissions = Emit.create(
-        no_of_years=no_of_years, litter=[litter_external_project], fire=fire_project, gwp=gwp,
+        no_of_years=no_of_years,
+        litter=[litter_external_project],
+        fire=fire_project,
+        gwp=gwp,
     )
     litter_difference = litter_project_emissions - litter_base_emissions
 
@@ -561,10 +589,21 @@ def get_litter_emissions(
 
 
 def get_fire_emissions(
-    no_of_years: int, fire_base: np.ndarray, fire_project: np.ndarray, gwp: dict,
+    no_of_years: int,
+    fire_base: np.ndarray,
+    fire_project: np.ndarray,
+    gwp: dict,
 ) -> GetEmissionsWithDifferenceReturnData:
-    fire_base_emissions = Emit.create(no_of_years=no_of_years, fire=fire_base, gwp=gwp,)
-    fire_project_emissions = Emit.create(no_of_years=no_of_years, fire=fire_project, gwp=gwp,)
+    fire_base_emissions = Emit.create(
+        no_of_years=no_of_years,
+        fire=fire_base,
+        gwp=gwp,
+    )
+    fire_project_emissions = Emit.create(
+        no_of_years=no_of_years,
+        fire=fire_project,
+        gwp=gwp,
+    )
     fire_difference = fire_project_emissions - fire_base_emissions
 
     return GetEmissionsWithDifferenceReturnData(
@@ -583,7 +622,10 @@ def get_tree_emissions(
     gwp: dict,
 ) -> GetEmissionsWithDifferenceReturnData:
     tree_base_emissions = Emit.create(
-        no_of_years=no_of_years, tree=[tree_base], fire=fire_base, gwp=gwp,
+        no_of_years=no_of_years,
+        tree=[tree_base],
+        fire=fire_base,
+        gwp=gwp,
     )
     tree_project_emissions = Emit.create(
         no_of_years=no_of_years,
@@ -645,9 +687,7 @@ def handle_intervention(
     gwp: dict = CONSTANTS.GWP_list[CONSTANTS.DEFAULT_GWP],
     use_api: bool = CONSTANTS.DEFAULT_USE_API,
 ):
-    no_of_years = (
-        get_int(CONSTANTS.NO_OF_YEARS_KEY, intervention_input)
-    )
+    no_of_years = get_int(CONSTANTS.NO_OF_YEARS_KEY, intervention_input)
     plot_id = get_int("plot_name", intervention_input)
 
     # ----------
@@ -659,7 +699,9 @@ def handle_intervention(
     # ----------
     # SOIL EQUILIBRIUM SOLVE
     # ----------
-    soil = SoilParams.get_soil_params(location=location, use_api=use_api, plot_index=plot_index, plot_id=plot_id)
+    soil = SoilParams.get_soil_params(
+        location=location, use_api=use_api, plot_index=plot_index, plot_id=plot_id
+    )
     inverse_soil_model = create_inverse_soil_model(soil, climate)
 
     # ----------

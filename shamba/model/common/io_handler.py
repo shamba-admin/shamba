@@ -12,7 +12,12 @@ from questionary import Choice
 from model import configuration
 import model.tree_growth as TreeGrowth
 from model.soil_models.soil_model_types import SoilModelType
-from model.common.constants import DEFAULT_USE_API, DEFAULT_ALLOMORPHY, DEFAULT_GWP, GWP_list
+from model.common.constants import (
+    DEFAULT_USE_API,
+    DEFAULT_ALLOMORPHY,
+    DEFAULT_GWP,
+    GWP_list,
+)
 
 
 def get_arguments_interactively():
@@ -22,7 +27,7 @@ def get_arguments_interactively():
     """
     arguments = {}
 
-        # Display instructions using a pure print — not necessary to prompt here
+    # Display instructions using a pure print — not necessary to prompt here
     print(
         """
 INSTRUCTIONS
@@ -57,15 +62,14 @@ parameters under 'trees in baseline' and 'trees in project'.
     # Prompt for project name
     project_name = questionary.text(
         "Enter project name (or use auto-generated name)",
-        default=f"project_{timestamp}"
+        default=f"project_{timestamp}",
     ).ask()
     arguments["project-name"] = project_name
 
     # Prompt for source directory
     source_directory = questionary.text(
-        "Enter source directory path relative to /projects/"
-        " (or use example)",
-        default=f"examples/UG_TS_2016/input"
+        "Enter source directory path relative to /projects/" " (or use example)",
+        default=f"examples/UG_TS_2016/input",
     ).ask()
     arguments["source-directory"] = source_directory
 
@@ -81,25 +85,21 @@ parameters under 'trees in baseline' and 'trees in project'.
     # Prompt for allometric key
     allometric_keys = list(TreeGrowth.allometric.keys())
     selected_allometric_key = questionary.select(
-        "Select an Allometric Key:",
-        choices=allometric_keys,
-        default=DEFAULT_ALLOMORPHY
+        "Select an Allometric Key:", choices=allometric_keys, default=DEFAULT_ALLOMORPHY
     ).ask()
     arguments["allometric-key"] = selected_allometric_key
 
     # Prompt for GWP
     gwp_keys = list(GWP_list.keys())
     selected_gwp_key = questionary.select(
-        "Select Global Warming Potential values:",
-        choices=gwp_keys,
-        default= DEFAULT_GWP
+        "Select Global Warming Potential values:", choices=gwp_keys, default=DEFAULT_GWP
     ).ask()
     arguments["gwp"] = GWP_list[selected_gwp_key]
 
     # Prompt for soil model
     soil_models = [
         Choice(title="Roth C", value=SoilModelType.ROTH_C),
-        Choice(title="Example Soil Model", value=SoilModelType.EXAMPLE)
+        Choice(title="Example Soil Model", value=SoilModelType.EXAMPLE),
     ]
 
     # selected_soil_model = questionary.select(
@@ -115,15 +115,13 @@ parameters under 'trees in baseline' and 'trees in project'.
 
     # Prompt for input file name with default
     input_file_name = questionary.text(
-        "Enter the name of the input file:",
-        default="WL_input.csv"
+        "Enter the name of the input file:", default="WL_input.csv"
     ).ask()
     arguments["input-file-name"] = input_file_name
 
     # Prompt for output title
     output_title = questionary.text(
-        "Enter the title of the output file:",
-        default="WL"
+        "Enter the title of the output file:", default="WL"
     ).ask()
     arguments["output-title"] = output_title
 

@@ -13,29 +13,33 @@ from model.common.data_sources.helpers import return_none_on_exception
 
 API_URL = "https://rest.isric.org/soilgrids/v2.0/"
 
+
 def read_soil_table(filename: str, plot_index: int, plot_id: int):
     """Read the soil data from user CSV file.
     Data values are validated in soil_params.py."""
     data = csv_handler.read_csv(
-            filename,
+        filename,
     )
 
     data = np.atleast_2d(data)
 
-    if int(data[plot_index,0]) != int(plot_id):
+    if int(data[plot_index, 0]) != int(plot_id):
         raise ValueError("Plot order in soil data does not match input data")
 
-    cy0 = data[plot_index,1]
+    cy0 = data[plot_index, 1]
     clay = data[plot_index, 2]
 
     return cy0, clay
 
 
 def get_soil_data(
-    location_coordinates: Tuple[float, float], use_api: bool, plot_index: int, plot_id: int, filename: str
+    location_coordinates: Tuple[float, float],
+    use_api: bool,
+    plot_index: int,
+    plot_id: int,
+    filename: str,
 ) -> Optional[Tuple[float, float]]:
-    """Get soil data from soilgrids api or from local csv file.
-    """
+    """Get soil data from soilgrids api or from local csv file."""
     api_response: Optional[Dict[str, Any]] = (
         None
         if not use_api
@@ -47,9 +51,13 @@ def get_soil_data(
     if api_response is None:
 
         try:
-            return read_soil_table(plot_index=plot_index, plot_id=plot_id, filename=filename)
+            return read_soil_table(
+                plot_index=plot_index, plot_id=plot_id, filename=filename
+            )
         except:
-            raise ValueError("Soil data not found in API or local file. Please provide local file.")
+            raise ValueError(
+                "Soil data not found in API or local file. Please provide local file."
+            )
 
     return compose(
         get_soc_and_clay,
@@ -111,7 +119,7 @@ DEFAULT_DEPTHS = [
     Depth.ZERO_TO_FIVE_CM,
     Depth.FIVE_TO_FIFTEEN_CM,
     Depth.FIFTEEN_TO_THIRTY_CM,
-    Depth.ZERO_TO_THIRTY_CM
+    Depth.ZERO_TO_THIRTY_CM,
 ]
 
 
@@ -141,7 +149,7 @@ UNIT_CONVERSIONS = {
     SoilProperty.TOTAL_NITROGEN: 100,
     SoilProperty.PH: 10,
     SoilProperty.ORGANIC_CARBON_DENSITY: 10,
-    SoilProperty.ORGANIC_CARBON_STOCKS: 1, # Not converted: soil model wants t ha-1, not kg m-2
+    SoilProperty.ORGANIC_CARBON_STOCKS: 1,  # Not converted: soil model wants t ha-1, not kg m-2
     SoilProperty.PROPORTION_OF_SAND_IN_FINE_FRACTION: 10,
     SoilProperty.PROPORTION_OF_SILT_IN_FINE_FRACTION: 10,
     SoilProperty.SOIL_ORGANIC_CARBON_CONTENT_IN_FINE_FRACTION: 10,
@@ -213,14 +221,22 @@ def get_soc_and_clay(
 
 def process_data(api_response: Dict[str, Any]) -> List[Tuple[str, float]]:
     """
-    In the SoilGrids API response, data are either available for 0-5, 5-15, 15-30 cm OR for 
+    In the SoilGrids API response, data are either available for 0-5, 5-15, 15-30 cm OR for
     0-30 cm (SOC stocks only).
     This function calculates the overall values for 0-30cm.
     """
     data = api_response["properties"]["layers"]
 
     zero_to_thirty_cm = [
-        (layer["name"], sum(depth["values"]["mean"]*(depth["range"]["bottom_depth"]-depth["range"]["top_depth"]) for depth in layer["depths"])/30)
+        (
+            layer["name"],
+            sum(
+                depth["values"]["mean"]
+                * (depth["range"]["bottom_depth"] - depth["range"]["top_depth"])
+                for depth in layer["depths"]
+            )
+            / 30,
+        )
         for layer in data
     ]
 

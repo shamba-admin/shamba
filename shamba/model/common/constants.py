@@ -29,7 +29,7 @@ GWP_list = {
     "GWP SAR (1995)": GWP_SAR,
     "GWP AR4 (2007)": GWP_AR4,
     "GWP AR5 (2013)": GWP_AR5,
-    "GWP AR6 (2021)": GWP_AR6
+    "GWP AR6 (2021)": GWP_AR6,
 }
 
 C_to_CO2_conversion_factor = 44.0 / 12  # for CO2-C to CO2
@@ -44,23 +44,23 @@ N_to_N2O_conversion_factor = 44.0 / 28  # for N2O-N to N2O
 # Tree based on "Tropical Forest".
 ef_burn = {"crop_N2O": 0.07, "crop_CH4": 2.7, "tree_N2O": 0.2, "tree_CH4": 6.8}
 
-# From Table 11.1 IPCC 2019 GHG Inventory 
+# From Table 11.1 IPCC 2019 GHG Inventory
 #  "DEFAULT EMISSION FACTORS TO ESTIMATE DIRECT N2O EMISSIONS FROM MANAGED SOILS"
 # (EF_1)
 ef_N_inputs = 0.01  # [kg N20-N/kg N]
 
 # From Table 2.6 IPCC 2019 GHG Inventory
-# "COMBUSTION FACTOR VALUES (PROPORTION OF PREFIRE FUEL BIOMASS CONSUMED) 
+# "COMBUSTION FACTOR VALUES (PROPORTION OF PREFIRE FUEL BIOMASS CONSUMED)
 # FOR FIRES IN A RANGE OF VEGETATION TYPES"
 # Tree based on "Savanna Woodlands", crop based on "Other Crops"
 combustion_factor = {"crop": 0.85, "tree": 0.74}
 
 # From Table 11.3 IPCC 2019 GHG Inventory
-# "DEFAULT EMISSION, VOLATILISATION AND LEACHING FACTORS FOR 
+# "DEFAULT EMISSION, VOLATILISATION AND LEACHING FACTORS FOR
 # INDIRECT SOIL N2O EMISSIONS"
 # (Frac_gasf, Frac_gasm)
-volatile_frac_synthetic_fertiliser = 0.11 # [(kg NH3-N + NOx-N) / kg N applied]
-volatile_frac_organic_fertiliser = 0.21 # [(kg NH3-N + NOx-N) / kg N applied]
+volatile_frac_synthetic_fertiliser = 0.11  # [(kg NH3-N + NOx-N) / kg N applied]
+volatile_frac_organic_fertiliser = 0.21  # [(kg NH3-N + NOx-N) / kg N applied]
 
 # =============================================================================
 #  Default values
@@ -76,10 +76,10 @@ DEFAULT_ALLOMORPHY = "chave dry"
 # b) values with a general default, that users may want to manually change:
 
 DEFAULT_GWP = "GWP AR6 (2021)"
-TREE_ROOT_IN_TOP_30 = 0.7 # %
-CROP_ROOT_IN_TOP_30 = 0.7 # %
-ORGANIC_INPUT_N = 0.018 # kg N/ kg input
-ORGANIC_INPUT_C = 0.5 # kg C/kg input
+TREE_ROOT_IN_TOP_30 = 0.7  # %
+CROP_ROOT_IN_TOP_30 = 0.7  # %
+ORGANIC_INPUT_N = 0.018  # kg N/ kg input
+ORGANIC_INPUT_C = 0.5  # kg C/kg input
 # -------------------------
 
 # =============================================================================
@@ -87,7 +87,7 @@ ORGANIC_INPUT_C = 0.5 # kg C/kg input
 # =============================================================================
 
 EXAMPLE_N_COHORTS = 3
-EXAMPLE_TREE_STANDARD_DENSITY = 100 # trees / ha
+EXAMPLE_TREE_STANDARD_DENSITY = 100  # trees / ha
 EXAMPLE_NO_OF_YEARS = 10
 
 # =============================================================================

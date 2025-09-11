@@ -154,7 +154,7 @@ def get_acc_tsmd(smd, def_m, cover_m, max):
             else:
                 # Increase SMD
                 smd += def_m
-                if smd < max / 1.8 :
+                if smd < max / 1.8:
                     smd = max / 1.8
     # End if-else for deficit > 0
     return smd

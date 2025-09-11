@@ -22,19 +22,19 @@ from .common import csv_handler
 
 
 # Functions to fit to
-def hyperbolic_function(x, a, b): # Eq. 6.3, SHAMBA model description
+def hyperbolic_function(x, a, b):  # Eq. 6.3, SHAMBA model description
     return a * (1 - np.exp(-b * x))
 
 
-def exponential_function(x, a): # Eq. 6.2, SHAMBA model description
+def exponential_function(x, a):  # Eq. 6.2, SHAMBA model description
     return (1 + a) ** x - 1
 
 
-def linear_function(x, a): # Eq. 6.1, SHAMBA model description
+def linear_function(x, a):  # Eq. 6.1, SHAMBA model description
     return a * x
 
 
-def logistic_function(x, a, b, c): # Eq. 6.4, SHAMBA model description
+def logistic_function(x, a, b, c):  # Eq. 6.4, SHAMBA model description
     return a / (1 + np.exp(-b * (x - c)))
 
 
@@ -45,22 +45,26 @@ fitting_functions = {
     "log": logistic_function,
 }
 
+
 def exponential_function_inverse(fit_params, agb):
     if math.fabs(agb) < 0.00000001:
         x = 0
     else:
         a = fit_params[0]
-        x = math.log(agb+1) / math.log(a+1)
+        x = math.log(agb + 1) / math.log(a + 1)
     return x
 
-def exponential_function_derivative(fit_params, agb): # Eq. 7.2, SHAMBA model description
+
+def exponential_function_derivative(
+    fit_params, agb
+):  # Eq. 7.2, SHAMBA model description
     a = fit_params[0]
     x = exponential_function_inverse(fit_params, agb)
     dagb_dx = ((1 + a) ** x) * (np.log(1 + a))
     return dagb_dx
 
 
-def hyperbolic_function_inverse(fit_params, agb):        
+def hyperbolic_function_inverse(fit_params, agb):
     if math.fabs(agb) < 0.00000001:
         x = 0
     else:
@@ -69,18 +73,21 @@ def hyperbolic_function_inverse(fit_params, agb):
         if agb > a:
             x = a
         else:
-            x = (math.log(a) - math.log(a-agb)) / b
-    return x 
+            x = (math.log(a) - math.log(a - agb)) / b
+    return x
 
-def hyperbolic_function_derivative(fit_params, agb): # Eq. 7.3, SHAMBA model description
+
+def hyperbolic_function_derivative(
+    fit_params, agb
+):  # Eq. 7.3, SHAMBA model description
     a = fit_params[0]
     b = fit_params[1]
-    x = hyperbolic_function_inverse(fit_params,agb)
+    x = hyperbolic_function_inverse(fit_params, agb)
     dagb_dx = a * b * np.exp(-b * x)
     return dagb_dx
 
 
-def linear_function_derivative(fit_params, agb): # Eq. 7.1, SHAMBA model description
+def linear_function_derivative(fit_params, agb):  # Eq. 7.1, SHAMBA model description
     a = fit_params[0]
     dagb_dx = a
     return dagb_dx
@@ -101,7 +108,7 @@ def logistic_function_inverse(fit_params, agb):
     return x
 
 
-def logistic_function_derivative(fit_params, agb): # Eq. 7.4, SHAMBA model description
+def logistic_function_derivative(fit_params, agb):  # Eq. 7.4, SHAMBA model description
     x = logistic_function_inverse(fit_params, agb)
 
     a = fit_params[0]

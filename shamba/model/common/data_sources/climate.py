@@ -23,9 +23,11 @@ API_URL = "https://archive-api.open-meteo.com/v1/archive"
 
 def generate_dates(start_year: int, end_year: int) -> np.ndarray:
     all_dates_in_range = []
-    for year in range(start_year, end_year +1):
+    for year in range(start_year, end_year + 1):
         start_date = datetime(year, 1, 1)
-        year_dates = [start_date + timedelta(days=i) for i in range(365 + calendar.isleap(year))]
+        year_dates = [
+            start_date + timedelta(days=i) for i in range(365 + calendar.isleap(year))
+        ]
         all_dates_in_range.extend(year_dates)
     return np.array(all_dates_in_range)
 
@@ -47,6 +49,7 @@ def calculate_monthly_average(
     month, values = month_group
     return month, np.mean(values[:, 1])
 
+
 def calculate_monthly_sum(
     month_group: Tuple[int, np.ndarray],
 ) -> Tuple[int, np.floating[Any]]:
@@ -54,7 +57,9 @@ def calculate_monthly_sum(
     return month, np.sum(values[:, 1])
 
 
-def segment_and_average_by_month(daily_values: np.ndarray, start_year: int, end_year: int) -> np.ndarray:
+def segment_and_average_by_month(
+    daily_values: np.ndarray, start_year: int, end_year: int
+) -> np.ndarray:
     dates = generate_dates(start_year, end_year)
     date_value_pairs = pair_dates_with_values(dates, daily_values)
     grouped_by_month = group_by_month(date_value_pairs)
@@ -63,7 +68,10 @@ def segment_and_average_by_month(daily_values: np.ndarray, start_year: int, end_
     )
     return monthly_averages
 
-def segment_and_sum_by_month(daily_values: np.ndarray, start_year: int, end_year: int) -> np.ndarray:
+
+def segment_and_sum_by_month(
+    daily_values: np.ndarray, start_year: int, end_year: int
+) -> np.ndarray:
     dates = generate_dates(start_year, end_year)
     no_of_years = end_year - start_year + 1
     date_value_pairs = pair_dates_with_values(dates, daily_values)
@@ -71,9 +79,10 @@ def segment_and_sum_by_month(daily_values: np.ndarray, start_year: int, end_year
     monthly_sums = np.array(
         [calculate_monthly_sum(group) for group in grouped_by_month]
     )
-    return monthly_sums/no_of_years
+    return monthly_sums / no_of_years
 
-def get_climate_data(longitude: float, latitude: float, use_api = True) -> np.ndarray:
+
+def get_climate_data(longitude: float, latitude: float, use_api=True) -> np.ndarray:
     """
     Get climate data for a given location.
 
@@ -98,23 +107,29 @@ def get_climate_data(longitude: float, latitude: float, use_api = True) -> np.nd
     end_date = datetime(last_full_year, 12, 31).strftime("%Y-%m-%d")
 
     api_response = get_weather_forecast(
-            latitude=latitude,
-            longitude=longitude,
-            daily_params=[
-                "temperature_2m_mean",
-                "rain_sum",
-                "et0_fao_evapotranspiration",
-            ],
-            start_date=start_date,
-            end_date=end_date,
-            )
+        latitude=latitude,
+        longitude=longitude,
+        daily_params=[
+            "temperature_2m_mean",
+            "rain_sum",
+            "et0_fao_evapotranspiration",
+        ],
+        start_date=start_date,
+        end_date=end_date,
+    )
     daily_data = api_response["daily"]
     temperature = segment_and_average_by_month(
-        np.array(daily_data["temperature_2m_mean"]), start_year= start_year, end_year = last_full_year
+        np.array(daily_data["temperature_2m_mean"]),
+        start_year=start_year,
+        end_year=last_full_year,
     )
-    rain = segment_and_sum_by_month(np.array(daily_data["rain_sum"]), start_year= start_year, end_year = last_full_year)
+    rain = segment_and_sum_by_month(
+        np.array(daily_data["rain_sum"]), start_year=start_year, end_year=last_full_year
+    )
     evapotranspiration = segment_and_sum_by_month(
-        np.array(daily_data["et0_fao_evapotranspiration"]), start_year= start_year, end_year = last_full_year
+        np.array(daily_data["et0_fao_evapotranspiration"]),
+        start_year=start_year,
+        end_year=last_full_year,
     )
 
     result = np.vstack([temperature[:, 1], rain[:, 1], evapotranspiration[:, 1]])
@@ -137,8 +152,8 @@ def get_weather_forecast(
         "start_date": start_date,
         "end_date": end_date,
         "timezone": "GMT",
-        #"format": "json",
-        #"timeformat": "unixtime",
+        # "format": "json",
+        # "timeformat": "unixtime",
     }
 
     response = requests.get(API_URL, params=params)

@@ -59,7 +59,7 @@ def create(soil_params: Dict[str, Any]) -> SoilParamsData:
         SoilParamsData: object containing soil parameters
     """
     Cy0 = soil_params["Cy0"]
-    Ceq = 1.25 * Cy0 # this is an assumption detailed in the SHAMBA model description
+    Ceq = 1.25 * Cy0  # this is an assumption detailed in the SHAMBA model description
 
     params = {
         "Cy0": Cy0,
@@ -78,17 +78,23 @@ def create(soil_params: Dict[str, Any]) -> SoilParamsData:
     return schema.load(params)  # type: ignore
 
 
-def get_soil_params(location: Tuple[float, float], use_api: bool, plot_index, plot_id, filename="soil-info.csv"):
+def get_soil_params(
+    location: Tuple[float, float],
+    use_api: bool,
+    plot_index,
+    plot_id,
+    filename="soil-info.csv",
+):
     """
     Construct SoilParamsData object from SoilGrids API or local CSV for given location.
-    
+
     Args:
         location: Tuple of (latitude, longitude) coordinates
         use_api: Whether to use SoilGrids API or local CSV file
         plot_index: Index of the plot in the data (0-based)
-        plot_id: Identifier of the plot 
+        plot_id: Identifier of the plot
         filename: Name of local CSV file (default: "soil-info.csv")
-        
+
     Returns:
         SoilParamsData: Soil parameters object
     """

@@ -8,7 +8,6 @@ from model.crop_model import get_crop_bases, get_crop_projects
 import model.common.constants as CONSTANTS
 
 
-
 def test_fire_model():
     file_path = os.path.join(configuration.TESTS_DIR, "fixtures", "WL_input.csv")
     csv_input_data = csv_handler.get_csv_input_data(0, file_path)
@@ -35,9 +34,24 @@ def test_fire_model():
         fire_project = np.zeros(N_YEARS)
         fire_project[::proj_fire_interval] = int(csv_input_data["fire_pres_proj"])
 
-    fire_base_emissions = Emit.fire_emit(no_of_years=N_YEARS, fire=fire_base, crop= crop_base, tree=[], litter=[], burn_off=False, gwp = CONSTANTS.GWP_AR6)
-    fire_project_emissions = Emit.fire_emit(no_of_years=N_YEARS, fire=fire_project, crop = crop_project, tree=[], litter=[], burn_off = False, gwp = CONSTANTS.GWP_AR6)
-
+    fire_base_emissions = Emit.fire_emit(
+        no_of_years=N_YEARS,
+        fire=fire_base,
+        crop=crop_base,
+        tree=[],
+        litter=[],
+        burn_off=False,
+        gwp=CONSTANTS.GWP_AR6,
+    )
+    fire_project_emissions = Emit.fire_emit(
+        no_of_years=N_YEARS,
+        fire=fire_project,
+        crop=crop_project,
+        tree=[],
+        litter=[],
+        burn_off=False,
+        gwp=CONSTANTS.GWP_AR6,
+    )
 
     assert fire_base_emissions == pytest.approx(
         [
@@ -91,7 +105,7 @@ def test_fire_model():
             0,
             0.49552906,
             0,
-]
+        ]
     )
     assert fire_project_emissions == pytest.approx(
         [

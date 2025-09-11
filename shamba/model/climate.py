@@ -126,26 +126,30 @@ def from_csv(filename="climate.csv") -> ClimateData:
     """
     data = csv_handler.read_csv(filename)
     headers = np.genfromtxt(
-            os.path.join(configuration.INPUT_DIR, filename), max_rows = 1, delimiter=",", dtype = None, encoding = None
-        )
+        os.path.join(configuration.INPUT_DIR, filename),
+        max_rows=1,
+        delimiter=",",
+        dtype=None,
+        encoding=None,
+    )
     headers = np.char.lower(headers)
 
     try:
         # Check if PET or open-pan evaporation data is present
-        has_pet = 'pet' in headers
-        has_evap = 'evap' in headers
-        
+        has_pet = "pet" in headers
+        has_evap = "evap" in headers
+
         if has_pet and has_evap:
             raise ValueError("Climate data cannot contain both 'pet' and 'evap'")
         elif not has_pet and not has_evap:
             raise ValueError("Climate data must contain either 'pet' or 'evap'")
-        
+
         # Set the correct order based on what's available
         if has_pet:
             correct_order = ("temp", "rain", "pet")
         else:
             correct_order = ("temp", "rain", "evap")
-        
+
         # Create clim array with the correct rows
         climate_data = np.zeros((3, 12))
         for i in range(3):
@@ -154,7 +158,7 @@ def from_csv(filename="climate.csv") -> ClimateData:
         # Convert PET to open-pan evaporation if PET data was used
         if has_pet:
             climate_data[2] /= 0.75
-            
+
         climate: ClimateData = ClimateDataSchema().load(
             {
                 "temperature": climate_data[0],
