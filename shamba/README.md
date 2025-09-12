@@ -1,6 +1,11 @@
 ## Getting Started
 
-### Docker Setup
+In v1.2, SHAMBA is only available as a command-line version. A web application is targeted for future versions. You may find some proof-of-concept files in this repo, but it is not set up for full use yet. The `shamba_command_line.py` script will prompt you for the information it needs to run the model. It will also print out instructions on how to prepare input data to run the model.
+
+Setup can either use a Docker container, or locally installed packages.
+
+
+### 1. Docker Setup
 
 1. Ensure that Docker is installed on your system. Check the [official documentation](https://docs.docker.com/get-docker/) for how to install Docker for your specific operating system.
 2. From the `shamba` directory, run the following command:
@@ -8,7 +13,7 @@
 docker compose up
 ```
 
-#### Terminal
+#### Command-line version
 
 To use the terminal interface from within the Docker container, follow these steps:
 
@@ -17,9 +22,10 @@ To use the terminal interface from within the Docker container, follow these ste
 3. Run `cd ..` to go back to the `shamba` directory.
 4. Run `poetry run python shamba_command_line.py` to run the model.
 
-**N.B.** The tests can also be run from within the Docker container. In step 4, run `poetry run pytest` to run the tests.
 
-### Local Setup
+### 2. Local Setup
+
+To set up without Docker, follow these instructions:
 
 1. Install `pyenv` which is an easy-to-use tool to manage multiple Python versions. Check the [official documentation](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation) for how to install `pyenv` for your specific operating system.
 2. Install Python `3.10`: `pyenv install 3.10` then `pyenv local 3.10`.
@@ -32,41 +38,13 @@ poetry env use 3.10
 eval $(poetry env activate)
 ```
 
-In v1.2, SHAMBA is only available as a command-line version. A web application is targeted for future versions. You may find some proof-of-concept files in this repo, but it is not set up for full use yet.
-
-### Command-line version
+#### Command-line version
 
 The SHAMBA model can be run from the command line using the `shamba_command_line.py` script.
 
 ```sh
 python shamba_command_line.py
 ```
-
-The script will prompt you for the information it needs to run the model. It will also print out instructions on how to prepare input data to run the model.
-
-### UI version
-
-#### Web Application
-
-In a Docker container, you can access the web application at `http://localhost:8000/main/#/`.
-
-
-The SHAMBA model can be run as a client-server application using the `shamba/server` and `shamba/client` directories. The server is a _FastAPI_ application that runs the model and returns the results. The client is a [Preact](https://preactjs.com/) application that is built using [Esbuild](https://esbuild.github.io/). The client is used to display the results of the model in a web browser.
-
-#### Produce Static Files
-
-The purpose of the client code is to produce static files, i.e. JavaScript and CSS, that are then injected into the _server_ code. _FastAPI_ then serves these static files to browser clients.
-
-See [the client README.md](shamba/client/README.md) for instructions on how to create the static files.
-
-#### Run the Server
-
-First, ensure that the static files are generated from the `./client` directory. Follow the instruction in the [client README.](./client/README.md)
-
-From the `./server` directory, run the server in _development_ mode: `poetry run fastapi dev main.py`
-
-Go to: `http://127.0.0.1:8000/main/#/`
-
 
 ### Format Files
 ```sh
