@@ -36,7 +36,7 @@ GENERAL IMPROVEMENTS:
 
 1. Python updated to V3.10
 2. Old non-functional GUI removed, proof of concept alternative added. This is not ready for use and is not reflected in v1.2 documentation.
-3. Old raster climate and soil data removed, in favour of API.
+3. Old raster climate and soil data removed, in favour of API. This removed the need for GDAL.
 4. Improvements to naming for clarity, e.g. cohorts vs species vs trees, stand density vs wood density.
 5. Command line input is interactive
 6. Environment uses docker and poetry to minimise install complications for users
