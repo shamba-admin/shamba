@@ -22,7 +22,7 @@ def read_csv(filename: str, cols: Tuple[int, ...]) -> np.ndarray:
 
 
 def load_tree_species_data(
-    filename: str = "tree_defaults_cl.csv",
+    filename: str = "tree_defaults.csv",
 ) -> Dict[Union[int, str], Dict]:
     data = csv_handler.read_csv(filename, cols=(2, 3, 4, 5, 6, 7, 8, 9))
 
