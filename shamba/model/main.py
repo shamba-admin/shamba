@@ -1,5 +1,7 @@
 from typing import List, Dict, Any, Optional
 from toolz import get
+from dask.distributed import Client, LocalCluster
+import dask.bag as db
 
 import model.common.constants as CONSTANTS
 from model.common.calculate_emissions import handle_intervention
@@ -10,26 +12,34 @@ from model.soil_models.soil_model_types import SoilModelType
 ForwardSoilModel = ForwardSoilModule.get_soil_model(SoilModelType.ROTH_C)
 InverseSoilModel = InverseSoilModule.get_soil_model(SoilModelType.ROTH_C)
 
+NO_OF_WORKERS = 4
+THREADS_PER_WORKER = 2
+
 def run(project_name, data, use_api: bool):
-    inputs: Optional[List[Dict[str, Any]]] = get("inputs", data) or None  # type: ignore
+    """
+    Run interventions in parallel using Dask.
+    """
+    inputs: Optional[List[Dict[str, Any]]] = get("inputs", data) or None
     allometry = str(get(CONSTANTS.ALLOMETRY_KEY, data, "chave dry"))
 
     if inputs is None:
         return []
 
-    interventions = list(
-        map(
-            lambda intervention_input: handle_intervention(
-                intervention_input=intervention_input,
-                allometry=allometry,
-                use_api=use_api,
-                # Static placeholder values. Ideally these should come from the UI
-                no_of_trees=3,
-                create_forward_soil_model=ForwardSoilModel.create,
-                create_inverse_soil_model=InverseSoilModel.create,
-            ),
-            inputs,
-        )
-    )
+    # Use context managers to manage Dask resources
+    with LocalCluster(n_workers=NO_OF_WORKERS, threads_per_worker=THREADS_PER_WORKER) as cluster:
+        with Client(cluster) as client:
+            # Convert inputs to a Dask bag
+            input_bag = db.from_sequence(inputs)
 
-    return interventions
+            results = input_bag.map(
+                lambda intervention_input: handle_intervention(
+                    intervention_input=intervention_input,
+                    allometry=allometry,
+                    use_api=use_api,
+                    no_of_trees=3,
+                    create_forward_soil_model=ForwardSoilModel.create,
+                    create_inverse_soil_model=InverseSoilModel.create,
+                )
+            ).compute()  # Trigger computation and gather results
+
+            return results
