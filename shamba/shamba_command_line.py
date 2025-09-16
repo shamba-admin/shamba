@@ -18,6 +18,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
+import copy
 
 from model.common import csv_handler, io_handler
 
@@ -37,6 +38,34 @@ import model.soil_models.inverse_soil_model as InverseSoilModule
 
 _dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(_dir))
+
+
+def create_sampled_inputs(original_inputs, sample_key, mean, std_dev, num_samples=10):
+    """
+    Create multiple inputs with sampled values for a specified key
+    
+    Args:
+        original_inputs: Original input dictionary
+        sample_key: Key of the variable to sample
+        mean: Mean of Gaussian distribution
+        std_dev: Standard deviation of Gaussian distribution
+        num_samples: Number of samples to generate
+        
+    Returns:
+        List of input dictionaries with sampled values
+    """
+    # Generate samples from Gaussian distribution
+    samples = np.random.normal(mean, std_dev, num_samples)
+    
+    # Create list of input dictionaries
+    sampled_inputs = []
+    for sample in samples:
+        # Create a deep copy to avoid modifying original
+        new_input = copy.deepcopy(original_inputs)
+        new_input[sample_key] = float(sample)  # Convert numpy type to native Python float
+        sampled_inputs.append(new_input)
+        
+    return sampled_inputs
 
 
 def print_crop_emissions(
@@ -642,7 +671,19 @@ def main(n, arguments):
 
     allometric_key = arguments["allometric-key"]
 
-    data = {"inputs": [csv_input_data], CONSTANTS.ALLOMETRY_KEY: allometric_key}
+
+    # EXAMPLE OF SAMPLING
+    sampled_inputs = create_sampled_inputs(
+        original_inputs=csv_input_data,
+        sample_key="proj_plant_dens1",
+        mean=119,
+        std_dev=2,
+        num_samples=10
+    )
+
+    # IF NOT SAMPLING, USE THE FOLLOWING LINE INSTEAD
+    # data = {"inputs": [csv_input_data], CONSTANTS.ALLOMETRY_KEY: allometric_key}
+    data = {"inputs": sampled_inputs, CONSTANTS.ALLOMETRY_KEY: allometric_key}
 
     interventions_emissions = run(
         project_name=project_name,
@@ -661,15 +702,6 @@ def main(n, arguments):
             accounting_year=accounting_year,
             analysis_no=analysis_no
         )
-
-    # intervention_emissions = handle_intervention(
-    #     intervention_input=csv_input_data,
-    #     allometry=allometric_key,
-    #     no_of_trees=N_TREES,
-    #     use_api=arguments["use-api"],
-    #     create_forward_soil_model=ForwardSoilModel.create,
-    #     create_inverse_soil_model=InverseSoilModel.create,
-    # )
 
 
 if __name__ == "__main__":
