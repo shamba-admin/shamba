@@ -12,6 +12,7 @@ import model.soil_models.roth_c.forward_roth_c as roth_c
 import model.soil_models.example_soil_model.forward_example as example_soil_model
 from .soil_model_types import SoilModelType, ForwardSoilModelData
 
+
 def get_soil_model(soil_model_type: SoilModelType):
     match soil_model_type:
         case SoilModelType.ROTH_C:
@@ -22,7 +23,9 @@ def get_soil_model(soil_model_type: SoilModelType):
             raise ValueError(f"Unknown soil model type: {soil_model_type}")
 
 
-def print_to_stdout(forward_soil_model: ForwardSoilModelData, no_of_years: int, label: str) -> None:
+def print_to_stdout(
+    forward_soil_model: ForwardSoilModelData, no_of_years: int, label: str
+) -> None:
     """Print data from forward RothC run to stdout using tabulate with a functional approach."""
     table_title = f"FORWARD CALCULATIONS for {label}"
 
@@ -50,7 +53,11 @@ def print_to_stdout(forward_soil_model: ForwardSoilModelData, no_of_years: int, 
     print(tabulate(table_data, headers=headers, floatfmt=".3f", tablefmt="fancy_grid"))
 
 
-def save(forward_soil_model: ForwardSoilModelData, no_of_years: int, file="soil_model_forward.csv"):
+def save(
+    forward_soil_model: ForwardSoilModelData,
+    no_of_years: int,
+    file="soil_model_forward.csv",
+):
     tot_soc = np.sum(forward_soil_model.SOC, axis=1)
     inputs = np.append(forward_soil_model.inputs, [[0, 0]], axis=0)
     data = np.column_stack(
@@ -74,7 +81,12 @@ def save(forward_soil_model: ForwardSoilModelData, no_of_years: int, file="soil_
         csv_handler.print_csv(file, data, col_names=cols, print_years=True)
 
 
-def plot(forward_soil_model: ForwardSoilModelData, legend_string, no_of_years: int, save_name=None):
+def plot(
+    forward_soil_model: ForwardSoilModelData,
+    legend_string,
+    no_of_years: int,
+    save_name=None,
+):
     fig = plt.figure()
     fig.suptitle("Soil Carbon")  # Replace set_window_title with suptitle
     ax = fig.add_subplot(1, 1, 1)

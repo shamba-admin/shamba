@@ -27,7 +27,7 @@ def get_arguments_interactively():
     # Prompt for project name
     project_name = questionary.text(
         "Enter project name (or leave blank to auto-generate)",
-        default=f"project_{timestamp}"
+        default=f"project_{timestamp}",
     ).ask()
     arguments["project-name"] = project_name
 
@@ -38,22 +38,18 @@ def get_arguments_interactively():
     # Prompt for allometric key
     allometric_keys = list(TreeGrowth.allometric.keys())
     selected_allometric_key = questionary.select(
-        "Select an Allometric Key:",
-        choices=allometric_keys,
-        default="chave dry"
+        "Select an Allometric Key:", choices=allometric_keys, default="chave dry"
     ).ask()
     arguments["allometric-key"] = selected_allometric_key
 
     # Prompt for allometric key
     soil_models = [
         Choice(title="Roth C", value=SoilModelType.ROTH_C),
-        Choice(title="Example Soil Model", value=SoilModelType.EXAMPLE)
+        Choice(title="Example Soil Model", value=SoilModelType.EXAMPLE),
     ]
 
     selected_soil_model = questionary.select(
-        "Select a soil model:",
-        choices=soil_models,
-        default=SoilModelType.ROTH_C
+        "Select a soil model:", choices=soil_models, default=SoilModelType.ROTH_C
     ).ask()
     arguments["soil-model"] = selected_soil_model
 
@@ -91,15 +87,13 @@ parametres under 'trees in baseline' and 'trees in project'.
 
     # Prompt for input file name with default
     input_file_name = questionary.text(
-        "Enter the name of the input file:",
-        default="WL_input.csv"
+        "Enter the name of the input file:", default="WL_input.csv"
     ).ask()
     arguments["input-file-name"] = input_file_name
 
     # Prompt for output title
     output_title = questionary.text(
-        "Enter the title of the output file:",
-        default="WL"
+        "Enter the title of the output file:", default="WL"
     ).ask()
     arguments["output-title"] = output_title
 

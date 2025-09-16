@@ -46,7 +46,7 @@ The SHAMBA model can be used in two ways:
 The SHAMBA model can be run from the command line using the `shamba_command_line.py` script.
 
 ```sh
-python shamba_command_line.py
+poetry run python shamba_command_line.py
 ```
 
 The script will prompt you for the information it needs to run the model. It will also print out instructions on how to prepare input data to run the model.

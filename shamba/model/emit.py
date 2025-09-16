@@ -122,7 +122,11 @@ def create(
     # += the sources (nitrogen, fire, fertiliser)
     # and -= the sinks (biomass, soil)
 
-    emissions_soc = -soc_sink(forward_soil_model, no_of_years) if forward_soil_model is not None else 0
+    emissions_soc = (
+        -soc_sink(forward_soil_model, no_of_years)
+        if forward_soil_model is not None
+        else 0
+    )
     emissions_tree = -tree_sink(tree, no_of_years) if tree else 0
     emissions_nitro = (
         nitrogen_emit(no_of_years=no_of_years, crop=crop, tree=tree, litter=litter)

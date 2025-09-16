@@ -15,10 +15,15 @@ import model.common.constants as CONSTANTS
 
 import model.soil_models.forward_soil_model as ForwardSoilModule
 import model.soil_models.inverse_soil_model as InverseSoilModule
-from model.soil_models.soil_model_types import SoilModelType, ForwardSoilModelData, InverseSoilModelData
+from model.soil_models.soil_model_types import (
+    SoilModelType,
+    ForwardSoilModelData,
+    InverseSoilModelData,
+)
 
 get_float: Callable[[str, Dict[str, Any]], float] = compose(float, get)  # type: ignore
 get_int: Callable[[str, Dict[str, Any]], int] = compose(int, get)  # type: ignore
+
 
 def get_location(year_input: Dict[str, Any]) -> Tuple[float, float]:
     return (
@@ -414,7 +419,9 @@ def get_soil_carbon_data(
     )
 
     return GetSoilCarbonReturnData(
-        base_forward_soil_data=base_forward_soil_data, project_forward_soil_data=project_forward_soil_data, for_roth=for_roth
+        base_forward_soil_data=base_forward_soil_data,
+        project_forward_soil_data=project_forward_soil_data,
+        for_roth=for_roth,
     )
 
 
