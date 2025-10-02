@@ -18,6 +18,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
+import copy
 
 from model.common import csv_handler, io_handler
 
@@ -25,19 +26,46 @@ import model.climate as Climate
 import model.crop_model as CropModel
 import model.crop_params as CropParams
 import model.emit as Emit
-import model.litter as LitterModel
 import model.soil_params as SoilParams
 import model.tree_growth as TreeGrowth
 import model.tree_model as TreeModel
-import model.tree_params as TreeParams
 from model import configuration
-from model.common.calculate_emissions import handle_intervention
+from model.main import run
+import model.common.constants as CONSTANTS
 
 import model.soil_models.forward_soil_model as ForwardSoilModule
 import model.soil_models.inverse_soil_model as InverseSoilModule
 
 _dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(_dir))
+
+
+def create_sampled_inputs(original_inputs, sample_key, mean, std_dev, num_samples=10):
+    """
+    Create multiple inputs with sampled values for a specified key
+    
+    Args:
+        original_inputs: Original input dictionary
+        sample_key: Key of the variable to sample
+        mean: Mean of Gaussian distribution
+        std_dev: Standard deviation of Gaussian distribution
+        num_samples: Number of samples to generate
+        
+    Returns:
+        List of input dictionaries with sampled values
+    """
+    # Generate samples from Gaussian distribution
+    samples = np.random.normal(mean, std_dev, num_samples)
+    
+    # Create list of input dictionaries
+    sampled_inputs = []
+    for sample in samples:
+        # Create a deep copy to avoid modifying original
+        new_input = copy.deepcopy(original_inputs)
+        new_input[sample_key] = float(sample)  # Convert numpy type to native Python float
+        sampled_inputs.append(new_input)
+        
+    return sampled_inputs
 
 
 def print_crop_emissions(
@@ -234,10 +262,10 @@ def save_crop_data(base_data, project_data, plot_name, model_type):
             CropParams.save(project, str(project_filename))
 
 
-def write_emissions_csv(configuration, mod_run, n, st, data):
+def write_emissions_csv(configuration, mod_run, n, analysis_no, data):
     # Define the output directory and file name
-    output_dir = Path(configuration.OUTPUT_DIR + f"_{mod_run}/plot_{n+st}")
-    output_file = output_dir / f"plot_{n+st}_emissions_all_pools_per_year.csv"
+    output_dir = Path(configuration.OUTPUT_DIR + f"_{mod_run}/plot_{n+analysis_no}")
+    output_file = output_dir / f"plot_{n+analysis_no}_emissions_all_pools_per_year.csv"
 
     # Ensure the directory exists
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -319,63 +347,11 @@ def setup_project_directory(project_name, arguments):
     return project_dir
 
 
-def main(n, arguments):
-    project_name = arguments["project-name"]
-
-    # Create a new project directory
-    setup_project_directory(project_name, arguments)
-
-    # Get soil model
-    soil_model_type = arguments["soil-model"]
-    ForwardSoilModel = ForwardSoilModule.get_soil_model(soil_model_type)
-    InverseSoilModel = InverseSoilModule.get_soil_model(soil_model_type)
-
-    # Setup the project directory constants
-    configuration.SAVE_DIR = os.path.join(configuration.PROJECT_DIR, project_name)
-
-    # specifiying input and output files
-    configuration.INPUT_DIR = os.path.join(configuration.SAVE_DIR, "input")
-    configuration.OUTPUT_DIR = os.path.join(configuration.SAVE_DIR, "output")
-
-    input_csv = arguments["input-file-name"]
-
-    # ----------
-    # getting input data
-    # ----------
-
-    ## creating dictionary of input data from input.csv
-    file_path = os.path.join(configuration.INPUT_DIR, input_csv)
-    csv_input_data = csv_handler.get_csv_input_data(n, file_path)
-
-    # terms in coded below preceded by csv_input_data are values being pulled in from dictionary
-    # created above. Converting to float or interger as needed for each
-    # key
-
-    ## getting plot anlaysis number to name output
-    st = int(csv_input_data["analysis_no"])
-
-    # ----------
-    # project length
-    # ----------
-    # YEARS = length of tree data. ACCT = years in accounting period
-    N_YEARS = int(csv_input_data["yrs_proj"])
-    N_TREES = 3  # TODO: parameteris this
-
-    allometric_key = arguments["allometric-key"]
-
-    intervention_emissions = handle_intervention(
-        intervention_input=csv_input_data,
-        allometry=allometric_key,
-        no_of_trees=N_TREES,
-        use_api=arguments["use-api"],
-        create_forward_soil_model=ForwardSoilModel.create,
-        create_inverse_soil_model=InverseSoilModel.create,
-    )
-
+def output_results(arguments, intervention_emissions, no_of_years, accounting_year, analysis_no: int = 1):
     # ----------
     # Printing to stdout
     # ----------
-    if (arguments["print-to-stdout"]):
+    if arguments["print-to-stdout"]:
         # Print some stuff?
         Climate.print_to_stdout(intervention_emissions.climate)
         SoilParams.print_to_stdout(intervention_emissions.soil)
@@ -385,13 +361,17 @@ def main(n, arguments):
         print_tree_projects(intervention_emissions.tree_projects)
 
         ForwardSoilModule.print_to_stdout(
-            intervention_emissions.for_roth, no_of_years=N_YEARS, label="initialisation"
+            intervention_emissions.for_roth, no_of_years=no_of_years, label="initialisation"
         )
         ForwardSoilModule.print_to_stdout(
-            intervention_emissions.base_forward_soil_data, no_of_years=N_YEARS, label="baseline"
+            intervention_emissions.base_forward_soil_data,
+            no_of_years=no_of_years,
+            label="baseline",
         )
         ForwardSoilModule.print_to_stdout(
-            intervention_emissions.project_forward_soil_data, no_of_years=N_YEARS, label="project"
+            intervention_emissions.project_forward_soil_data,
+            no_of_years=no_of_years,
+            label="project",
         )
         # =============================================================================
 
@@ -408,7 +388,7 @@ def main(n, arguments):
             fertiliser_base_emissions=intervention_emissions.fertiliser_base_emissions,
             fertiliser_project_emissions=intervention_emissions.fertiliser_project_emissions,
             fertiliser_difference=intervention_emissions.fertiliser_difference,
-            n_years=N_YEARS,
+            n_years=no_of_years,
         )
         # =============================================================================
 
@@ -417,7 +397,7 @@ def main(n, arguments):
             litter_base_emissions=intervention_emissions.litter_base_emissions,
             litter_project_emissions=intervention_emissions.litter_project_emissions,
             litter_difference=intervention_emissions.litter_difference,
-            n_years=N_YEARS,
+            n_years=no_of_years,
         )
         # =============================================================================
 
@@ -426,7 +406,7 @@ def main(n, arguments):
             fire_base_emissions=intervention_emissions.fire_base_emissions,
             fire_project_emissions=intervention_emissions.fire_project_emissions,
             fire_difference=intervention_emissions.fire_difference,
-            n_years=N_YEARS,
+            n_years=no_of_years,
         )
         # =============================================================================
 
@@ -435,7 +415,7 @@ def main(n, arguments):
             tree_base_emissions=intervention_emissions.tree_base_emissions,
             tree_project_emissions=intervention_emissions.tree_project_emissions,
             tree_difference=intervention_emissions.tree_difference,
-            n_years=N_YEARS,
+            n_years=no_of_years,
         )
         # =============================================================================
 
@@ -444,7 +424,7 @@ def main(n, arguments):
             soil_base_emissions=intervention_emissions.soil_base_emissions,
             soil_project_emissions=intervention_emissions.soil_project_emissions,
             soil_difference=intervention_emissions.soil_difference,
-            n_years=N_YEARS,
+            n_years=no_of_years,
         )
         # =============================================================================
 
@@ -458,7 +438,7 @@ def main(n, arguments):
         emit_base_emissions=intervention_emissions.emit_base_emissions,
         emit_project_emissions=intervention_emissions.emit_project_emissions,
         emit_difference=emit_difference,
-        n_years=N_YEARS,
+        n_years=no_of_years,
     )
     # =============================================================================
 
@@ -498,8 +478,6 @@ def main(n, arguments):
         ["Total Difference", f"{sum(emit_difference):.2f}", "t CO2 ha^-1"],
     ]
 
-    accounting_year = csv_input_data["yrs_acct"]
-
     summary_difference_title = (
         f"SUMMARY OF EMISSIONS for Year {accounting_year} (t CO2)"
     )
@@ -513,16 +491,13 @@ def main(n, arguments):
 
     # Save stuff
 
-    # starting plot output number
-    st = 1
-
-    dir = configuration.OUTPUT_DIR + "_" + mod_run + "\plot_" + str(n + st)
+    dir = configuration.OUTPUT_DIR + "_" + mod_run + "\plot_" + str(n + analysis_no)
 
     if os.path.exists(dir):
         shutil.rmtree(dir)
     os.makedirs(dir)
 
-    plot_name = dir + "\plot_" + str(n + st)
+    plot_name = dir + "\plot_" + str(n + analysis_no)
 
     Climate.save(intervention_emissions.climate, plot_name + "_climate.csv")
 
@@ -545,21 +520,23 @@ def main(n, arguments):
         "crop_params",
     )
 
-    InverseSoilModule.save(intervention_emissions.inverse_soil_model, plot_name + "_invRoth.csv")
+    InverseSoilModule.save(
+        intervention_emissions.inverse_soil_model, plot_name + "_invRoth.csv"
+    )
     ForwardSoilModule.save(
         forward_soil_model=intervention_emissions.for_roth,
-        no_of_years=N_YEARS,
+        no_of_years=no_of_years,
         file=plot_name + "_forRoth.csv",
     )
 
     ForwardSoilModule.save(
         forward_soil_model=intervention_emissions.base_forward_soil_data,
-        no_of_years=N_YEARS,
+        no_of_years=no_of_years,
         file=plot_name + "_soil_model_base.csv",
     )
     ForwardSoilModule.save(
         forward_soil_model=intervention_emissions.project_forward_soil_data,
-        no_of_years=N_YEARS,
+        no_of_years=no_of_years,
         file=plot_name + "_soil_model_proj.csv",
     )
 
@@ -593,7 +570,7 @@ def main(n, arguments):
         "crop_difference": intervention_emissions.crop_difference,
     }
 
-    write_emissions_csv(configuration, mod_run, n, st, data)
+    write_emissions_csv(configuration, mod_run, n, analysis_no, data)
 
     # Plot stuff
     plot_tree_projects(intervention_emissions.tree_projects, plot_name)
@@ -602,17 +579,19 @@ def main(n, arguments):
 
     ForwardSoilModule.plot(
         intervention_emissions.for_roth,
-        no_of_years=N_YEARS,
+        no_of_years=no_of_years,
         legend_string="initialisation",
     )
 
     ForwardSoilModule.plot(
-        intervention_emissions.base_forward_soil_data, no_of_years=N_YEARS, legend_string="baseline"
+        intervention_emissions.base_forward_soil_data,
+        no_of_years=no_of_years,
+        legend_string="baseline",
     )
 
     ForwardSoilModule.plot(
         intervention_emissions.project_forward_soil_data,
-        no_of_years=N_YEARS,
+        no_of_years=no_of_years,
         legend_string="project",
         save_name=plot_name + "_soilModel.png",
     )
@@ -645,6 +624,84 @@ def main(n, arguments):
         sum(intervention_emissions.soil_difference),
         sum(emit_difference),
     )
+
+
+def main(n, arguments):
+    project_name = arguments["project-name"]
+
+    # Create a new project directory
+    setup_project_directory(project_name, arguments)
+
+    # Get soil model
+    soil_model_type = arguments["soil-model"]
+    ForwardSoilModel = ForwardSoilModule.get_soil_model(soil_model_type)
+    InverseSoilModel = InverseSoilModule.get_soil_model(soil_model_type)
+
+    # Setup the project directory constants
+    configuration.SAVE_DIR = os.path.join(configuration.PROJECT_DIR, project_name)
+
+    # specifiying input and output files
+    configuration.INPUT_DIR = os.path.join(configuration.SAVE_DIR, "input")
+    configuration.OUTPUT_DIR = os.path.join(configuration.SAVE_DIR, "output")
+
+    input_csv = arguments["input-file-name"]
+
+    # ----------
+    # getting input data
+    # ----------
+
+    ## creating dictionary of input data from input.csv
+    file_path = os.path.join(configuration.INPUT_DIR, input_csv)
+    csv_input_data = csv_handler.get_csv_input_data(n, file_path)
+
+    # terms in coded below preceded by csv_input_data are values being pulled in from dictionary
+    # created above. Converting to float or interger as needed for each
+    # key
+
+    ## getting plot anlaysis number to name output
+    analysis_no = int(csv_input_data["analysis_no"])
+    accounting_year = csv_input_data["yrs_acct"]
+
+    # ----------
+    # project length
+    # ----------
+    # YEARS = length of tree data. ACCT = years in accounting period
+    N_YEARS = int(csv_input_data["yrs_proj"])
+    N_TREES = 3
+
+    allometric_key = arguments["allometric-key"]
+
+
+    # EXAMPLE OF SAMPLING
+    sampled_inputs = create_sampled_inputs(
+        original_inputs=csv_input_data,
+        sample_key="proj_plant_dens1",
+        mean=119,
+        std_dev=2,
+        num_samples=10
+    )
+
+    # IF NOT SAMPLING, USE THE FOLLOWING LINE INSTEAD
+    # data = {"inputs": [csv_input_data], CONSTANTS.ALLOMETRY_KEY: allometric_key}
+    data = {"inputs": sampled_inputs, CONSTANTS.ALLOMETRY_KEY: allometric_key}
+
+    interventions_emissions = run(
+        project_name=project_name,
+        data=data,
+        use_api=arguments["use-api"],
+        no_of_trees=N_TREES,
+        create_forward_soil_model=ForwardSoilModel.create,
+        create_inverse_soil_model=InverseSoilModel.create,
+    )
+
+    for intervention_emissions in interventions_emissions:
+        output_results(
+            arguments=arguments,
+            intervention_emissions=intervention_emissions,
+            no_of_years=N_YEARS,
+            accounting_year=accounting_year,
+            analysis_no=analysis_no
+        )
 
 
 if __name__ == "__main__":

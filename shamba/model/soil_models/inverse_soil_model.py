@@ -21,7 +21,9 @@ def print_to_stdout(inverse_soil_model: InverseSoilModelData):
     pools = ["DPM", "RPM", "BIO", "HUM"]
     print("\nINVERSE CALCULATIONS")
     print("====================\n")
-    print("Equilibrium C -", inverse_soil_model.eq_C.sum() + inverse_soil_model.soil.iom)
+    print(
+        "Equilibrium C -", inverse_soil_model.eq_C.sum() + inverse_soil_model.soil.iom
+    )
     for i in range(len(inverse_soil_model.eq_C)):
         print("   ", pools[i], "- - - -", inverse_soil_model.eq_C[i])
     print("    IOM", "- - - -", inverse_soil_model.soil.iom)
