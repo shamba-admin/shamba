@@ -20,12 +20,13 @@ Command-line setup can either use a Docker container, or locally installed packa
 ### 1. Docker Setup
 
 1. Ensure that Docker is installed on your system. Check the [official documentation](https://docs.docker.com/get-docker/) for how to install Docker for your specific operating system.
-2. From the `shamba` directory, run the following command:
+2. In the terminal, from the `shamba` directory, run the following command:
 ```sh
 docker compose up
 ```
+Please note: the first time you run `docker compose up`, the command may take several minutes. Future runs of that command will be much faster.
 
-To use SHAMBA from within the Docker container, follow these steps:
+To use SHAMBA from within the Docker container, follow these steps in the terminal:
 
 1. Find the container ID of the running container: `docker ps`. Grab the ID of the `shamba-server` container.
 2. Run the following command: `docker exec -it <container-id> bash`

@@ -54,6 +54,14 @@ differ between tree cohorts, add a new row specifying these tree parameters
 to the tree_defaults.csv in the shamba/default_input folder and make sure the 
 '_input.csv' file correctly attributes each tree cohort to the relevant 
 parameters under 'trees in baseline' and 'trees in project'.
+
+Soil and climate data is either sourced from APIs, or from local csv files of your
+own data. To use your own values for soil and climate data, csv files should
+be added to the source directory (alongisde your input file). 
+The climate data csv must be called climate.csv and match the format shown in 
+/projects/examples/UG_TS_2016/input/climate.csv.
+The soil data csv must be called soil-info.csv and match the format shown in
+/projects/examples/UG_TS_2016/input/soil-info.csv.
         """
     )
 
@@ -75,7 +83,7 @@ parameters under 'trees in baseline' and 'trees in project'.
     arguments["source-directory"] = source_directory
 
     # Prompt for use-api (boolean)
-    use_api = questionary.confirm("Use API?", default=DEFAULT_USE_API).ask()
+    use_api = questionary.confirm("Use API for climate and soil data?", default=DEFAULT_USE_API).ask()
     arguments["use-api"] = use_api
 
     # Prompt for n_cohorts
@@ -119,7 +127,7 @@ parameters under 'trees in baseline' and 'trees in project'.
     arguments["soil-model"] = SoilModelType.ROTH_C
 
     # Prompt for whether to print to stdout
-    print_to_stdout = questionary.confirm("Print to stdout?", default=False).ask()
+    print_to_stdout = questionary.confirm("Results will be saved to csv files. Do you also want to print all to stdout?", default=False).ask()
     arguments["print-to-stdout"] = print_to_stdout
 
     # Prompt for input file name with default
