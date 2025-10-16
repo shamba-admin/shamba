@@ -501,7 +501,7 @@ def calculate_above_ground_biomass(
             E.g., [2.601, -3.629] represents the equation:
             agb = exp(2.601 * log(diameter) - 3.629)
         diameter: Tree diameter in consistent units (e.g., meters)
-        wood_density: Wood density in kg/m^3 (optional, used in some allometric equations)
+        wood_density: Wood density in g/cm^3 (optional, used in some allometric equations)
 
     Returns:
         float: Above-ground biomass in kg. Returns 0 for non-positive diameters.
@@ -569,7 +569,7 @@ def chave_moist(dbh, tree_params):
 
     """
     agb = calculate_above_ground_biomass(
-        [-0.0281, 0.207, 2.148, -1.499], dbh, wood_density=tree_params.wood_dens
+        [-0.0281, 0.207, 2.148, -1.562], dbh, wood_density=tree_params.wood_dens
     )
     return agb * tree_params.carbon
 

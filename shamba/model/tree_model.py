@@ -208,7 +208,7 @@ def from_defaults(
 
     """
 
-    data = csv_handler.read_csv("biomass_pool_params.csv", cols=(3, 4, 5, 6))
+    data = csv_handler.read_csv("biomass_pool_params.csv", cols=(1, 2, 3, 4))
     turnover = data[:, 0]
     alloc = data[:, 1]
     temp_thinning_fraction = data[:, 2]

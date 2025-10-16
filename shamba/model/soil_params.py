@@ -59,7 +59,7 @@ def create(soil_params: Dict[str, Any]) -> SoilParamsData:
         SoilParamsData: object containing soil parameters
     """
     Cy0 = soil_params["Cy0"]
-    Ceq = 1.25 * Cy0  # this is an assumption detailed in the SHAMBA model description
+    Ceq = 1.25 * Cy0  # this is an assumption detailed in the SHAMBA model description: Ceq is 25% higher than Cy0 (Cy0 + 0.25*Cy0 = 1.25* Cy0)
 
     params = {
         "Cy0": Cy0,
