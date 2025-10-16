@@ -59,6 +59,7 @@ def get_tree_model_data(
     no_of_years: int,
     no_of_cohorts: int,
     allometry: str,
+    allometric_params: List[float],
 ) -> GetTreeModelReturnData:
     # Linking tree cohort parameteres
     tree_par_base = TreeParams.from_species_index(
@@ -79,12 +80,13 @@ def get_tree_model_data(
         CONSTANTS.SPECIES_BASE_KEY,
         tree_par_base,
         allometric_key=allometry,
+        allometric_params=allometric_params,
     )
 
     # Intervention growth: species # identified in no_of_cohorts different cases,
     # so uses a wrapper function to identify species info for each cohort
     tree_growths = TreeGrowth.create_tree_growths(
-        intervention_input, tree_params, allometry, no_of_cohorts
+        intervention_input, tree_params, allometry, allometric_params, no_of_cohorts
     )
 
     # Specify thinning regime and fraction left in field (lif)
@@ -684,6 +686,7 @@ def handle_intervention(
     n_cohorts: int,
     plot_index: int,
     allometry: str = CONSTANTS.DEFAULT_ALLOMORPHY,
+    allometric_params: List[float] = None,
     gwp: dict = CONSTANTS.GWP_list[CONSTANTS.DEFAULT_GWP],
     use_api: bool = CONSTANTS.DEFAULT_USE_API,
 ):
@@ -726,6 +729,7 @@ def handle_intervention(
         intervention_input=intervention_input,
         no_of_cohorts=n_cohorts,
         allometry=allometry,
+        allometric_params=allometric_params
     )
 
     # ----------

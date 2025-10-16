@@ -205,8 +205,10 @@ class TreeGrowthSchema(Schema):
         return TreeGrowth(**data)
 
 
-def get_biomass(tree_diameter, allometric_key, tree_params):
+def get_biomass(tree_diameter, allometric_key, allometric_params, tree_params):
     allometric_function = allometric[allometric_key]
+    if allometric_key == "calculate_above_ground_biomass":
+        return np.array([calculate_above_ground_biomass(allometric_params, diameter, wood_density=tree_params.wood_dens)*tree_params.carbon for diameter in tree_diameter])
 
     return np.array(
         [allometric_function(diameter, tree_params) for diameter in tree_diameter]
@@ -217,6 +219,7 @@ def create(
     tree_params: List[TreeParams.TreeParamsData],
     growth_params: Dict[str, np.ndarray],
     allom="chave dry",
+    allometric_params=None
 ) -> TreeGrowth:
     """Create a TreeGrowth object from a tree parameters and a growth parameters
     dictionary.
@@ -234,7 +237,7 @@ def create(
     biomass = (
         growth_params["biomass"]
         if "biomass" in growth_params
-        else get_biomass(tree_diameter, allometric_key, tree_params)
+        else get_biomass(tree_diameter, allometric_key, allometric_params, tree_params)
     )
     age = growth_params["age"]
 
@@ -272,6 +275,7 @@ def create(
 def from_csv(
     tree_params: List[TreeParams.TreeParamsData],
     allometric_key: str,
+    allometric_params: List[float],
     csv_input_data: Dict[str, Any],
     species_prefix: str = "",
 ):
@@ -306,7 +310,7 @@ def from_csv(
         "diam": diam,
     }
 
-    growth = create(tree_params, params, allometric_key)
+    growth = create(tree_params, params, allometric_key, allometric_params)
 
     return growth
 
@@ -598,7 +602,7 @@ allometric = {
 
 
 # Uses spp_prefix_map to get the correct prefix for the species-specific columns
-def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
+def get_growth(csv_input_data, spp_key, tree_params, allometric_key, allometric_params=None):
 
     spp_number = int(csv_input_data[spp_key])
     if spp_number == 1:
@@ -609,18 +613,20 @@ def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
     return from_csv(
         tree_params=tree_params,
         allometric_key=allometric_key,
+        allometric_params=allometric_params,
         csv_input_data=csv_input_data,
         species_prefix=prefix,
     )
 
 
-def create_tree_growths(csv_input_data, tree_params, allometric_key, cohort_count):
+def create_tree_growths(csv_input_data, tree_params, allometric_key, allometric_params, cohort_count):
     return [
         get_growth(
             csv_input_data,
             f"species{i + 1}",
             tree_params[i],
             allometric_key=allometric_key,
+            allometric_params=allometric_params,
         )
         for i in range(cohort_count)
     ]

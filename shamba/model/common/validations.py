@@ -7,3 +7,17 @@ def validate_between_0_and_1(value: List[float]) -> List[str]:
         for i, x in enumerate(value)
         if not 0 <= x <= 1
     ]
+
+def validate_integer(value):
+    try:
+        int(value)
+        return True
+    except ValueError:
+        return "Please enter an integer"
+
+def validate_numerical(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return "Please enter a valid number."

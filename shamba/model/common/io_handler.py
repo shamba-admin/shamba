@@ -18,6 +18,7 @@ from model.common.constants import (
     DEFAULT_GWP,
     GWP_list,
 )
+from model.common.validations import validate_integer, validate_numerical
 
 
 def get_arguments_interactively():
@@ -79,15 +80,23 @@ parameters under 'trees in baseline' and 'trees in project'.
 
     # Prompt for n_cohorts
     # Default to 1 if integer not provided
-    n_cohorts = input("Enter number of tree cohorts (defaults to 1): ").strip()
-    arguments["n-cohorts"] = int(n_cohorts) if str(n_cohorts).isdigit() else 1
+    n_cohorts = questionary.text("Enter number of tree cohorts (defaults to 1): ", validate=validate_integer, default="1").ask()
+    arguments["n-cohorts"] = int(n_cohorts)
 
     # Prompt for allometric key
     allometric_keys = list(TreeGrowth.allometric.keys())
     selected_allometric_key = questionary.select(
-        "Select an Allometric Key:", choices=allometric_keys, default=DEFAULT_ALLOMORPHY
+        "Select an Allometric Key. To add your own allometric parameters, choose calculate_above_ground_biomass:", choices=allometric_keys, default=DEFAULT_ALLOMORPHY
     ).ask()
     arguments["allometric-key"] = selected_allometric_key
+
+    if selected_allometric_key == "calculate_above_ground_biomass":
+        allometric_params = []
+        no_allometric_params = questionary.text("You selected calculate_above_ground_biomass. Please enter the number of allometric parameters you want to use:", validate=validate_integer).ask()
+        for i in range(int(no_allometric_params)):
+            next_param = questionary.text("Please enter allometric parameters for the polynomial equation one at a time, in order of descending powers of the equation terms:", validate=validate_numerical).ask()
+            allometric_params.append(float(next_param))
+        arguments["allometric-params"] = allometric_params
 
     # Prompt for GWP
     gwp_keys = list(GWP_list.keys())

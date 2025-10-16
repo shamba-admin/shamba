@@ -360,6 +360,12 @@ def main(n, arguments):
     N_COHORTS = arguments["n-cohorts"]
 
     allometric_key = arguments["allometric-key"]
+
+    if allometric_key == "calculate_above_ground_biomass":
+        allometric_params = arguments["allometric-params"]
+    else:
+        allometric_params = None
+
     gwp = arguments["gwp"]
 
     intervention_emissions = handle_intervention(
@@ -367,6 +373,7 @@ def main(n, arguments):
         n_cohorts=N_COHORTS,
         plot_index=n,
         allometry=allometric_key,
+        allometric_params=allometric_params,
         gwp=gwp,
         use_api=arguments["use-api"],
         create_forward_soil_model=ForwardSoilModel.create,
