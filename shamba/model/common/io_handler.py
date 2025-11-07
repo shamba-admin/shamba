@@ -40,20 +40,32 @@ modelling unless it is fully referenced. See the instructions in the Excel
 worksheet.
 
 On the '_questionnaire' worksheet, you must enter a value in each of the
-blue cells in the 'Input data' column (column N) in response to each 
+blue cells in the 'Input data' column (column K) in response to each 
 'data collection question', otherwise the model will not run properly. 
 If the question is not relevant to the land use you are modelling, enter zero.
 
 To run the model for a particular intervention, save the relevant 
 '_input.csv' file into the new shamba/projects/"project-name"/input
 folder, along with other input files needed. This is the 'source directory'
-you must specify when prompted at the command line.'
+you must specify when prompted at the command line.
 
-If nitrogen allocations, carbon, root/shoot and/or wood density attributes
-differ between tree cohorts, add a new row specifying these tree parameters
-to the tree_defaults.csv in the shamba/default_input folder and make sure the 
-'_input.csv' file correctly attributes each tree cohort to the relevant 
-parameters under 'trees in baseline' and 'trees in project'.
+Note that the code expects each input csv in a particular format.
+
+Other required input files are parameters for:
+- biomass pools in biomass_pool_params.csv,
+- crops in crop_params.csv,
+- litter in litter_params.csv,
+- trees in tree_params.csv
+Default parameters are available in shamba/default_input. These should either:
+1. be copied directly to your source directory and the files renamed to remove
+"_defaults" (e.g. crop_params_defaults.csv becomes crop_params). OR
+2. be used as templates to add your own data. The code expects files in the 
+formats shown. Refer to the SHAMBA methodology for definitions of the data
+points required.
+
+Make sure the '_input.csv' file correctly attributes each tree cohort to the
+relevant parameters in tree_params.csv under 'trees in baseline' and 
+'trees in project'.
 
 If allometric functions not included in the SHAMBA code base are to be used, 
 write these in a python file named 'project_allometry.py' in your source directory. 

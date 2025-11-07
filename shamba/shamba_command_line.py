@@ -296,7 +296,10 @@ def setup_project_directory(project_name, arguments):
 
     # List of files to copy
     files_to_copy = [
-        "crop_ipcc.csv",
+        "crop_params.csv",
+        "tree_params.csv",
+        "litter_params",
+        "biomass_pool_params.csv",
         arguments["input-file-name"],
     ]
 
@@ -379,6 +382,9 @@ def main(n, arguments):
     allometric_keys = arguments["allometric-keys"]
 
     gwp = arguments["gwp"]
+
+    TREE_SPP = TreeParams.load_tree_species_data()
+    CROP_SPP = CropParams.load_crop_species_data()
 
     intervention_emissions = handle_intervention(
         intervention_input=csv_input_data,

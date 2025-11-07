@@ -42,29 +42,41 @@ SPP_LIST = [
 ]
 
 # Read csv file with default crop data
-CROP_SPP = {}
-_data = csv_handler.read_csv("crop_ipcc_defaults.csv", cols=(2, 3, 4, 5, 6, 7, 8))
-_data = np.atleast_2d(_data)
-
-_slope = _data[:, 0]
-_intercept = _data[:, 1]
-_nitrogenBelow = _data[:, 2]
-_nitrogenAbove = _data[:, 3]
-_carbonBelow = _data[:, 4]
-_carbonAbove = _data[:, 5]
-_rootToShoot = _data[:, 6]
-
-for _i in range(len(SPP_LIST)):
-    _spp = SPP_LIST[_i]
-    CROP_SPP[_spp] = {
-        "species": _spp,
-        "slope": _slope[_i],
-        "intercept": _intercept[_i],
-        "nitrogen_below": _nitrogenBelow[_i],
-        "nitrogen_above": _nitrogenAbove[_i],
-        "carbon_below": _carbonBelow[_i],
-        "carbon_above": _carbonAbove[_i],
-        "root_to_shoot": _rootToShoot[_i],
+def load_crop_species_data(
+    filename: str = "crop_params.csv",
+) -> dict[str, dict]:
+    """
+    Load crop species data from CSV file.
+    
+    Args:
+        filename: Name of the CSV file to load (default: "crop_params.csv")
+        
+    Returns:
+        Dictionary mapping species names to their parameter dictionaries
+    """
+    data = csv_handler.read_csv(filename, cols=(2, 3, 4, 5, 6, 7, 8))
+    data = np.atleast_2d(data)
+    
+    slope = data[:, 0]
+    intercept = data[:, 1]
+    nitrogenBelow = data[:, 2]
+    nitrogenAbove = data[:, 3]
+    carbonBelow = data[:, 4]
+    carbonAbove = data[:, 5]
+    rootToShoot = data[:, 6]
+    
+    return {
+        spp: {
+            "species": spp,
+            "slope": slope[i],
+            "intercept": intercept[i],
+            "nitrogen_below": nitrogenBelow[i],
+            "nitrogen_above": nitrogenAbove[i],
+            "carbon_below": carbonBelow[i],
+            "carbon_above": carbonAbove[i],
+            "root_to_shoot": rootToShoot[i],
+        }
+        for i, spp in enumerate(SPP_LIST)
     }
 
 
@@ -135,6 +147,7 @@ def from_species_name(species) -> CropParamsData:
 
     """
     species = species.lower()
+    CROP_SPP = load_crop_species_data()
     crop_params = CROP_SPP[species]
     params = {
         "species": crop_params["species"],
@@ -169,6 +182,7 @@ def from_species_index(index) -> CropParamsData:
     index = int(index)
     # csv list is 1-indexed
     species = SPP_LIST[index - 1]
+    CROP_SPP = load_crop_species_data()
     crop_params = CROP_SPP[species]
     params = {
         "species": crop_params["species"],
@@ -195,7 +209,7 @@ def from_species_index(index) -> CropParamsData:
 
 def from_csv(species_name, filename, row=0) -> CropParamsData:
     """Construct Crop object using data from a csv which
-    is structured like the master csv (crop_ipcc_defaults.csv).
+    is structured like the master csv (crop_params_defaults.csv).
 
     Args:
         species_name: name of species (can be anything)

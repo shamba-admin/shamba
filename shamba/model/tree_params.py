@@ -22,7 +22,7 @@ def read_csv(filename: str, cols: Tuple[int, ...]) -> np.ndarray:
 
 
 def load_tree_species_data(
-    filename: str = "tree_defaults.csv",
+    filename: str = "tree_params.csv",
 ) -> Dict[Union[int, str], Dict]:
     data = csv_handler.read_csv(filename, cols=(2, 3, 4, 5, 6, 7, 8, 9))
 
@@ -41,11 +41,6 @@ def load_tree_species_data(
         }
         for i, spp in enumerate(SPP_LIST)
     }
-
-
-# Load tree species data when this module is imported
-TREE_SPP = load_tree_species_data()
-
 
 class TreeParamsData:
     """
@@ -126,6 +121,7 @@ def from_species_name(species: str):
     """
     Same as create, but with species name.
     """
+    TREE_SPP = load_tree_species_data()
     return create(TREE_SPP[species])
 
 
@@ -135,6 +131,7 @@ def from_species_index(index: int):
     """
     index = int(index)
     species = SPP_LIST[index - 1]
+    TREE_SPP = load_tree_species_data()
 
     return create(TREE_SPP[species])
 
