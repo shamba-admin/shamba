@@ -87,7 +87,7 @@ def from_csv(
     litter_frequency,
     litter_quantity,
     no_of_years,
-    filename="litter.csv",
+    filename="litter_defaults.csv",
     row=0,
     litter_vector=None,
 ):
