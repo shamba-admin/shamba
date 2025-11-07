@@ -296,11 +296,14 @@ def setup_project_directory(project_name, arguments):
 
     # List of files to copy
     files_to_copy = [
-        "crop_ipcc_baseline.csv",
         "crop_ipcc.csv",
+        arguments["input-file-name"],
+    ]
+
+    optional_files_to_copy = [
         "climate.csv",
         "soil-info.csv",
-        arguments["input-file-name"],
+        "project_allometry.py"
     ]
 
     # Source directory (using an existing project as an example)
@@ -310,8 +313,22 @@ def setup_project_directory(project_name, arguments):
     for file in files_to_copy:
         source_file = os.path.join(source_dir, file)
         dest_file = os.path.join(input_dir, file)
-        shutil.copy2(source_file, dest_file)
-        print(f"Copied {file} to {dest_file}")
+        if os.path.exists(source_file):
+            shutil.copy2(source_file, dest_file)
+            print(f"Copied {file} to {dest_file}")
+        else:
+            ValueError(f"File {file} does not exist. Please add it to the source directory.")
+
+    # Copy each available optional file
+    for file in optional_files_to_copy:
+        source_file = os.path.join(source_dir, file)
+        dest_file = os.path.join(input_dir, file)
+        if os.path.exists(source_file):
+            shutil.copy2(source_file, dest_file)
+            print(f"Copied {file} to {dest_file}")
+        else:
+            print(f"Warning: Source file {source_file} does not exist, skipping...")
+
 
     print(f"Project setup complete. New project directory: {project_dir}")
     return project_dir
@@ -359,12 +376,7 @@ def main(n, arguments):
     N_YEARS = int(csv_input_data["yrs_proj"])
     N_COHORTS = arguments["n-cohorts"]
 
-    allometric_key = arguments["allometric-key"]
-
-    if allometric_key == "calculate_above_ground_biomass":
-        allometric_params = arguments["allometric-params"]
-    else:
-        allometric_params = None
+    allometric_keys = arguments["allometric-keys"]
 
     gwp = arguments["gwp"]
 
@@ -372,8 +384,7 @@ def main(n, arguments):
         intervention_input=csv_input_data,
         n_cohorts=N_COHORTS,
         plot_index=n,
-        allometry=allometric_key,
-        allometric_params=allometric_params,
+        allometry=allometric_keys,
         gwp=gwp,
         use_api=arguments["use-api"],
         create_forward_soil_model=ForwardSoilModel.create,

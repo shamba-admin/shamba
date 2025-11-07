@@ -55,6 +55,17 @@ to the tree_defaults.csv in the shamba/default_input folder and make sure the
 '_input.csv' file correctly attributes each tree cohort to the relevant 
 parameters under 'trees in baseline' and 'trees in project'.
 
+If allometric functions not included in the SHAMBA code base are to be used, 
+write these in a python file named 'project_allometry.py' in your source directory. 
+Ensure:
+1. each function returns aboveground biomass in kg C for a single tree size;
+    using `tree_params.carbon` where necessary.
+2. the file includes a dictionary called 'allometric' matching each allometric 
+    function to a key, so that you can select it at the command line. 
+Note: functions using input data other than diameter at breast height 
+(dbh) will need careful handling. A suggestion of how to handle this is included
+in the example project (/projects/examples/UG_TS_2016/input/project_allometry.py)
+
 Soil and climate data is either sourced from APIs, or from local csv files of your
 own data. To use your own values for soil and climate data, csv files should
 be added to the source directory (alongisde your input file). 
@@ -91,20 +102,38 @@ The soil data csv must be called soil-info.csv and match the format shown in
     n_cohorts = questionary.text("Enter number of tree cohorts (defaults to 1): ", validate=validate_integer, default="1").ask()
     arguments["n-cohorts"] = int(n_cohorts)
 
-    # Prompt for allometric key
+    # Prompt for allometric key list
+    own_allometry = questionary.confirm(
+        "Do you have allometric functions to use that are not in SHAMBA's default list? (if yes, please see instructions):", default=False).ask()
+    own_allometric_keys = []
     allometric_keys = list(TreeGrowth.allometric.keys())
-    selected_allometric_key = questionary.select(
-        "Select an Allometric Key. To add your own allometric parameters, choose calculate_above_ground_biomass:", choices=allometric_keys, default=DEFAULT_ALLOMORPHY
-    ).ask()
-    arguments["allometric-key"] = selected_allometric_key
+    if own_allometry == True:
+        import sys
+        import importlib
+        
+        source_dir = os.path.join(configuration.PROJECT_DIR, arguments["source-directory"])
+        sys.path.insert(0, source_dir)
+        project_allometry = importlib.import_module('project_allometry')
+        own_allometric_keys = list(project_allometry.allometric.keys())
+        
+    all_allometric_keys = allometric_keys + own_allometric_keys
 
-    if selected_allometric_key == "calculate_above_ground_biomass":
-        allometric_params = []
-        no_allometric_params = questionary.text("You selected calculate_above_ground_biomass. Please enter the number of allometric parameters you want to use:", validate=validate_integer).ask()
-        for i in range(int(no_allometric_params)):
-            next_param = questionary.text("Please enter allometric parameters for the polynomial equation one at a time, in order of descending powers of the equation terms:", validate=validate_numerical).ask()
-            allometric_params.append(float(next_param))
-        arguments["allometric-params"] = allometric_params
+
+    # Prompt for allometric key, cohort by cohort
+    cohort_allometric_keys = []
+
+    base_selected_allometric_key = questionary.select(
+        "Select an Allometric Key for the baseline species:", choices=all_allometric_keys, default=DEFAULT_ALLOMORPHY
+        ).ask()
+    
+    cohort_allometric_keys.append(base_selected_allometric_key)
+
+    for i in range(int(n_cohorts)):
+        selected_allometric_key = questionary.select(
+        "Select an Allometric Key for each species in the cohort, in the same order as the input file:", 
+        choices=all_allometric_keys, default=DEFAULT_ALLOMORPHY).ask()
+        cohort_allometric_keys.append(selected_allometric_key)
+    arguments["allometric-keys"] = cohort_allometric_keys
 
     # Prompt for GWP
     gwp_keys = list(GWP_list.keys())

@@ -9,6 +9,7 @@ import logging as log
 import math
 import os
 from typing import Dict, Tuple
+import importlib
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -205,21 +206,27 @@ class TreeGrowthSchema(Schema):
         return TreeGrowth(**data)
 
 
-def get_biomass(tree_diameter, allometric_key, allometric_params, tree_params):
-    allometric_function = allometric[allometric_key]
-    if allometric_key == "calculate_above_ground_biomass":
-        return np.array([calculate_above_ground_biomass(allometric_params, diameter, wood_density=tree_params.wood_dens)*tree_params.carbon for diameter in tree_diameter])
-
-    return np.array(
-        [allometric_function(diameter, tree_params) for diameter in tree_diameter]
-    )
+def get_biomass(tree_diameter, allometric_key, tree_params):
+    if allometric_key in allometric:
+        allometric_function = allometric[allometric_key]
+        return np.array(
+            [allometric_function(diameter, tree_params) for diameter in tree_diameter]
+        )
+    else: # user should have provided different allometry
+        try: 
+            project_allometry = importlib.import_module('project_allometry')
+            project_allometric = project_allometry.allometric
+            allometric_function = project_allometric[allometric_key]
+            return np.array([allometric_function(diameter, tree_params) for diameter in tree_diameter])
+        except ValueError:
+        # Handle case where project allometry is not found
+            raise ValueError(f"Allometric key {allometric_key} not found")
 
 
 def create(
     tree_params: List[TreeParams.TreeParamsData],
     growth_params: Dict[str, np.ndarray],
-    allom="chave dry",
-    allometric_params=None
+    allom="chave dry"
 ) -> TreeGrowth:
     """Create a TreeGrowth object from a tree parameters and a growth parameters
     dictionary.
@@ -237,7 +244,7 @@ def create(
     biomass = (
         growth_params["biomass"]
         if "biomass" in growth_params
-        else get_biomass(tree_diameter, allometric_key, allometric_params, tree_params)
+        else get_biomass(tree_diameter, allometric_key, tree_params)
     )
     age = growth_params["age"]
 
@@ -275,7 +282,6 @@ def create(
 def from_csv(
     tree_params: List[TreeParams.TreeParamsData],
     allometric_key: str,
-    allometric_params: List[float],
     csv_input_data: Dict[str, Any],
     species_prefix: str = "",
 ):
@@ -310,7 +316,7 @@ def from_csv(
         "diam": diam,
     }
 
-    growth = create(tree_params, params, allometric_key, allometric_params)
+    growth = create(tree_params, params, allometric_key)
 
     return growth
 
@@ -597,13 +603,11 @@ allometric = {
     "chave dry": chave_dry,
     "chave moist": chave_moist,
     "chave wet": chave_wet,
-    "calculate_above_ground_biomass": calculate_above_ground_biomass,
 }
 
 
 # Uses spp_prefix_map to get the correct prefix for the species-specific columns
-def get_growth(csv_input_data, spp_key, tree_params, allometric_key, allometric_params=None):
-
+def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
     spp_number = int(csv_input_data[spp_key])
     if spp_number == 1:
         prefix = ""
@@ -613,20 +617,18 @@ def get_growth(csv_input_data, spp_key, tree_params, allometric_key, allometric_
     return from_csv(
         tree_params=tree_params,
         allometric_key=allometric_key,
-        allometric_params=allometric_params,
         csv_input_data=csv_input_data,
         species_prefix=prefix,
     )
 
 
-def create_tree_growths(csv_input_data, tree_params, allometric_key, allometric_params, cohort_count):
+def create_tree_growths(csv_input_data, tree_params, allometric_keys, cohort_count):
     return [
         get_growth(
             csv_input_data,
             f"species{i + 1}",
             tree_params[i],
-            allometric_key=allometric_key,
-            allometric_params=allometric_params,
+            allometric_key=allometric_keys[i+1], # baseline allometry is at index 0 in allometric_keys
         )
         for i in range(cohort_count)
     ]
