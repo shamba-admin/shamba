@@ -33,58 +33,66 @@ def get_arguments_interactively():
         """
 INSTRUCTIONS
 
+___________________________STEP 1: create main input file _____________________
 Complete in full the Excel worksheet 'SHAMBA input output template v1.2',
-(located in the 'data-input-templates' folder)    
-including all references for information. The reviewer will reject the
-modelling unless it is fully referenced. See the instructions in the Excel
-worksheet.
+(located in the 'data-input-templates' folder) including all references 
+for information. The reviewer will reject the modelling unless it is fully
+referenced. See the instructions in the Excel worksheet.
 
 On the '_questionnaire' worksheet, you must enter a value in each of the
 blue cells in the 'Input data' column (column K) in response to each 
 'data collection question', otherwise the model will not run properly. 
 If the question is not relevant to the land use you are modelling, enter zero.
 
-To run the model for a particular intervention, save the relevant 
-'_input.csv' file into the new shamba/projects/"project-name"/input
-folder, along with other input files needed. This is the 'source directory'
+To run the model for a particular intervention, save the `input` sheet from the 
+template as a .csv file into a new `shamba/projects/"project-name"/input`
+folder. This is the 'source directory'
 you must specify when prompted at the command line.
 
-Note that the code expects each input csv in a particular format.
-
+_____________________STEP 2: create other required input files __________________
 Other required input files are parameters for:
-- biomass pools in biomass_pool_params.csv,
-- crops in crop_params.csv,
-- litter in litter_params.csv,
-- trees in tree_params.csv
-Default parameters are available in shamba/default_input. These should either:
+- biomass pools, in a file called `biomass_pool_params.csv`,
+- crops, in a file called `crop_params.csv`,
+- litter in a file called `litter_params.csv`,
+- trees in a file called `tree_params.csv`
+These should be saved in the source directory (alongside the file from STEP 1).
+
+Default parameter files are available in `shamba/default_input`. 
+hese should either:
 1. be copied directly to your source directory and the files renamed to remove
-"_defaults" (e.g. crop_params_defaults.csv becomes crop_params). OR
+    "_defaults" (e.g. `crop_params_defaults.csv` becomes `crop_params.csv`); OR
 2. be used as templates to add your own data. The code expects files in the 
-formats shown. Refer to the SHAMBA methodology for definitions of the data
-points required.
+    formats shown. Refer to the SHAMBA methodology for definitions of the data
+    points required.
 
 Make sure the '_input.csv' file correctly attributes each tree cohort to the
 relevant parameters in tree_params.csv under 'trees in baseline' and 
 'trees in project'.
 
+______________STEP 3 (optional): create project allometric functions ______________
 If allometric functions not included in the SHAMBA code base are to be used, 
-write these in a python file named 'project_allometry.py' in your source directory. 
+write these in a python file named 'project_allometry.py' in your source directory.
+
 Ensure:
-1. each function returns aboveground biomass in kg C for a single tree size;
-    using `tree_params.carbon` where necessary.
+1. each function returns aboveground biomass in kg C for a single tree measurement;
+    using `tree_params.carbon` where necessary; AND
 2. the file includes a dictionary called 'allometric' matching each allometric 
-    function to a key, so that you can select it at the command line. 
+    function to a key, so that you can select it at the command line.
+
 Note: functions using input data other than diameter at breast height 
 (dbh) will need careful handling. A suggestion of how to handle this is included
 in the example project (/projects/examples/UG_TS_2016/input/project_allometry.py)
 
+__________________STEP 4 (optional): create site soil & climate data _______________
 Soil and climate data is either sourced from APIs, or from local csv files of your
 own data. To use your own values for soil and climate data, csv files should
-be added to the source directory (alongisde your input file). 
+be added to the source directory (alongisde your input file).
+
 The climate data csv must be called climate.csv and match the format shown in 
 /projects/examples/UG_TS_2016/input/climate.csv.
 The soil data csv must be called soil-info.csv and match the format shown in
 /projects/examples/UG_TS_2016/input/soil-info.csv.
+_____________________________________________________________________________________
         """
     )
 
