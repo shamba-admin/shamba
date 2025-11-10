@@ -72,6 +72,7 @@ relevant parameters in tree_params.csv under 'trees in baseline' and
 ______________STEP 3 (optional): create project allometric functions ______________
 If allometric functions not included in the SHAMBA code base are to be used, 
 write these in a python file named 'project_allometry.py' in your source directory.
+Note that this step requires greater python literacy than other steps.
 
 Ensure:
 1. each function returns aboveground biomass in kg C for a single tree measurement;
@@ -79,9 +80,17 @@ Ensure:
 2. the file includes a dictionary called 'allometric' matching each allometric 
     function to a key, so that you can select it at the command line.
 
-Note: functions using input data other than diameter at breast height 
+The allometric functions chosen at the command line will be used in the 
+`get_biomass()` function in `tree_growth.py`. The functions are given a diameter at
+breast height (dbh) measurement and the appropriate tree parameters for the cohort 
+(provided by the user in STEP 2, above).
+
+Functions using input data other than diameter at breast height 
 (dbh) will need careful handling. A suggestion of how to handle this is included
 in the example project (/projects/examples/UG_TS_2016/input/project_allometry.py)
+
+Please note that any steps taken to use different allometry will need to be 
+reproducible by a reviewer.
 
 __________________STEP 4 (optional): create site soil & climate data _______________
 Soil and climate data is either sourced from APIs, or from local csv files of your
