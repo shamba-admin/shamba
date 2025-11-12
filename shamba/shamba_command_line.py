@@ -317,8 +317,12 @@ def setup_project_directory(project_name, arguments):
         source_file = os.path.join(source_dir, file)
         dest_file = os.path.join(input_dir, file)
         if os.path.exists(source_file):
-            shutil.copy2(source_file, dest_file)
-            print(f"Copied {file} to {dest_file}")
+            try: 
+                shutil.copy2(source_file, dest_file)
+                print(f"Copied {file} to {dest_file}")
+            except shutil.SameFileError:
+                print(f"File {file} already in source directory")
+                pass
         else:
             ValueError(f"File {file} does not exist. Please add it to the source directory.")
 
@@ -327,8 +331,12 @@ def setup_project_directory(project_name, arguments):
         source_file = os.path.join(source_dir, file)
         dest_file = os.path.join(input_dir, file)
         if os.path.exists(source_file):
-            shutil.copy2(source_file, dest_file)
-            print(f"Copied {file} to {dest_file}")
+            try: 
+                shutil.copy2(source_file, dest_file)
+                print(f"Copied {file} to {dest_file}")
+            except shutil.SameFileError:
+                print(f"File {file} already in source directory")
+                pass
         else:
             print(f"Warning: Source file {source_file} does not exist, skipping...")
 
