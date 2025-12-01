@@ -590,7 +590,7 @@ def chave_wet(dbh, tree_params):
 
     """
     agb = calculate_above_ground_biomass(
-        [-0.0281, 0.207, 1.98, -1.239], dbh, wood_density=tree_params.wood_dens
+        [-0.0281, 0.207, 1.98, -1.302], dbh, wood_density=tree_params.wood_dens
     )
     return agb * tree_params.carbon
 
