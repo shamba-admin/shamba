@@ -12,7 +12,7 @@ from marshmallow import Schema, fields, post_load, ValidationError
 from . import configuration
 from .common import csv_handler
 from .common_schema import OutputSchema as ClimateDataOutputSchema
-from .tree_growth import TreeGrowthSchema, derivative_functions
+from .tree_growth import TreeGrowthSchema, fitting_functions, derivative_functions
 from .tree_params import TreeParamsSchema
 from .common.validations import validate_between_0_and_1
 import model.common.constants as CONSTANTS
@@ -152,7 +152,7 @@ def create(
     mortality_fraction = pool_params["mortality_fraction"]
     thinning = np.zeros(no_of_years + 1) if thinning is None else thinning
     mortality = np.zeros(no_of_years + 1) if mortality is None else mortality
-    initial_biomass = tree_growth.fit_data[0]
+    initial_biomass = fitting_functions[tree_growth.best](1, *tree_growth.fit_params)
 
     output, woody_biomass, balance = get_inputs(
         tree_params=tree_params,
