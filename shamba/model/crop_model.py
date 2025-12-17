@@ -82,7 +82,7 @@ def get_inputs(crop_params, no_of_years, crop_yield, left_in_field):
     """
 
     # residues
-    residue = crop_yield * crop_params.slope + crop_params.intercept
+    residue = crop_yield * crop_params.slope + np.where(crop_yield > 0, crop_params.intercept, 0)
     residue *= np.ones(no_of_years)  # convert to array
     residue_AG = residue * left_in_field
     residue_BG = crop_yield + residue
