@@ -71,8 +71,8 @@ def hyperbolic_function_inverse(fit_params, agb):
     else:
         a = fit_params[0]
         b = fit_params[1]
-        if agb > a:
-            x = a
+        if agb >= a:
+            x = float('inf')  # No solution exists, return infinity
         else:
             x = (math.log(a) - math.log(a - agb)) / b
     return x
@@ -101,11 +101,16 @@ def logistic_function_inverse(fit_params, agb):
         a = fit_params[0]
         b = fit_params[1]
         c = fit_params[2]
-        if agb > a:  # should tend towards a
-            x = a
+        
+        # Handle boundary cases
+        if agb >= a:
+            x = float('inf')  # Approaches infinity as agb approaches a
+        elif agb <= 0:
+            x = float('-inf')  # Approaches -infinity as agb approaches 0
         else:
+            # Valid range: 0 < agb < a
             x = c + (math.log(agb) - math.log(a - agb)) / b
-
+    
     return x
 
 
@@ -455,7 +460,7 @@ def save(tree_growth, file="tree_growth.csv"):
             tree_growth.all_fit_data["log"],
         )
     )
-    cols = ["data", "exp", "hyp", "lin", "log"]
+    cols = ["data", "exp", "hyp", "lin", "log", "best=" + tree_growth.best]
     csv_handler.print_csv(fit_file, data, col_names=cols)
 
     # fit parameters
@@ -651,10 +656,10 @@ def fit(
         - mse: Dict with mean-square error for each fit
     """
     curve_configs = {
-        "exp": {"init": [20], "num_params": 1},
-        "hyp": {"init": [200, 0.1], "num_params": 2},
-        "lin": {"init": [1], "num_params": 1},
-        "log": {"init": [100, 0, 0], "num_params": 3},
+        "exp": {"init": [20], "num_params": 1, "bounds": ([0.001], [1000])},
+        "hyp": {"init": [1000, 0.05], "num_params": 2, "bounds": ([0.001, 0.001], [10000, 10])},
+        "lin": {"init": [1], "num_params": 1, "bounds": ([0.001], [1000])},
+        "log": {"init": [100, 0, 0], "num_params": 3, "bounds": ([0.001, -100, -100], [10000, 100, 100])},
     }
 
     data, params, mse = {}, {}, {}
@@ -662,8 +667,15 @@ def fit(
     for curve, config in curve_configs.items():
         try:
             fit_params = optimize.curve_fit(
-                fitting_functions[curve], age, biomass, config["init"]
+                fitting_functions[curve], 
+                age, 
+                biomass, 
+                p0=config["init"],
+                bounds=config["bounds"],
+                maxfev=50000,
+                full_output=False
             )
+            
             params[curve] = fit_params[0]
             data[curve] = fitting_functions[curve](age, *params[curve])
             mse[curve] = mse_fn(biomass, data[curve])
