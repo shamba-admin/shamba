@@ -214,9 +214,15 @@ def get_properties_from_soilgrids_api(
 def get_soc_and_clay(
     api_response: List[Tuple[str, float]],
 ) -> Optional[Tuple[float, float]]:
-    return next((value for name, value in api_response if name == "soc"), 0.0), next(
-        (value for name, value in api_response if name == "clay"), 0.0
-    )
+    soc_value = next((value for name, value in api_response if name == "soc"), None)
+    if soc_value is None:
+        raise ValueError(f"SOC (soil organic carbon) property not found in API soil data, please provide csv soil data")
+    
+    clay_value = next((value for name, value in api_response if name == "clay"), None)
+    if clay_value is None:
+        raise ValueError(f"Clay content property not found in API soil data, please provide csv soil data")
+    
+    return soc_value, clay_value
 
 
 def process_data(api_response: Dict[str, Any]) -> List[Tuple[str, float]]:
