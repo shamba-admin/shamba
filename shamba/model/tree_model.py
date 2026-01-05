@@ -152,8 +152,8 @@ def create(
     mortality_fraction = pool_params["mortality_fraction"]
     thinning = np.zeros(no_of_years + 1) if thinning is None else thinning
     mortality = np.zeros(no_of_years + 1) if mortality is None else mortality
-    # Set initial_biomass to biomass at age (x) = 1 year. The fitting functions expect the age followed by parameter values (* unpacks fit_params).
-    initial_biomass = fitting_functions[tree_growth.best](1, *tree_growth.fit_params)
+    # Set initial_WAGB_tree to biomass at age (x) = 1 year. The fitting functions expect the age followed by parameter values (* unpacks fit_params).
+    initial_WAGB_tree = max(fitting_functions[tree_growth.best](1, *tree_growth.fit_params), 0)
 
     output, stand_biomass, balance = get_inputs(
         tree_params=tree_params,
@@ -162,7 +162,7 @@ def create(
         turnover=turnover,
         thinning_fraction=thinning_fraction,
         mortality_fraction=mortality_fraction,
-        initial_WAGB_tree=initial_biomass,
+        initial_WAGB_tree=initial_WAGB_tree,
         year_planted=year_planted,
         initial_stand_dens=initial_stand_density,
         thinning=thinning,
@@ -312,7 +312,7 @@ def get_inputs(
     biomass_growth = np.zeros((no_of_years + 1, 5))
 
     # set stand_biomass[0] to initial (allocated appropriately)
-    tree_pools[year_planted] = initial_WAGB_tree * alloc # initial_biomass = initial woody AGB
+    tree_pools[year_planted] = initial_WAGB_tree * alloc # initial_WAGB_tree = initial woody AGB
     stand_biomass[year_planted] = tree_pools[year_planted] * stand_density[year_planted] * (1 - input_params["live"][year_planted])
     for s in inputs:
         flux[s][year_planted] = (
@@ -346,10 +346,10 @@ def get_inputs(
 
         stand_biomass[i][WOODY_AGB_POOLS] = stand_biomass[i - 1][WOODY_AGB_POOLS]
         stand_biomass[i][WOODY_AGB_POOLS] += biomass_growth[i][WOODY_AGB_POOLS]
-        stand_biomass[i][WOODY_AGB_POOLS] -= sum(flux.values())[i][WOODY_AGB_POOLS] # this applies mortality, turnover and thinning to woody biomass
-        stand_biomass_total = sum(stand_biomass[i][WOODY_AGB_POOLS])
-        # dependent pools are then based on the net woody biomass, so mortality and thinning of whole trees is already accounted for, but pool-specific turnover is not:
-        stand_biomass[i][DEPENDENT_POOLS] = stand_biomass_total*alloc[DEPENDENT_POOLS]*(1-input_params["live"][i][DEPENDENT_POOLS])
+        WAGB_biomass_total = sum(stand_biomass[i][WOODY_AGB_POOLS])
+        stand_biomass[i][DEPENDENT_POOLS] = WAGB_biomass_total*alloc[DEPENDENT_POOLS]
+        stand_biomass[i] -= sum(flux.values())[i]# this applies mortality, turnover and thinning
+
 
         stand_density[i] = stand_density[i - 1]
         stand_density[i] *= 1 - (input_params["dead"][i] + input_params["thinning"][i])
@@ -357,7 +357,7 @@ def get_inputs(
             print("SD [i] is less than 1, end of this tree cohort...")
             break
         tree_pools[i][WOODY_AGB_POOLS] = stand_biomass[i][WOODY_AGB_POOLS] / stand_density[i]
-        tree_pools[i][DEPENDENT_POOLS] = stand_biomass_total*alloc[DEPENDENT_POOLS] / stand_density[i]
+        tree_pools[i][DEPENDENT_POOLS] = WAGB_biomass_total*alloc[DEPENDENT_POOLS] / stand_density[i]
 
         # Balance stuff
 
