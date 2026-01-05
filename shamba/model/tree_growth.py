@@ -27,7 +27,7 @@ def hyperbolic_function(x, a, b):  # Eq. 6.3, SHAMBA model description
     return a * (1 - np.exp(-b * x))
 
 
-def exponential_function(x, a):  # Eq. 6.2, SHAMBA model description
+def exponential_1param_function(x, a):  # Eq. 6.2, SHAMBA model description
     return (1 + a) ** x - 1
 
 
@@ -38,32 +38,56 @@ def linear_function(x, a):  # Eq. 6.1, SHAMBA model description
 def logistic_function(x, a, b, c):  # Eq. 6.4, SHAMBA model description
     return a / (1 + np.exp(-b * (x - c)))
 
+def exponential_2param_function(x, a, b): # Eq. 6.x, SHAMBA model description
+    return b * (1 + a) ** x
 
 fitting_functions = {
-    "exp": exponential_function,
+    "exp1": exponential_1param_function,
+    "exp2": exponential_2param_function,
     "hyp": hyperbolic_function,
     "lin": linear_function,
     "log": logistic_function,
 }
 
 
-def exponential_function_inverse(fit_params, agb):
+def exponential_1param_function_inverse(fit_params, agb):
     if math.fabs(agb) < 0.00000001:
         x = 0
     else:
         a = fit_params[0]
+        if agb <= -1:
+            raise ValueError(f"Invalid agb for exponential inverse: agb={agb}")
         x = math.log(agb + 1) / math.log(a + 1)
     return x
 
 
-def exponential_function_derivative(
+def exponential_1param_function_derivative(
     fit_params, agb
 ):  # Eq. 7.2, SHAMBA model description
     a = fit_params[0]
-    x = exponential_function_inverse(fit_params, agb)
+    x = exponential_1param_function_inverse(fit_params, agb)
     dagb_dx = ((1 + a) ** x) * (np.log(1 + a))
     return dagb_dx
 
+def exponential_2param_function_inverse(fit_params, agb):
+    if math.fabs(agb) < 0.00000001:
+        x = 0
+    else:
+        a = fit_params[0]
+        b = fit_params[1]
+        if agb <= 0 or b <= 0:
+            raise ValueError(f"Invalid arguments for exponential inverse: agb={agb}, b={b}")
+        x = math.log(agb / b)/ math.log(a + 1)
+    return x
+
+def exponential_2param_function_derivative(
+        fit_params, agb
+        ): # Eq. 7.x, SHAMBA model description
+    a = fit_params[0]
+    b = fit_params[1]
+    x = exponential_2param_function_inverse(fit_params, agb)
+    dabg_dx = (b * (1 + a) ** x) * (np.log(1 + a))
+    return dabg_dx
 
 def hyperbolic_function_inverse(fit_params, agb):
     if math.fabs(agb) < 0.00000001:
@@ -72,7 +96,7 @@ def hyperbolic_function_inverse(fit_params, agb):
         a = fit_params[0]
         b = fit_params[1]
         if agb >= a:
-            x = float('inf')  # No solution exists, return infinity
+            raise ValueError(f"No solution exists for hyperbolic inverse: agb ({agb}) >= a ({a})")
         else:
             x = (math.log(a) - math.log(a - agb)) / b
     return x
@@ -104,9 +128,9 @@ def logistic_function_inverse(fit_params, agb):
         
         # Handle boundary cases
         if agb >= a:
-            x = float('inf')  # Approaches infinity as agb approaches a
+            raise ValueError(f"No solution exists for logistic inverse: agb ({agb}) >= a ({a})")
         elif agb <= 0:
-            x = float('-inf')  # Approaches -infinity as agb approaches 0
+            raise ValueError(f"No solution exists for logistic inverse: agb ({agb}) <= 0)")
         else:
             # Valid range: 0 < agb < a
             x = c + (math.log(agb) - math.log(a - agb)) / b
@@ -126,7 +150,8 @@ def logistic_function_derivative(fit_params, agb):  # Eq. 7.4, SHAMBA model desc
 
 
 derivative_functions = {
-    "exp": exponential_function_derivative,
+    "exp1": exponential_1param_function_derivative,
+    "exp2": exponential_2param_function_derivative,
     "hyp": hyperbolic_function_derivative,
     "lin": linear_function_derivative,
     "log": logistic_function_derivative,
@@ -134,14 +159,16 @@ derivative_functions = {
 
 
 class FitData(Schema):
-    exp = fields.List(fields.Float(allow_nan=True), required=True)
+    exp1 = fields.List(fields.Float(allow_nan=True), required=True)
+    exp2 = fields.List(fields.Float(allow_nan=True), required=True)
     hyp = fields.List(fields.Float(allow_nan=True), required=True)
     lin = fields.List(fields.Float(allow_nan=True), required=True)
     log = fields.List(fields.Float(allow_nan=True), required=True)
 
 
 class FitMSEData(Schema):
-    exp = fields.Float(allow_nan=True)
+    exp1 = fields.Float(allow_nan=True)
+    exp2 = fields.Float(allow_nan=True)
     hyp = fields.Float(allow_nan=True)
     lin = fields.Float(allow_nan=True)
     log = fields.Float(allow_nan=True)
@@ -158,7 +185,7 @@ class TreeGrowth:
     all_fit_params      dict holding fitting params for all four fits
     all_mse             dict holding MSE for all four fits
     allometric_key      string with allometric key
-    best                string with best fit ('exp, 'log', 'lin, or 'hyp')
+    best                string with best fit ('exp1', 'exp2', 'log', 'lin, or 'hyp')
     biomass             vector with biomass data for each year
     fit_data            dict holding fit diameter data in cm for all four fits
     fit_mse             dict holding MSE for all four fits
@@ -386,16 +413,17 @@ def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):
 
     if fit:
         table_data = [
-            [f"{data:.2f}", f"{exp:.2f}", f"{hyp:.2f}", f"{lin:.2f}", f"{log:.2f}"]
-            for data, exp, hyp, lin, log in zip(
+            [f"{data:.2f}", f"{exp1:.2f}", f"{exp2:.2f}", f"{hyp:.2f}", f"{lin:.2f}", f"{log:.2f}"]
+            for data, exp1, exp2, hyp, lin, log in zip(
                 tree_growth.biomass,
-                tree_growth.all_fit_data["exp"],
+                tree_growth.all_fit_data["exp1"],
+                tree_growth.all_fit_data["exp2"],
                 tree_growth.all_fit_data["hyp"],
                 tree_growth.all_fit_data["lin"],
                 tree_growth.all_fit_data["log"],
             )
         ]
-        headers = ["Data", "Exp.", "Hyp.", "Lin.", "Log."]
+        headers = ["Data", "Exp1.", "Exp2." "Hyp.", "Lin.", "Log."]
 
         print()  # Newline
         print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
@@ -404,14 +432,16 @@ def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):
         table_data = [
             [
                 "MSE",
-                f"{tree_growth.all_mse['exp']:.2f}",
+                f"{tree_growth.all_mse['exp1']:.2f}",
+                f"{tree_growth.all_mse['exp2']:.2f}",
                 f"{tree_growth.all_mse['hyp']:.2f}",
                 f"{tree_growth.all_mse['lin']:.2f}",
                 f"{tree_growth.all_mse['log']:.2f}",
             ],
             [
                 "a",
-                f"{tree_growth.all_fit_params['exp'][0]:.2f}",
+                f"{tree_growth.all_fit_params['exp1'][0]:.2f}",
+                f"{tree_growth.all_fit_params['exp2'][0]:.2f}",
                 f"{tree_growth.all_fit_params['hyp'][0]:.2f}",
                 f"{tree_growth.all_fit_params['lin'][0]:.2f}",
                 f"{tree_growth.all_fit_params['log'][0]:.2f}",
@@ -419,13 +449,14 @@ def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):
             [
                 "b",
                 "",
+                f"{tree_growth.all_fit_params['exp2'][1]:.2f}",
                 f"{tree_growth.all_fit_params['hyp'][1]:.2f}",
                 "",
                 f"{tree_growth.all_fit_params['log'][1]:.2f}",
             ],
             ["c", "", "", "", f"{tree_growth.all_fit_params['log'][2]:.2f}"],
         ]
-        headers = ["", "Exp.", "Hyp.", "Lin.", "Log."]
+        headers = ["", "Exp1.", "Exp2", "Hyp.", "Lin.", "Log."]
 
         print()  # Newline
         print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
@@ -454,13 +485,14 @@ def save(tree_growth, file="tree_growth.csv"):
     data = np.column_stack(
         (
             tree_growth.biomass,
-            tree_growth.all_fit_data["exp"],
+            tree_growth.all_fit_data["exp1"],
+            tree_growth.all_fit_data["exp2"],
             tree_growth.all_fit_data["hyp"],
             tree_growth.all_fit_data["lin"],
             tree_growth.all_fit_data["log"],
         )
     )
-    cols = ["data", "exp", "hyp", "lin", "log", "best=" + tree_growth.best]
+    cols = ["data", "exp1", "exp2", "hyp", "lin", "log", "best=" + tree_growth.best]
     csv_handler.print_csv(fit_file, data, col_names=cols)
 
     # fit parameters
@@ -469,7 +501,7 @@ def save(tree_growth, file="tree_growth.csv"):
     row2 = []
     row3 = []
     row4 = []
-    for s in ["exp", "hyp", "lin", "log"]:
+    for s in ["exp1", "exp2", "hyp", "lin", "log"]:
         row1.append(tree_growth.all_mse[s])
         row2.append(tree_growth.all_fit_params[s][0])
         try:
@@ -482,7 +514,7 @@ def save(tree_growth, file="tree_growth.csv"):
             row4.append("")
 
     data = [row1, row2, row3, row4]
-    cols = ["exp", "hyp", "lin", "log"]
+    cols = ["exp1", "exp2", "hyp", "lin", "log"]
     csv_handler.print_csv(param_file, data, col_names=cols)
 
 
@@ -656,7 +688,8 @@ def fit(
         - mse: Dict with mean-square error for each fit
     """
     curve_configs = {
-        "exp": {"init": [20], "num_params": 1, "bounds": ([0.001], [1000])},
+        "exp1": {"init": [20], "num_params": 1, "bounds": ([0.001], [1000])},
+        "exp2": {"init": [0.05, 0.05], "num_params":2, "bounds": ([0.001, 0.001], [10, 1000])},
         "hyp": {"init": [1000, 0.05], "num_params": 2, "bounds": ([0.001, 0.001], [10000, 10])},
         "lin": {"init": [1], "num_params": 1, "bounds": ([0.001], [1000])},
         "log": {"init": [100, 0, 0], "num_params": 3, "bounds": ([0.001, -100, -100], [10000, 100, 100])},
