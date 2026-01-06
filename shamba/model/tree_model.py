@@ -76,7 +76,15 @@ class TreeModelSchema(Schema):
     tree_params = fields.Nested(TreeParamsSchema, required=True)
     tree_growth = fields.Nested(TreeGrowthSchema, required=True)
     alloc = fields.List(fields.Float, required=True)
-    turnover = fields.List(fields.Float, required=True)
+    turnover = fields.List(
+        fields.Float,
+        required=True,
+        validate=lambda value: (
+            ValidationError(validate_between_0_and_1(value))
+            if validate_between_0_and_1(value)
+            else None
+        ),
+    )
     thinning_fraction = fields.List(
         fields.Float,
         required=True,
