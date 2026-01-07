@@ -66,7 +66,7 @@ def exponential_1param_function_derivative(
 ):  # Eq. 7.2, SHAMBA model description
     a = fit_params[0]
     x = exponential_1param_function_inverse(fit_params, agb)
-    dagb_dx = ((1 + a) ** x) * (np.log(1 + a))
+    dagb_dx = ((1 + a) ** x) * (math.log(1 + a))
     return dagb_dx
 
 def exponential_2param_function_inverse(fit_params, agb):
@@ -86,7 +86,7 @@ def exponential_2param_function_derivative(
     a = fit_params[0]
     b = fit_params[1]
     x = exponential_2param_function_inverse(fit_params, agb)
-    dabg_dx = (b * (1 + a) ** x) * (np.log(1 + a))
+    dabg_dx = (b * (1 + a) ** x) * (math.log(1 + a))
     return dabg_dx
 
 def hyperbolic_function_inverse(fit_params, agb):
