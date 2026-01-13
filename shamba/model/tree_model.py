@@ -79,47 +79,31 @@ class TreeModelSchema(Schema):
     turnover = fields.List(
         fields.Float,
         required=True,
-        validate=lambda value: (
-            ValidationError(validate_between_0_and_1(value))
-            if validate_between_0_and_1(value)
-            else None
-        ),
+        validate=validate_between_0_and_1,
     )
+
     thinning_fraction = fields.List(
         fields.Float,
         required=True,
-        validate=lambda value: (
-            ValidationError(validate_between_0_and_1(value))
-            if validate_between_0_and_1(value)
-            else None
-        ),
+        validate=validate_between_0_and_1,
     )
+
     mortality_fraction = fields.List(
         fields.Float,
         required=True,
-        validate=lambda value: (
-            ValidationError(validate_between_0_and_1(value))
-            if validate_between_0_and_1(value)
-            else None
-        ),
+        validate=validate_between_0_and_1,
     )
+
     thinning = fields.List(
         fields.Float,
         required=True,
-        validate=lambda value: (
-            ValidationError(validate_between_0_and_1(value))
-            if validate_between_0_and_1(value)
-            else None
-        ),
+        validate=validate_between_0_and_1,
     )
+
     mortality = fields.List(
         fields.Float,
         required=True,
-        validate=lambda value: (
-            ValidationError(validate_between_0_and_1(value))
-            if validate_between_0_and_1(value)
-            else None
-        ),
+        validate=validate_between_0_and_1,
     )
     output = fields.Nested(ClimateDataOutputSchema, required=True)
     stand_biomass = fields.List(fields.List(fields.Float), required=True)

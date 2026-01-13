@@ -14,6 +14,7 @@ import importlib
 import matplotlib.pyplot as plt
 import numpy as np
 from marshmallow import Schema, fields, post_load
+from .common.validations import validate_positive_or_zero_numerical_list
 from scipy import optimize
 from tabulate import tabulate
 import model.tree_params as TreeParams
@@ -221,7 +222,10 @@ class TreeGrowth:
 
 
 class TreeGrowthSchema(Schema):
-    age = fields.List(fields.Float(), required=True)
+    age = fields.List(
+        fields.Float,
+        required=True,
+        validate=validate_positive_or_zero_numerical_list,)
     all_fit_data = fields.Nested(FitData, required=True)
     all_fit_params = fields.Nested(FitData, required=True)
     all_mse = fields.Nested(FitMSEData, required=True)
@@ -231,7 +235,10 @@ class TreeGrowthSchema(Schema):
     fit_data = fields.List(fields.Float(), required=True)
     fit_mse = fields.Float(allow_nan=True)
     fit_params = fields.List(fields.Float(), required=True)
-    tree_diameter = fields.List(fields.Float(), required=True)
+    tree_diameter = fields.List(
+        fields.Float,
+        required=True,
+        validate=validate_positive_or_zero_numerical_list,)
 
     @post_load
     def build(self, data, **kwargs):
