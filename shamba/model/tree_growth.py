@@ -39,7 +39,7 @@ def linear_function(x, a):  # Eq. 6.1, SHAMBA model description
 def logistic_function(x, a, b, c):  # Eq. 6.4, SHAMBA model description
     return a / (1 + np.exp(-b * (x - c)))
 
-def exponential_2param_function(x, a, b): # Eq. 6.x, SHAMBA model description
+def exponential_2param_function(x, a, b): # Eq. 6.5, SHAMBA model description NOTE: 1+a used in exponential functions with a constrained as > 0 to generate growth
     return b * (1 + a) ** x
 
 fitting_functions = {
@@ -57,7 +57,7 @@ def exponential_1param_function_inverse(fit_params, agb):
     else:
         a = fit_params[0]
         if agb <= -1:
-            raise ValueError(f"Invalid agb for exponential inverse: agb={agb}")
+            raise ValueError(f"Invalid agb for exponential inverse: agb={agb}") # This is handled in the above line for when abs(agb) < 0.00000001, but this edge handling is left in for completeness.
         x = math.log(agb + 1) / math.log(a + 1)
     return x
 
@@ -77,13 +77,13 @@ def exponential_2param_function_inverse(fit_params, agb):
         a = fit_params[0]
         b = fit_params[1]
         if agb <= 0 or b <= 0:
-            raise ValueError(f"Invalid arguments for exponential inverse: agb={agb}, b={b}")
+            raise ValueError(f"Invalid arguments for exponential inverse: agb={agb}, b={b}") # The agb condition is handled in the above line for when abs(agb) < 0.00000001, but this edge handling is left in for completeness.
         x = math.log(agb / b)/ math.log(a + 1)
     return x
 
 def exponential_2param_function_derivative(
         fit_params, agb
-        ): # Eq. 7.x, SHAMBA model description
+        ): # Eq. 7.5, SHAMBA model description
     a = fit_params[0]
     b = fit_params[1]
     x = exponential_2param_function_inverse(fit_params, agb)
@@ -131,7 +131,7 @@ def logistic_function_inverse(fit_params, agb):
         if agb >= a:
             raise ValueError(f"No solution exists for logistic inverse: agb ({agb}) >= a ({a})")
         elif agb <= 0:
-            raise ValueError(f"No solution exists for logistic inverse: agb ({agb}) <= 0)")
+            raise ValueError(f"No solution exists for logistic inverse: agb ({agb}) <= 0)") # This is handled in the above line for when abs(agb) < 0.00000001, but this edge handling is left in for completeness.
         else:
             # Valid range: 0 < agb < a
             x = c + (math.log(agb) - math.log(a - agb)) / b
@@ -695,11 +695,11 @@ def fit(
         - mse: Dict with mean-square error for each fit
     """
     curve_configs = {
-        "exp1": {"init": [20], "num_params": 1, "bounds": ([0.001], [1000])},
-        "exp2": {"init": [0.05, 0.05], "num_params":2, "bounds": ([0.001, 0.001], [10, 1000])},
-        "hyp": {"init": [1000, 0.05], "num_params": 2, "bounds": ([0.001, 0.001], [10000, 10])},
-        "lin": {"init": [1], "num_params": 1, "bounds": ([0.001], [1000])},
-        "log": {"init": [100, 0, 0], "num_params": 3, "bounds": ([0.001, -100, -100], [10000, 100, 100])},
+        "exp1": {"init": [1], "num_params": 1, "bounds": ([0.0001], [10])},
+        "exp2": {"init": [0.05, 0.05], "num_params":2, "bounds": ([0.0001, 0.0001], [10, 1000])},
+        "hyp": {"init": [1000, 0.05], "num_params": 2, "bounds": ([0.0001, 0.0001], [100000, 10])},
+        "lin": {"init": [1], "num_params": 1, "bounds": ([0.0001], [1000])},
+        "log": {"init": [100, 0, 0], "num_params": 3, "bounds": ([0.0001, -100, -100], [100000, 100, 100])},
     }
 
     data, params, mse = {}, {}, {}
