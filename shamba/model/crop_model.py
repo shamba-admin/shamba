@@ -95,7 +95,7 @@ def get_inputs(crop_params, no_of_years, crop_yield, left_in_field):
         "carbon": residue_AG * crop_params.carbon_above,
         "nitrogen": residue_AG * crop_params.nitrogen_above,
         "DMon": residue_AG,
-        "DMoff": residue_AG * (1 - left_in_field),
+        "DMoff": residue * (1 - left_in_field),
     }
     output["below"] = {
         "carbon": residue_BG * crop_params.carbon_below,
