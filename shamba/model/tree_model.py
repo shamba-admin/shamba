@@ -348,8 +348,7 @@ def get_inputs(
         if stand_density[i] < 1:
             print("SD [i] is less than 1, end of this tree cohort...")
             break
-        tree_pools[i][WOODY_AGB_POOLS] = stand_biomass[i][WOODY_AGB_POOLS] / stand_density[i]
-        tree_pools[i][DEPENDENT_POOLS] = WAGB_biomass_total*alloc[DEPENDENT_POOLS] / stand_density[i]
+        tree_pools[i] = stand_biomass[i] / stand_density[i]
 
         # Balance stuff
 
