@@ -7,7 +7,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
-from marshmallow import Schema, fields, post_load, ValidationError
+from marshmallow import Schema, fields, post_load
 
 from . import configuration
 from .common import csv_handler
@@ -237,6 +237,21 @@ def from_defaults(
         mortality=mortality,
     )
 
+def calculate_fluxes(flux, pools, input_params, year_index):
+    """Compute dead/thinning/live biomass fluxes for the given year.
+        Ensures that total fluxes cannot be more than 1 x pool size."""
+    remaining_biomass = np.array(pools, copy = True)
+    
+    flux["thinning"][year_index] = remaining_biomass * input_params["thinning"][year_index]
+    remaining_biomass -= flux["thinning"][year_index]
+
+    flux["dead"][year_index] = remaining_biomass * input_params["dead"][year_index]
+    remaining_biomass -= flux["dead"][year_index]
+
+    flux["live"][year_index] = remaining_biomass * input_params["live"][year_index]
+    
+    return flux
+
 
 def get_inputs(
     thinning,
@@ -305,11 +320,14 @@ def get_inputs(
 
     # set stand_biomass[0] to initial (allocated appropriately)
     tree_pools[year_planted] = initial_WAGB_tree * alloc # initial_WAGB_tree = initial woody AGB
-    stand_biomass[year_planted] = tree_pools[year_planted] * stand_density[year_planted] * (1 - input_params["live"][year_planted])
-    for s in inputs:
-        flux[s][year_planted] = (
-            stand_biomass[year_planted] * input_params[s][year_planted]
-        )
+    stand_biomass[year_planted] = tree_pools[year_planted] * stand_density[year_planted]
+    
+    flux = calculate_fluxes(
+        flux=flux,
+        pools=stand_biomass[year_planted],
+        input_params=input_params,
+        year_index=year_planted
+    )
 
     in_ = np.zeros(no_of_years + 1)
     acc = np.zeros(no_of_years + 1)
@@ -327,8 +345,15 @@ def get_inputs(
         t_NPP[i] = derivative_functions[tree_growth.best](tree_growth.fit_params, wagb_tree)
         biomass_growth[i][WOODY_AGB_POOLS] = t_NPP[i] * alloc[WOODY_AGB_POOLS] * stand_density[i - 1]
 
+        flux = calculate_fluxes(
+            flux=flux,
+            pools=tree_pools[i - 1] * stand_density[i - 1],
+            input_params=input_params,
+            year_index=i
+        )
+
+
         for s in inputs:
-            flux[s][i] = input_params[s][i] * tree_pools[i - 1] * stand_density[i - 1]
             inputs[s][i] = retained_fraction[s] * flux[s][i]
             exports[s][i] = (1 - retained_fraction[s]) * flux[s][i]
 
@@ -338,9 +363,10 @@ def get_inputs(
 
         stand_biomass[i][WOODY_AGB_POOLS] = stand_biomass[i - 1][WOODY_AGB_POOLS]
         stand_biomass[i][WOODY_AGB_POOLS] += biomass_growth[i][WOODY_AGB_POOLS]
+        stand_biomass[i][WOODY_AGB_POOLS] -= sum(flux.values())[i][WOODY_AGB_POOLS] # this applies mortality, turnover and thinning
         WAGB_biomass_total = sum(stand_biomass[i][WOODY_AGB_POOLS])
         stand_biomass[i][DEPENDENT_POOLS] = WAGB_biomass_total*alloc[DEPENDENT_POOLS]
-        stand_biomass[i] -= sum(flux.values())[i]# this applies mortality, turnover and thinning
+        biomass_growth[i][DEPENDENT_POOLS] = stand_biomass[i][DEPENDENT_POOLS] - stand_biomass[i-1][DEPENDENT_POOLS] + sum(flux.values())[i][DEPENDENT_POOLS]
 
 
         stand_density[i] = stand_density[i - 1]
