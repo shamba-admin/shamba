@@ -17,6 +17,7 @@ def test_tree_model():
     csv_input_data = csv_handler.get_csv_input_data(0, file_path)
     N_YEARS = int(csv_input_data["yrs_proj"])
     N_COHORTS = 3
+    allometric_keys = ["chave dry","chave dry", "chave dry", "chave dry"]
 
     base_fire_interval = int(csv_input_data["fire_int_base"])
     if base_fire_interval == 0:
@@ -47,7 +48,7 @@ def test_tree_model():
         csv_input_data,
         "species_base",
         tree_par_base,
-        allometric_key="chave dry",
+        allometric_key=allometric_keys[0],
     )
 
     thinning_fraction_left_base = np.array(
@@ -88,7 +89,7 @@ def test_tree_model():
         csv_input_data, N_COHORTS
     )
     tree_growths = TreeGrowth.create_tree_growths(
-        csv_input_data, tree_params, "chave dry", N_COHORTS
+        csv_input_data, tree_params, allometric_keys, N_COHORTS
     )
     thinning_project = np.zeros(N_YEARS + 1)
     thinning_project[int(csv_input_data["thin_proj_yr1"])] = float(
