@@ -370,7 +370,8 @@ def get_inputs(
 
 
         stand_density[i] = stand_density[i - 1]
-        stand_density[i] *= 1 - (input_params["dead"][i] + input_params["thinning"][i])
+        stand_density[i] *= 1 - (input_params["thinning"][i])
+        stand_density[i] *= 1 - (input_params["dead"][i])
         if stand_density[i] < 1:
             print("SD [i] is less than 1, end of this tree cohort...")
             break
