@@ -511,6 +511,8 @@ def get_crop_emissions(
     crop_project: List[CropModel.CropModelData],
     fire_base: np.ndarray,
     fire_project: np.ndarray,
+    burn_off_base: bool,
+    burn_off_project: bool,
     gwp: dict,
 ) -> GetEmissionsWithDifferenceReturnData:
     crop_base_emissions = Emit.create(
@@ -518,12 +520,14 @@ def get_crop_emissions(
         crop=crop_base,
         fire=fire_base,
         gwp=gwp,
+        burn_off=burn_off_base,
     )
     crop_project_emissions = Emit.create(
         no_of_years=no_of_years,
         crop=crop_project,
         fire=fire_project,
         gwp=gwp,
+        burn_off=burn_off_project,
     )
     crop_difference = crop_project_emissions - crop_base_emissions
 
@@ -737,6 +741,8 @@ def handle_intervention(
         crop_project=crop_model_data.crop_project,
         fire_base=fire_model_data.fire_base,
         fire_project=fire_model_data.fire_project,
+        burn_off_base=fire_model_data.fire_off_base,
+        burn_off_project=fire_model_data.fire_off_proj,
         gwp=gwp,
     )
 
