@@ -345,14 +345,25 @@ def get_inputs(
         t_NPP[i] = derivative_functions[tree_growth.best](tree_growth.fit_params, wagb_tree)
         biomass_growth[i][WOODY_AGB_POOLS] = t_NPP[i] * alloc[WOODY_AGB_POOLS] * stand_density[i - 1]
 
+        stand_biomass[i][WOODY_AGB_POOLS] = stand_biomass[i - 1][WOODY_AGB_POOLS]
+        stand_biomass[i][WOODY_AGB_POOLS] += biomass_growth[i][WOODY_AGB_POOLS]
+        
+        WAGB_biomass_total = sum(stand_biomass[i][WOODY_AGB_POOLS])
+        stand_biomass[i][DEPENDENT_POOLS] = WAGB_biomass_total*alloc[DEPENDENT_POOLS]
+
+
+        
+
         flux = calculate_fluxes(
             flux=flux,
-            pools=tree_pools[i - 1] * stand_density[i - 1],
+            pools=stand_biomass[i],
             input_params=input_params,
             year_index=i
         )
 
-
+        stand_biomass[i] -= sum(flux.values())[i] # this applies mortality, turnover and thinning
+        biomass_growth[i][DEPENDENT_POOLS] = stand_biomass[i][DEPENDENT_POOLS] - stand_biomass[i-1][DEPENDENT_POOLS] + sum(flux.values())[i][DEPENDENT_POOLS]
+        
         for s in inputs:
             inputs[s][i] = retained_fraction[s] * flux[s][i]
             exports[s][i] = (1 - retained_fraction[s]) * flux[s][i]
@@ -360,14 +371,6 @@ def get_inputs(
         # Totals (in t C / ha)
         input_carbon[i] = sum(inputs.values())[i]
         export_carbon[i] = sum(exports.values())[i]
-
-        stand_biomass[i][WOODY_AGB_POOLS] = stand_biomass[i - 1][WOODY_AGB_POOLS]
-        stand_biomass[i][WOODY_AGB_POOLS] += biomass_growth[i][WOODY_AGB_POOLS]
-        stand_biomass[i][WOODY_AGB_POOLS] -= sum(flux.values())[i][WOODY_AGB_POOLS] # this applies mortality, turnover and thinning
-        WAGB_biomass_total = sum(stand_biomass[i][WOODY_AGB_POOLS])
-        stand_biomass[i][DEPENDENT_POOLS] = WAGB_biomass_total*alloc[DEPENDENT_POOLS]
-        biomass_growth[i][DEPENDENT_POOLS] = stand_biomass[i][DEPENDENT_POOLS] - stand_biomass[i-1][DEPENDENT_POOLS] + sum(flux.values())[i][DEPENDENT_POOLS]
-
 
         stand_density[i] = stand_density[i - 1]
         stand_density[i] *= 1 - (input_params["thinning"][i])
@@ -414,6 +417,7 @@ def get_inputs(
         "DMon": 0.001 * CONSTANTS.TREE_ROOT_IN_TOP_30 * (DM[:, 3] + DM[:, 4]),
         "DMoff": np.zeros(len(C[:, 0])),
     }
+    print(stand_density)
     return output, stand_biomass, mass_balance
 
 
