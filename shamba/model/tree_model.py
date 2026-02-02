@@ -417,7 +417,7 @@ def get_inputs(
         "DMon": 0.001 * CONSTANTS.TREE_ROOT_IN_TOP_30 * (DM[:, 3] + DM[:, 4]),
         "DMoff": np.zeros(len(C[:, 0])),
     }
-    print(stand_density)
+    
     return output, stand_biomass, mass_balance
 
 
