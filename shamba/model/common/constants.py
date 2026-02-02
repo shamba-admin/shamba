@@ -102,6 +102,7 @@ ALLOMETRY_KEY = "allometry"
 # ----------
 SPECIES_BASE_KEY = "species_base"
 SPECIES_1_KEY = "species1"
+BASE_PLANT_YEAR_KEY = "base_plant_yr"
 # ----------
 THINNING_BASE_YEAR_1_KEY = "thin_base_yr1"
 THINNING_BASE_YEAR_2_KEY = "thin_base_yr2"

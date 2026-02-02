@@ -184,7 +184,7 @@ def get_tree_model_data(
     tree_base = TreeModel.from_defaults(
         tree_params=tree_params_1,
         tree_growth=growth_base,
-        year_planted=0,
+        year_planted=get_int(CONSTANTS.BASE_PLANT_YEAR_KEY, intervention_input),
         stand_density=get_int(CONSTANTS.BASE_PLANT_DENSITY_KEY, intervention_input),
         thinning=thinning_base,
         thinning_fraction=thinning_fraction_left_base,
