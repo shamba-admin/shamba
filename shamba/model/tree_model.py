@@ -321,13 +321,6 @@ def get_inputs(
     # set stand_biomass[0] to initial (allocated appropriately)
     tree_pools[year_planted] = initial_WAGB_tree * alloc # initial_WAGB_tree = initial woody AGB
     stand_biomass[year_planted] = tree_pools[year_planted] * stand_density[year_planted]
-    
-    flux = calculate_fluxes(
-        flux=flux,
-        pools=stand_biomass[year_planted],
-        input_params=input_params,
-        year_index=year_planted
-    )
 
     in_ = np.zeros(no_of_years + 1)
     acc = np.zeros(no_of_years + 1)
@@ -350,9 +343,6 @@ def get_inputs(
         
         WAGB_biomass_total = sum(stand_biomass[i][WOODY_AGB_POOLS])
         stand_biomass[i][DEPENDENT_POOLS] = WAGB_biomass_total*alloc[DEPENDENT_POOLS]
-
-
-        
 
         flux = calculate_fluxes(
             flux=flux,
