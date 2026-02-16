@@ -17,11 +17,15 @@ def get_soil_model(soil_model_type: SoilModelType):
             raise ValueError(f"Unknown soil model type: {soil_model_type}")
 
 
+# NB the format of the following print_to_stdout currently matches requirements for RothC,
+# which is the only soil C model currently available.
 def print_to_stdout(inverse_soil_model: InverseSoilModelData):
     pools = ["DPM", "RPM", "BIO", "HUM"]
     print("\nINVERSE CALCULATIONS")
     print("====================\n")
-    print("Equilibrium C -", inverse_soil_model.eq_C.sum() + inverse_soil_model.soil.iom)
+    print(
+        "Equilibrium C -", inverse_soil_model.eq_C.sum() + inverse_soil_model.soil.iom
+    )
     for i in range(len(inverse_soil_model.eq_C)):
         print("   ", pools[i], "- - - -", inverse_soil_model.eq_C[i])
     print("    IOM", "- - - -", inverse_soil_model.soil.iom)

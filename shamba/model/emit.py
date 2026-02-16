@@ -10,22 +10,17 @@ import numpy as np
 
 from model import configuration
 from model.common import csv_handler
-
-# Fire vector - can redefine from elsewhere if there are fires
-# fire = np.zeros(configuration.N_YEARS)
-
-# Emissions stuff
-# From table 2.5 IPCC 2006 GHG Inventory
-ef = {"crop_N2O": 0.07, "crop_CH4": 2.7, "tree_N2O": 0.2, "tree_CH4": 6.8}
-
-# Global warming potential from IPCC 2006 GHG Inventory
-gwp = {"N2O": 310, "CH4": 21}
-
-# combustion factor from IPCC AFOLU table
-cf = {"crop": 0.8, "tree": 0.74}
-
-# To convert from [t C/ha] to [t CO2/ha]
-conversion_factor = 44.0 / 12
+from model.common.constants import (
+    ef_burn,
+    ef_N_inputs,
+    GWP_list,
+    DEFAULT_GWP,
+    combustion_factor,
+    C_to_CO2_conversion_factor,
+    N_to_N2O_conversion_factor,
+    volatile_frac_organic_fertiliser,
+    volatile_frac_synthetic_fertiliser,
+)
 
 
 # Reduce crop/tree/litter outputs due to fire
@@ -66,12 +61,13 @@ def reduce_from_fire(
             for li in litter:
                 tree_inputs[s] += li.output[s][output_type]
         except KeyError:
-            log.exception("Invalude output_type parameter in reduce_from_fire")
+            log.exception("Invalid output_type parameter in reduce_from_fire")
 
     # Reduce above-ground inputs from fire
     for i in np.where(fire == 1):
-        crop_inputs["above"][i] *= 1 - cf["crop"]
-        tree_inputs["above"][i] *= 1 - cf["crop"]
+        crop_inputs["above"][i] *= 1 - combustion_factor["crop"]
+        tree_inputs["above"][i] *= 1 - combustion_factor["tree"]
+        # tree_inputs used combustion_factor["crop"] - BUG
 
     # Return sum of above and below
     reduced = (sum(crop_inputs.values()), sum(tree_inputs.values()))
@@ -99,6 +95,7 @@ def create(
     fert=[],
     fire=[],
     burn_off=True,
+    gwp=GWP_list[DEFAULT_GWP],
 ) -> np.ndarray:
     """Create an array.
     Optional arguments gives flexibility about what/what kind of
@@ -122,19 +119,32 @@ def create(
     # += the sources (nitrogen, fire, fertiliser)
     # and -= the sinks (biomass, soil)
 
-    emissions_soc = -soc_sink(forward_soil_model, no_of_years) if forward_soil_model is not None else 0
+    emissions_soc = (
+        -soc_sink(forward_soil_model, no_of_years)
+        if forward_soil_model is not None
+        else 0
+    )
     emissions_tree = -tree_sink(tree, no_of_years) if tree else 0
     emissions_nitro = (
-        nitrogen_emit(no_of_years=no_of_years, crop=crop, tree=tree, litter=litter)
+        nitrogen_emit(
+            no_of_years=no_of_years,
+            crop=crop,
+            tree=tree,
+            litter=litter,
+            fire=fire,
+            gwp=gwp,
+        )
         if (crop or tree or litter)
         else 0
     )
     emissions_fire = (
-        fire_emit(crop, tree, litter, fire, no_of_years, burn_off=burn_off)
+        fire_emit(crop, tree, litter, fire, no_of_years, gwp=gwp, burn_off=burn_off)
         if (crop or tree or litter)
         else 0
     )
-    emissions_fert = fert_emit(litter, fert, no_of_years) if (fert or litter) else 0
+    emissions_fert = (
+        fert_emit(litter, fert, no_of_years, gwp) if (fert or litter) else 0
+    )
 
     total_emissions = (
         emissions
@@ -156,15 +166,30 @@ def plot(emissions, legend_string, save_name=None):
         legend_string: string to put in legend
 
     """
-    fig = plt.figure()
-    fig.suptitle("Emissions")
-    ax = fig.add_subplot(1, 1, 1)
-    ax.set_title("Emissions vs time")
-    ax.set_xlabel("Time (years)")
-    ax.set_ylabel("Emissions (t CO2 ha^-1)")
+    # Check if there's already an active figure with the title "Emissions"
+    # If so, reuse it for multiple plots on the same figure
+    current_fig = plt.gcf()
+    if (
+        plt.get_fignums()
+        and hasattr(current_fig, "_suptitle")
+        and current_fig._suptitle is not None
+        and "Emissions" in str(current_fig._suptitle)
+    ):
+        # Reuse existing emissions figure
+        ax = current_fig.gca()
+        ax.plot(emissions, label=legend_string)
+        ax.legend(loc="best")
+    else:
+        # Create new figure
+        fig = plt.figure()
+        fig.suptitle("Emissions")
+        ax = fig.add_subplot(1, 1, 1)
+        ax.set_title("Emissions vs time")
+        ax.set_xlabel("Time (years)")
+        ax.set_ylabel("Emissions (t CO2 ha^-1)")
 
-    ax.plot(emissions, label=legend_string)
-    ax.legend(loc="best")
+        ax.plot(emissions, label=legend_string)
+        ax.legend(loc="best")
 
     if save_name is not None:
         plt.savefig(os.path.join(configuration.OUTPUT_DIR, save_name))
@@ -213,7 +238,7 @@ def soc_sink(forward_soil_model, no_of_years):
     delta_SOC = np.zeros(no_of_years)
 
     for i in range(no_of_years):
-        delta_SOC[i] = (soc[i + 1] - soc[i]) * conversion_factor
+        delta_SOC[i] = (soc[i + 1] - soc[i]) * C_to_CO2_conversion_factor
 
     return delta_SOC
 
@@ -228,38 +253,37 @@ def tree_sink(tree, no_of_years):
 
     biomass = np.zeros(no_of_years + 1)
     for t in tree:
-        biomass += np.sum(t.woody_biomass, axis=1)
+        biomass += np.sum(t.stand_biomass, axis=1)
 
     delta = np.zeros(no_of_years)
     for i in range(no_of_years):
-        delta[i] = (biomass[i + 1] - biomass[i]) * conversion_factor
+        delta[i] = (biomass[i + 1] - biomass[i]) * C_to_CO2_conversion_factor
 
     return delta
 
 
-def nitrogen_emit(no_of_years, crop, tree, litter):
+def nitrogen_emit(
+    no_of_years, crop, tree, litter, fire, gwp
+):  # fire was not included here - BUG
     """
     Calculate and return emissions due to nitrogen.
-    crop_out == list of output dicts from crops
-    tree_out == list of output dicts from trees
-    litter_out == list of output dicts from litter
+    toEmit_crop = crop N inputs after fire
+    toEmit_tree = tree N inputs after fire
     """
     toEmit_crop, toEmit_tree = reduce_from_fire(
         no_of_years=no_of_years,
         crop=crop,
         tree=tree,
         litter=litter,
+        fire=fire,
         output_type="nitrogen",
     )
     to_emit = toEmit_crop + toEmit_tree
 
-    ef = 0.01  # emission factor [kbN20-N/kg N]
-    mw = 44.0 / 28  # for N2O-N to N2O
-
-    return to_emit * ef * mw * gwp["N2O"]
+    return to_emit * ef_N_inputs * N_to_N2O_conversion_factor * gwp["N2O"]
 
 
-def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
+def fire_emit(crop, tree, litter, fire, no_of_years, gwp, burn_off=True):
     """Calculate and return emissions due to fire.
     crop: list of crop models
     tree: list of tree models
@@ -281,12 +305,12 @@ def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
     for li in litter:
         tree_inputs_on += li.output["above"]["DMon"]
 
-    crop_temperature = ef["crop_CH4"] * gwp["CH4"] + ef["crop_N2O"] * gwp["N2O"]
-    tree_temperature = ef["tree_CH4"] * gwp["CH4"] + ef["tree_N2O"] * gwp["N2O"]
+    crop_CO2_ef = ef_burn["crop_CH4"] * gwp["CH4"] + ef_burn["crop_N2O"] * gwp["N2O"]
+    tree_CO2_ef = ef_burn["tree_CH4"] * gwp["CH4"] + ef_burn["tree_N2O"] * gwp["N2O"]
 
     # Burned when fire == 1
-    emit += crop_inputs_on * fire * cf["crop"] * crop_temperature
-    emit += tree_inputs_on * fire * cf["tree"] * tree_temperature
+    emit += crop_inputs_on * fire * combustion_factor["crop"] * crop_CO2_ef
+    emit += tree_inputs_on * fire * combustion_factor["tree"] * tree_CO2_ef
 
     # whether to burn off-farm crop residues every year
     # construct a list if only one bool is given
@@ -303,38 +327,32 @@ def fire_emit(crop, tree, litter, fire, no_of_years, burn_off=True):
             if burn_off_lst[i]:
                 crop_inputs_off += c.output["above"]["DMoff"]
 
-        emit += crop_inputs_off * cf["crop"] * crop_temperature
+        emit += crop_inputs_off * combustion_factor["crop"] * crop_CO2_ef
 
     emit *= 0.001  # convert to tonnes
     return emit
 
 
-def fert_emit(litter, fert, no_of_years):
+def fert_emit(litter, fert, no_of_years, gwp):
     """Calculate and return emissions due to fertiliser use.
     Args:
         litter: list-like of litter model objects
         fert: list-like of fertiliser model object
                 (special case of litter model object)
     """
-    # Some parameters. See methodology
-    ef = 0.01
-    mw_ratio = 44.0 / 28
-    gwp = 310.0
-    volatile_frac_synth = 0.1
-    volatile_frac_org = 0.2
 
     # calculate emissions
     emit = np.zeros(no_of_years)
-    # still need to add fertiliser ************
+
     for li in litter:
         emit += np.array(li.output["above"]["nitrogen"], dtype=float) * (
-            1 - volatile_frac_org
+            1 - volatile_frac_organic_fertiliser
         )
     for f in fert:
         emit += np.array(f.output["above"]["nitrogen"], dtype=float) * (
-            1 - volatile_frac_synth
+            1 - volatile_frac_synthetic_fertiliser
         )
 
-    emit *= ef * mw_ratio * gwp
+    emit *= ef_N_inputs * N_to_N2O_conversion_factor * gwp["N2O"]
 
     return emit

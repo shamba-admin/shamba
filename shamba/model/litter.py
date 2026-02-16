@@ -1,10 +1,12 @@
 import logging as log
 
 import numpy as np
-from marshmallow import Schema, fields, post_load
+from marshmallow import Schema, fields, post_load, ValidationError
 
 from .common import csv_handler
 from .common_schema import OutputSchema as LitterDataOutputSchema
+import model.common.constants as CONSTANTS
+from .common.validations import validate_between_0_and_1
 
 
 class LitterModelData:
@@ -50,6 +52,12 @@ def create(
     Returns:
         LitterModelData: object containing litter parameters
     """
+    errors = validate_between_0_and_1(
+        [litter_params["carbon"], litter_params["nitrogen"]]
+    )
+
+    if errors:
+        raise ValidationError(errors)
 
     carbon = litter_params["carbon"]
     nitrogen = litter_params["nitrogen"]
@@ -111,7 +119,10 @@ def from_defaults(litter_frequency, litter_quantity, no_of_years, litter_vector=
     """
 
     # Carbon and nitrogen content of litter input defaults
-    params = {"carbon": 0.5, "nitrogen": 0.018}
+    params = {
+        "carbon": CONSTANTS.ORGANIC_INPUT_C,
+        "nitrogen": CONSTANTS.ORGANIC_INPUT_N,
+    }
     return create(
         litter_params=params,
         litter_frequency=litter_frequency,

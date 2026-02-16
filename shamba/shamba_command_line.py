@@ -5,8 +5,8 @@ This software is provided under the University of Edinburgh's Open Technology By
 downloading this software you accept the University of Edinburgh's Open Technology
 terms and conditions.
 
-These can be viewed here: http://www.research-innovation.ed.ac.uk/Opportunities/small-
-holder-agriculture-mitigation-benefit-assessment-tool
+These can be viewed here:
+https://files.edinburgh-innovations.ed.ac.uk/ei-web/production/images/Small-holder-agriculture-mitigation-benefit-assessment-tool_Terms-and-Conditions-EI.pdf
 """
 
 import csv
@@ -296,24 +296,50 @@ def setup_project_directory(project_name, arguments):
 
     # List of files to copy
     files_to_copy = [
-        "crop_ipcc_baseline.csv",
-        "crop_ipcc.csv",
-        "climate.csv",
-        "soil-info.csv",
+        "crop_params.csv",
+        "tree_params.csv",
+        "litter_params",
+        "biomass_pool_params.csv",
         arguments["input-file-name"],
     ]
 
+    optional_files_to_copy = [
+        "climate.csv",
+        "soil-info.csv",
+        "project_allometry.py"
+    ]
+
     # Source directory (using an existing project as an example)
-    source_dir = os.path.join(
-        configuration.PROJECT_DIR, "examples", "UG_TS_2016", "input"
-    )
+    source_dir = os.path.join(configuration.PROJECT_DIR, arguments["source-directory"])
 
     # Copy each file
     for file in files_to_copy:
         source_file = os.path.join(source_dir, file)
         dest_file = os.path.join(input_dir, file)
-        shutil.copy2(source_file, dest_file)
-        print(f"Copied {file} to {dest_file}")
+        if os.path.exists(source_file):
+            try: 
+                shutil.copy2(source_file, dest_file)
+                print(f"Copied {file} to {dest_file}")
+            except shutil.SameFileError:
+                print(f"File {file} already in source directory")
+                pass
+        else:
+            ValueError(f"File {file} does not exist. Please add it to the source directory.")
+
+    # Copy each available optional file
+    for file in optional_files_to_copy:
+        source_file = os.path.join(source_dir, file)
+        dest_file = os.path.join(input_dir, file)
+        if os.path.exists(source_file):
+            try: 
+                shutil.copy2(source_file, dest_file)
+                print(f"Copied {file} to {dest_file}")
+            except shutil.SameFileError:
+                print(f"File {file} already in source directory")
+                pass
+        else:
+            print(f"Warning: Source file {source_file} does not exist, skipping...")
+
 
     print(f"Project setup complete. New project directory: {project_dir}")
     return project_dir
@@ -359,14 +385,21 @@ def main(n, arguments):
     # ----------
     # YEARS = length of tree data. ACCT = years in accounting period
     N_YEARS = int(csv_input_data["yrs_proj"])
-    N_TREES = 3  # TODO: parameteris this
+    N_COHORTS = arguments["n-cohorts"]
 
-    allometric_key = arguments["allometric-key"]
+    allometric_keys = arguments["allometric-keys"]
+
+    gwp = arguments["gwp"]
+
+    TREE_SPP = TreeParams.load_tree_species_data()
+    CROP_SPP = CropParams.load_crop_species_data()
 
     intervention_emissions = handle_intervention(
         intervention_input=csv_input_data,
-        allometry=allometric_key,
-        no_of_trees=N_TREES,
+        n_cohorts=N_COHORTS,
+        plot_index=n,
+        allometry=allometric_keys,
+        gwp=gwp,
         use_api=arguments["use-api"],
         create_forward_soil_model=ForwardSoilModel.create,
         create_inverse_soil_model=InverseSoilModel.create,
@@ -375,7 +408,7 @@ def main(n, arguments):
     # ----------
     # Printing to stdout
     # ----------
-    if (arguments["print-to-stdout"]):
+    if arguments["print-to-stdout"]:
         # Print some stuff?
         Climate.print_to_stdout(intervention_emissions.climate)
         SoilParams.print_to_stdout(intervention_emissions.soil)
@@ -385,13 +418,17 @@ def main(n, arguments):
         print_tree_projects(intervention_emissions.tree_projects)
 
         ForwardSoilModule.print_to_stdout(
-            intervention_emissions.for_roth, no_of_years=N_YEARS, label="initialisation"
+            intervention_emissions.for_soil, no_of_years=N_YEARS, label="initialisation"
         )
         ForwardSoilModule.print_to_stdout(
-            intervention_emissions.base_forward_soil_data, no_of_years=N_YEARS, label="baseline"
+            intervention_emissions.base_forward_soil_data,
+            no_of_years=N_YEARS,
+            label="baseline",
         )
         ForwardSoilModule.print_to_stdout(
-            intervention_emissions.project_forward_soil_data, no_of_years=N_YEARS, label="project"
+            intervention_emissions.project_forward_soil_data,
+            no_of_years=N_YEARS,
+            label="project",
         )
         # =============================================================================
 
@@ -498,7 +535,7 @@ def main(n, arguments):
         ["Total Difference", f"{sum(emit_difference):.2f}", "t CO2 ha^-1"],
     ]
 
-    accounting_year = csv_input_data["yrs_acct"]
+    accounting_year = csv_input_data["yrs_proj"]
 
     summary_difference_title = (
         f"SUMMARY OF EMISSIONS for Year {accounting_year} (t CO2)"
@@ -545,11 +582,13 @@ def main(n, arguments):
         "crop_params",
     )
 
-    InverseSoilModule.save(intervention_emissions.inverse_soil_model, plot_name + "_invRoth.csv")
+    InverseSoilModule.save(
+        intervention_emissions.inverse_soil_model, plot_name + "_invSoil.csv"
+    )
     ForwardSoilModule.save(
-        forward_soil_model=intervention_emissions.for_roth,
+        forward_soil_model=intervention_emissions.for_soil,
         no_of_years=N_YEARS,
-        file=plot_name + "_forRoth.csv",
+        file=plot_name + "_forSoil.csv",
     )
 
     ForwardSoilModule.save(
@@ -601,13 +640,15 @@ def main(n, arguments):
     plt.close()
 
     ForwardSoilModule.plot(
-        intervention_emissions.for_roth,
+        intervention_emissions.for_soil,
         no_of_years=N_YEARS,
         legend_string="initialisation",
     )
 
     ForwardSoilModule.plot(
-        intervention_emissions.base_forward_soil_data, no_of_years=N_YEARS, legend_string="baseline"
+        intervention_emissions.base_forward_soil_data,
+        no_of_years=N_YEARS,
+        legend_string="baseline",
     )
 
     ForwardSoilModule.plot(
@@ -620,12 +661,6 @@ def main(n, arguments):
 
     Emit.plot(intervention_emissions.emit_base_emissions, legend_string="baseline")
     Emit.plot(intervention_emissions.emit_project_emissions, legend_string="project")
-
-    # TODO: what is this? How could `ax` be attached to Emission?
-    # Why is it done here instead of in the plot function?
-    # Commenting out for now
-    # emit.Emission.ax.plot(emit_difference, label="difference")
-    # emit.Emission.ax.legend(loc="best")
 
     plt.savefig(os.path.join(configuration.OUTPUT_DIR, plot_name + "_emissions.png"))
     plt.close()
@@ -649,6 +684,11 @@ def main(n, arguments):
 
 if __name__ == "__main__":
     number_of_rows = 1
+    # number_of_rows = number of plots
+    # NOTE: as of v1.2, this code is not fully set up to process multiple plots during the same run.
+    # This is on a list of intended updates for the future. To run multiple plots, please
+    # run the command line script with individual input files for each plot.
+
     # Get command line arguments
     arguments = io_handler.get_arguments_interactively()
 

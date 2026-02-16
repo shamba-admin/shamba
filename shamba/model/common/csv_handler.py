@@ -123,12 +123,14 @@ def read_csv(file_in, cols=None):
     # if full path not specified, search through the files in the
     # project data folder /input, then in the 'defaults' folder
     default_path = os.path.join(configuration.BASE_PATH, "default_input")
+    filename, extension = file_in.rsplit(".", maxsplit=1)
+    default_file_in = "_".join((filename, "defaults.csv"))
 
     if not os.path.isfile(file_in):
         if os.path.isfile(os.path.join(configuration.INPUT_DIR, file_in)):
             file_in = os.path.join(configuration.INPUT_DIR, file_in)
-        elif os.path.isfile(os.path.join(default_path, file_in)):
-            file_in = os.path.join(default_path, file_in)
+        elif os.path.isfile(os.path.join(default_path, default_file_in)):
+            file_in = os.path.join(default_path, default_file_in)
         else:
             # not in either folder, and not in full path
             raise FileOpenError(file_in)
@@ -144,8 +146,7 @@ def read_mixed_csv(file_in, cols=None, types=None):
     """Read data from a mixed csv (strings and numbers).
     Uses numpy.loadfromtxt
 
-    NOTE: when used to read HWSD stuff (probably the primary
-    use of this method), make sure to use usecols=(0,1,2,3..12)
+    NOTE: when used to read HWSD stuff, make sure to use usecols=(0,1,2,3..12)
     since genfromtxt seems to think there's 15 cols and gives an error
 
     Args:

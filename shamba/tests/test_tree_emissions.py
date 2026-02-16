@@ -11,12 +11,13 @@ import model.common.constants as CONSTANTS
 from model.common.calculate_emissions import get_int
 
 
-def test_crop_model():
+def test_tree_model():
     input_csv = "WL_input.csv"
     file_path = os.path.join(configuration.TESTS_DIR, "fixtures", input_csv)
     csv_input_data = csv_handler.get_csv_input_data(0, file_path)
     N_YEARS = int(csv_input_data["yrs_proj"])
-    N_TREES = 3
+    N_COHORTS = 3
+    allometric_keys = ["chave dry","chave dry", "chave dry", "chave dry"]
 
     base_fire_interval = int(csv_input_data["fire_int_base"])
     if base_fire_interval == 0:
@@ -47,7 +48,7 @@ def test_crop_model():
         csv_input_data,
         "species_base",
         tree_par_base,
-        allometric_key="chave dry",
+        allometric_key=allometric_keys[0],
     )
 
     thinning_fraction_left_base = np.array(
@@ -85,10 +86,10 @@ def test_crop_model():
     )
 
     tree_params = TreeParams.create_tree_params_from_species_index(
-        csv_input_data, N_TREES
+        csv_input_data, N_COHORTS
     )
     tree_growths = TreeGrowth.create_tree_growths(
-        csv_input_data, tree_params, "chave dry", N_TREES
+        csv_input_data, tree_params, allometric_keys, N_COHORTS
     )
     thinning_project = np.zeros(N_YEARS + 1)
     thinning_project[int(csv_input_data["thin_proj_yr1"])] = float(
@@ -132,16 +133,14 @@ def test_crop_model():
         mortality_project=mortality_project,
         mortality_fraction_left_project=mortality_fraction_left_project,
         no_of_years=N_YEARS,
-        tree_count=N_TREES,
+        cohort_count=N_COHORTS,
     )
 
     tree_base_emissions = Emit.create(
         no_of_years=N_YEARS, tree=[tree_base], fire=fire_base
     )
     tree_project_emissions = Emit.create(
-        no_of_years=N_YEARS,
-        tree=tree_projects,
-        fire=fire_project,
+        no_of_years=N_YEARS, tree=tree_projects, fire=fire_project
     )
 
     assert tree_base_emissions == pytest.approx(
@@ -252,55 +251,55 @@ def test_crop_model():
     # ]
     assert tree_project_emissions == pytest.approx(
         [
-            9.68321341,
-            -5.33471125,
-            -7.61997827,
-            -8.26879286,
-            -8.76470137,
-            -9.24307727,
-            -2.88050429,
-            -9.82439013,
-            -10.33345033,
-            -3.04849118,
-            -10.8965641,
-            -11.4139924,
-            -11.91714808,
-            -12.42199109,
-            4.23892357,
-            -12.47790126,
-            -12.97325802,
-            -13.41600515,
-            -13.84215294,
-            -14.24706328,
-            -14.6257898,
-            -14.97313659,
-            -15.28372233,
-            -15.55205877,
-            -15.77264376,
-            -15.9400684,
-            -16.04913647,
-            -16.09499369,
-            -16.0732632,
-            -15.98018294,
-            -15.81273961,
-            -15.56879362,
-            -15.24718868,
-            -14.84784039,
-            192.54377283,
-            -7.76207223,
-            -7.77994862,
-            -7.33589417,
-            -6.85662561,
-            -6.34683447,
-            -5.81125122,
-            -5.25487732,
-            -4.68289849,
-            -4.1005718,
-            -3.51311021,
-            -2.92557321,
-            -2.34276815,
-            -1.76916563,
-            -1.20883107,
-            -0.66537371,
+            12.1599456976788,
+            -7.50238985404195,
+            -9.58953684176646,
+            -10.4164187774572,
+            -11.0411991636846,
+            -11.6453044720283,
+            -3.72621209233248,
+            -12.3928638938827,
+            -13.0238239876011,
+            -3.9502141079221,
+            -13.7493599855503,
+            -14.3889701033415,
+            -15.0238334626809,
+            -15.6605447298084,
+            5.1194539223566,
+            -15.759457707889,
+            -16.3539326941207,
+            -16.9105812057319,
+            -17.4456881396209,
+            -17.9533241406462,
+            -18.4271787387666,
+            -18.8606318674408,
+            -19.2468379912016,
+            -19.5788284291075,
+            -19.8496324767653,
+            -20.0524163015792,
+            -20.1806373705324,
+            -20.2282109609961,
+            -20.1896840878653,
+            -20.0604110277417,
+            -19.836723633349,
+            -19.5160889189168,
+            -19.0972460669195,
+            -18.5803151490687,
+            239.997894452949,
+            -9.98573383205759,
+            -9.69596457385424,
+            -9.12966000417625,
+            -8.52004137232248,
+            -7.87298802082278,
+            -7.19459887719391,
+            -6.49128775108337,
+            -5.76967323311371,
+            -5.03643340919496,
+            -4.29815881140552,
+            -3.56121436654718,
+            -2.831616197297,
+            -2.1149272759067,
+            -1.4161745213178,
+            -0.739788592225434,
         ]
     )

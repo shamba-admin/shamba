@@ -9,10 +9,12 @@ import logging as log
 import math
 import os
 from typing import Dict, Tuple
+import importlib
 
 import matplotlib.pyplot as plt
 import numpy as np
 from marshmallow import Schema, fields, post_load
+from .common.validations import validate_positive_or_zero_numerical_list
 from scipy import optimize
 from tabulate import tabulate
 import model.tree_params as TreeParams
@@ -22,92 +24,152 @@ from .common import csv_handler
 
 
 # Functions to fit to
-def hyperbolic_function(x, a, b):
+def hyperbolic_function(x, a, b):  # Eq. 6.3, SHAMBA model description
     return a * (1 - np.exp(-b * x))
 
 
-def exponential_function(x, a):
+def exponential_1param_function(x, a):  # Eq. 6.2, SHAMBA model description
     return (1 + a) ** x - 1
 
 
-def linear_function(x, a):
+def linear_function(x, a):  # Eq. 6.1, SHAMBA model description
     return a * x
 
 
-def logarithmic_function(x, a, b, c):
+def logistic_function(x, a, b, c):  # Eq. 6.4, SHAMBA model description
     return a / (1 + np.exp(-b * (x - c)))
 
+def exponential_2param_function(x, a, b): # Eq. 6.5, SHAMBA model description NOTE: 1+a used in exponential functions with a constrained as > 0 to generate growth
+    return b * (1 + a) ** x
 
 fitting_functions = {
-    "exp": exponential_function,
+    "exp1": exponential_1param_function,
+    "exp2": exponential_2param_function,
     "hyp": hyperbolic_function,
     "lin": linear_function,
-    "log": logarithmic_function,
+    "log": logistic_function,
 }
 
 
-def exponential_function_derivative(fit_params, x):
+def exponential_1param_function_inverse(fit_params, agb):
+    if math.fabs(agb) < 0.00000001:
+        x = 0
+    else:
+        a = fit_params[0]
+        if agb <= -1:
+            raise ValueError(f"Invalid agb for exponential inverse: agb={agb}") # This is handled in the above line for when abs(agb) < 0.00000001, but this edge handling is left in for completeness.
+        x = math.log(agb + 1) / math.log(a + 1)
+    return x
+
+
+def exponential_1param_function_derivative(
+    fit_params, agb
+):  # Eq. 7.2, SHAMBA model description
     a = fit_params[0]
-    return ((1 + a) ** x) * (np.log(1 + a))
+    x = exponential_1param_function_inverse(fit_params, agb)
+    dagb_dx = ((1 + a) ** x) * (math.log(1 + a))
+    return dagb_dx
 
+def exponential_2param_function_inverse(fit_params, agb):
+    if math.fabs(agb) < 0.00000001:
+        x = 0
+    else:
+        a = fit_params[0]
+        b = fit_params[1]
+        if agb <= 0 or b <= 0:
+            raise ValueError(f"Invalid arguments for exponential inverse: agb={agb}, b={b}") # The agb condition is handled in the above line for when abs(agb) < 0.00000001, but this edge handling is left in for completeness.
+        x = math.log(agb / b)/ math.log(a + 1)
+    return x
 
-def hyperbolic_function_derivative(fit_params, x):
+def exponential_2param_function_derivative(
+        fit_params, agb
+        ): # Eq. 7.5, SHAMBA model description
     a = fit_params[0]
     b = fit_params[1]
-    return a * b * np.exp(-b * x)
+    x = exponential_2param_function_inverse(fit_params, agb)
+    dabg_dx = (b * (1 + a) ** x) * (math.log(1 + a))
+    return dabg_dx
+
+def hyperbolic_function_inverse(fit_params, agb):
+    if math.fabs(agb) < 0.00000001:
+        x = 0
+    else:
+        a = fit_params[0]
+        b = fit_params[1]
+        if agb >= a:
+            raise ValueError(f"No solution exists for hyperbolic inverse: agb ({agb}) >= a ({a})")
+        else:
+            x = (math.log(a) - math.log(a - agb)) / b
+    return x
 
 
-def linear_function_derivative(fit_params, lin_fn_inv, y):
-    # TODO: this isn't being used and it doesn't do any side effects
-    # x = lin_fn_inv(y)
-
+def hyperbolic_function_derivative(
+    fit_params, agb
+):  # Eq. 7.3, SHAMBA model description
     a = fit_params[0]
-    return a
+    b = fit_params[1]
+    x = hyperbolic_function_inverse(fit_params, agb)
+    dagb_dx = a * b * np.exp(-b * x)
+    return dagb_dx
 
 
-def logarithmic_function_inverse(fit_params, y):
-    if math.fabs(y) < 0.00000001:
+def linear_function_derivative(fit_params, agb):  # Eq. 7.1, SHAMBA model description
+    a = fit_params[0]
+    dagb_dx = a
+    return dagb_dx
+
+
+def logistic_function_inverse(fit_params, agb):
+    if math.fabs(agb) < 0.00000001:
         x = 0
     else:
         a = fit_params[0]
         b = fit_params[1]
         c = fit_params[2]
-        if y > a:  # should tend towards a
-            x = a
+        
+        # Handle boundary cases
+        if agb >= a:
+            raise ValueError(f"No solution exists for logistic inverse: agb ({agb}) >= a ({a})")
+        elif agb <= 0:
+            raise ValueError(f"No solution exists for logistic inverse: agb ({agb}) <= 0)") # This is handled in the above line for when abs(agb) < 0.00000001, but this edge handling is left in for completeness.
         else:
-            x = c + (math.log(y) - math.log(a - y)) / b
-
+            # Valid range: 0 < agb < a
+            x = c + (math.log(agb) - math.log(a - agb)) / b
+    
     return x
 
 
-def logarithmic_function_derivative(fit_params, y):
-    x = logarithmic_function_inverse(fit_params, y)
+def logistic_function_derivative(fit_params, agb):  # Eq. 7.4, SHAMBA model description
+    x = logistic_function_inverse(fit_params, agb)
 
     a = fit_params[0]
     b = fit_params[1]
     c = fit_params[2]
-    ret = (a * b * np.exp(-b * (x - c))) / ((np.exp(-b * (x - c)) + 1) ** 2)
+    dagb_dx = (a * b * np.exp(-b * (x - c))) / ((np.exp(-b * (x - c)) + 1) ** 2)
 
-    return ret
+    return dagb_dx
 
 
 derivative_functions = {
-    "exp": exponential_function_derivative,
+    "exp1": exponential_1param_function_derivative,
+    "exp2": exponential_2param_function_derivative,
     "hyp": hyperbolic_function_derivative,
     "lin": linear_function_derivative,
-    "log": logarithmic_function_derivative,
+    "log": logistic_function_derivative,
 }
 
 
 class FitData(Schema):
-    exp = fields.List(fields.Float(allow_nan=True), required=True)
+    exp1 = fields.List(fields.Float(allow_nan=True), required=True)
+    exp2 = fields.List(fields.Float(allow_nan=True), required=True)
     hyp = fields.List(fields.Float(allow_nan=True), required=True)
     lin = fields.List(fields.Float(allow_nan=True), required=True)
     log = fields.List(fields.Float(allow_nan=True), required=True)
 
 
 class FitMSEData(Schema):
-    exp = fields.Float(allow_nan=True)
+    exp1 = fields.Float(allow_nan=True)
+    exp2 = fields.Float(allow_nan=True)
     hyp = fields.Float(allow_nan=True)
     lin = fields.Float(allow_nan=True)
     log = fields.Float(allow_nan=True)
@@ -124,7 +186,7 @@ class TreeGrowth:
     all_fit_params      dict holding fitting params for all four fits
     all_mse             dict holding MSE for all four fits
     allometric_key      string with allometric key
-    best                string with best fit ('exp, 'log', 'lin, or 'hyp')
+    best                string with best fit ('exp1', 'exp2', 'log', 'lin, or 'hyp')
     biomass             vector with biomass data for each year
     fit_data            dict holding fit diameter data in cm for all four fits
     fit_mse             dict holding MSE for all four fits
@@ -160,7 +222,10 @@ class TreeGrowth:
 
 
 class TreeGrowthSchema(Schema):
-    age = fields.List(fields.Float(), required=True)
+    age = fields.List(
+        fields.Float,
+        required=True,
+        validate=validate_positive_or_zero_numerical_list,)
     all_fit_data = fields.Nested(FitData, required=True)
     all_fit_params = fields.Nested(FitData, required=True)
     all_mse = fields.Nested(FitMSEData, required=True)
@@ -170,7 +235,10 @@ class TreeGrowthSchema(Schema):
     fit_data = fields.List(fields.Float(), required=True)
     fit_mse = fields.Float(allow_nan=True)
     fit_params = fields.List(fields.Float(), required=True)
-    tree_diameter = fields.List(fields.Float(), required=True)
+    tree_diameter = fields.List(
+        fields.Float,
+        required=True,
+        validate=validate_positive_or_zero_numerical_list,)
 
     @post_load
     def build(self, data, **kwargs):
@@ -178,18 +246,26 @@ class TreeGrowthSchema(Schema):
 
 
 def get_biomass(tree_diameter, allometric_key, tree_params):
-    # TODO: double check! modified code
-    allometric_function = allometric[allometric_key]
-
-    return np.array(
-        [allometric_function(diameter, tree_params) for diameter in tree_diameter]
-    )
+    if allometric_key in allometric:
+        allometric_function = allometric[allometric_key]
+        return np.array(
+            [allometric_function(diameter, tree_params) for diameter in tree_diameter]
+        )
+    else: # user should have provided different allometry
+        try: 
+            project_allometry = importlib.import_module('project_allometry')
+            project_allometric = project_allometry.allometric
+            allometric_function = project_allometric[allometric_key]
+            return np.array([allometric_function(diameter, tree_params) for diameter in tree_diameter])
+        except ValueError:
+        # Handle case where project allometry is not found
+            raise ValueError(f"Allometric key {allometric_key} not found")
 
 
 def create(
     tree_params: List[TreeParams.TreeParamsData],
     growth_params: Dict[str, np.ndarray],
-    allom="chave dry",
+    allom="chave dry"
 ) -> TreeGrowth:
     """Create a TreeGrowth object from a tree parameters and a growth parameters
     dictionary.
@@ -344,16 +420,17 @@ def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):
 
     if fit:
         table_data = [
-            [f"{data:.2f}", f"{exp:.2f}", f"{hyp:.2f}", f"{lin:.2f}", f"{log:.2f}"]
-            for data, exp, hyp, lin, log in zip(
+            [f"{data:.2f}", f"{exp1:.2f}", f"{exp2:.2f}", f"{hyp:.2f}", f"{lin:.2f}", f"{log:.2f}"]
+            for data, exp1, exp2, hyp, lin, log in zip(
                 tree_growth.biomass,
-                tree_growth.all_fit_data["exp"],
+                tree_growth.all_fit_data["exp1"],
+                tree_growth.all_fit_data["exp2"],
                 tree_growth.all_fit_data["hyp"],
                 tree_growth.all_fit_data["lin"],
                 tree_growth.all_fit_data["log"],
             )
         ]
-        headers = ["Data", "Exp.", "Hyp.", "Lin.", "Log."]
+        headers = ["Data", "Exp1.", "Exp2." "Hyp.", "Lin.", "Log."]
 
         print()  # Newline
         print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
@@ -362,14 +439,16 @@ def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):
         table_data = [
             [
                 "MSE",
-                f"{tree_growth.all_mse['exp']:.2f}",
+                f"{tree_growth.all_mse['exp1']:.2f}",
+                f"{tree_growth.all_mse['exp2']:.2f}",
                 f"{tree_growth.all_mse['hyp']:.2f}",
                 f"{tree_growth.all_mse['lin']:.2f}",
                 f"{tree_growth.all_mse['log']:.2f}",
             ],
             [
                 "a",
-                f"{tree_growth.all_fit_params['exp'][0]:.2f}",
+                f"{tree_growth.all_fit_params['exp1'][0]:.2f}",
+                f"{tree_growth.all_fit_params['exp2'][0]:.2f}",
                 f"{tree_growth.all_fit_params['hyp'][0]:.2f}",
                 f"{tree_growth.all_fit_params['lin'][0]:.2f}",
                 f"{tree_growth.all_fit_params['log'][0]:.2f}",
@@ -377,13 +456,14 @@ def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):
             [
                 "b",
                 "",
+                f"{tree_growth.all_fit_params['exp2'][1]:.2f}",
                 f"{tree_growth.all_fit_params['hyp'][1]:.2f}",
                 "",
                 f"{tree_growth.all_fit_params['log'][1]:.2f}",
             ],
             ["c", "", "", "", f"{tree_growth.all_fit_params['log'][2]:.2f}"],
         ]
-        headers = ["", "Exp.", "Hyp.", "Lin.", "Log."]
+        headers = ["", "Exp1.", "Exp2", "Hyp.", "Lin.", "Log."]
 
         print()  # Newline
         print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
@@ -412,13 +492,14 @@ def save(tree_growth, file="tree_growth.csv"):
     data = np.column_stack(
         (
             tree_growth.biomass,
-            tree_growth.all_fit_data["exp"],
+            tree_growth.all_fit_data["exp1"],
+            tree_growth.all_fit_data["exp2"],
             tree_growth.all_fit_data["hyp"],
             tree_growth.all_fit_data["lin"],
             tree_growth.all_fit_data["log"],
         )
     )
-    cols = ["data", "exp", "hyp", "lin", "log"]
+    cols = ["data", "exp1", "exp2", "hyp", "lin", "log", "best=" + tree_growth.best]
     csv_handler.print_csv(fit_file, data, col_names=cols)
 
     # fit parameters
@@ -427,7 +508,7 @@ def save(tree_growth, file="tree_growth.csv"):
     row2 = []
     row3 = []
     row4 = []
-    for s in ["exp", "hyp", "lin", "log"]:
+    for s in ["exp1", "exp2", "hyp", "lin", "log"]:
         row1.append(tree_growth.all_mse[s])
         row2.append(tree_growth.all_fit_params[s][0])
         try:
@@ -440,7 +521,7 @@ def save(tree_growth, file="tree_growth.csv"):
             row4.append("")
 
     data = [row1, row2, row3, row4]
-    cols = ["exp", "hyp", "lin", "log"]
+    cols = ["exp1", "exp2", "hyp", "lin", "log"]
     csv_handler.print_csv(param_file, data, col_names=cols)
 
 
@@ -474,7 +555,7 @@ def calculate_above_ground_biomass(
             E.g., [2.601, -3.629] represents the equation:
             agb = exp(2.601 * log(diameter) - 3.629)
         diameter: Tree diameter in consistent units (e.g., meters)
-        wood_density: Wood density in kg/m^3 (optional, used in some allometric equations)
+        wood_density: Wood density in g/cm^3 (optional, used in some allometric equations)
 
     Returns:
         float: Above-ground biomass in kg. Returns 0 for non-positive diameters.
@@ -531,7 +612,7 @@ def chave_dry(dbh, tree_params):
 
     """
     agb = calculate_above_ground_biomass(
-        [-0.0281, 0.207, 1.784, -0.730], dbh, wood_density=tree_params.dens
+        [-0.0281, 0.207, 1.784, -0.730], dbh, wood_density=tree_params.wood_dens
     )
     return agb * tree_params.carbon
 
@@ -542,7 +623,7 @@ def chave_moist(dbh, tree_params):
 
     """
     agb = calculate_above_ground_biomass(
-        [-0.0281, 0.207, 2.148, -1.499], dbh, wood_density=tree_params.dens
+        [-0.0281, 0.207, 2.148, -1.562], dbh, wood_density=tree_params.wood_dens
     )
     return agb * tree_params.carbon
 
@@ -553,7 +634,7 @@ def chave_wet(dbh, tree_params):
 
     """
     agb = calculate_above_ground_biomass(
-        [-0.0281, 0.207, 1.98, -1.239], dbh, wood_density=tree_params.dens
+        [-0.0281, 0.207, 1.98, -1.302], dbh, wood_density=tree_params.wood_dens
     )
     return agb * tree_params.carbon
 
@@ -566,36 +647,34 @@ allometric = {
     "chave dry": chave_dry,
     "chave moist": chave_moist,
     "chave wet": chave_wet,
-    "calculate_above_ground_biomass": calculate_above_ground_biomass,
 }
 
 
 # Uses spp_prefix_map to get the correct prefix for the species-specific columns
 def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
-    default_prefix = "sp3_"
-
-    spp_prefix_map = {
-        1: "",
-        2: "sp2_",
-    }
+    spp_number = int(csv_input_data[spp_key])
+    if spp_number == 1:
+        prefix = ""
+    else:
+        prefix = f"sp{spp_number}_"
 
     return from_csv(
         tree_params=tree_params,
         allometric_key=allometric_key,
         csv_input_data=csv_input_data,
-        species_prefix=spp_prefix_map.get(int(csv_input_data[spp_key]), default_prefix),
+        species_prefix=prefix,
     )
 
 
-def create_tree_growths(csv_input_data, tree_params, allometric_key, tree_count):
+def create_tree_growths(csv_input_data, tree_params, allometric_keys, cohort_count):
     return [
         get_growth(
             csv_input_data,
             f"species{i + 1}",
             tree_params[i],
-            allometric_key=allometric_key,
+            allometric_key=allometric_keys[i+1], # baseline allometry is at index 0 in allometric_keys
         )
-        for i in range(tree_count)
+        for i in range(cohort_count)
     ]
 
 
@@ -616,10 +695,11 @@ def fit(
         - mse: Dict with mean-square error for each fit
     """
     curve_configs = {
-        "exp": {"init": [20], "num_params": 1},
-        "hyp": {"init": [200, 0.1], "num_params": 2},
-        "lin": {"init": [1], "num_params": 1},
-        "log": {"init": [100, 0, 0], "num_params": 3},
+        "exp1": {"init": [1], "num_params": 1, "bounds": ([0.0001], [10])},
+        "exp2": {"init": [0.05, 0.05], "num_params":2, "bounds": ([0.0001, 0.0001], [10, 1000])},
+        "hyp": {"init": [1000, 0.05], "num_params": 2, "bounds": ([0.0001, 0.0001], [100000, 10])},
+        "lin": {"init": [1], "num_params": 1, "bounds": ([0.0001], [1000])},
+        "log": {"init": [100, 0, 0], "num_params": 3, "bounds": ([0.0001, -100, -100], [100000, 100, 100])},
     }
 
     data, params, mse = {}, {}, {}
@@ -627,8 +707,15 @@ def fit(
     for curve, config in curve_configs.items():
         try:
             fit_params = optimize.curve_fit(
-                fitting_functions[curve], age, biomass, config["init"]
+                fitting_functions[curve], 
+                age, 
+                biomass, 
+                p0=config["init"],
+                bounds=config["bounds"],
+                maxfev=50000,
+                full_output=False
             )
+            
             params[curve] = fit_params[0]
             data[curve] = fitting_functions[curve](age, *params[curve])
             mse[curve] = mse_fn(biomass, data[curve])

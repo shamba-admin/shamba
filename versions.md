@@ -25,3 +25,42 @@ BUG FIXES:
 5. Fixed bug in tree_model_cl.py where it would not allow for baselines or scenarios with no trees
 
 6. fixed labelling on some output graphs and csv files
+
+
+## SHAMBA 1.2
+
+default parameter value updates, bug fixes and enhancements
+
+
+GENERAL IMPROVEMENTS:
+
+1. Python updated to V3.10
+2. Old non-functional GUI removed, proof of concept alternative added. This is not ready for use and is not reflected in v1.2 documentation.
+3. Old raster climate and soil data removed, in favour of API. This removed the need for GDAL.
+4. Improvements to naming for clarity, e.g. cohorts vs species vs trees, stand density vs wood density.
+5. Command line input is interactive
+6. Environment uses docker and poetry to minimise install complications for users
+7. Basic data validation added- initially for percentages
+8. Typechecking and data conversions using Marshmallow
+9. Added pytest for testing, plus a few basic tests
+10. Tidy up code, including changing camelCase to snake_case, additional comments for clarity
+11. Structure to allow choice of soil models added. This is not ready for use and is not reflected in v1.2 documentation.
+12. Remove limit of 3 cohorts of trees. Note that baseline scenarios are still only allowed one cohort.
+
+DATA & DEFAULT UPDATES:
+
+1. Climate data: was CRU-TS 3.10, now OpenMeteo API request for daily ERA5 data
+2. Soil data: was HWSD, now SoilGrids 2.0 via API
+3. Global Warming Potential values: were IPCC Second Assessment Report (1995), now IPCC Sixth Assessment Report (2021)
+4. Combustion factors, crop parameters, emission factors, volatilisation factors: were IPCC (2006), now	IPCC (2019)
+5. Crop C content: was literature (Johnson et al., 2006; Latshaw & Miller, 1924), now IPCC (2019)
+
+
+BUG FIXES:
+
+1. In tree_growth.py: tree growth derivative functions were inconsistent in the inputs they expected. This has been standardised to expect aboveground biomass.
+2. In tree_growth.py: Chave Dry allometric parameters included a typo, that has been fixed.
+3. In emit.py: tree inputs reduced from fire used crop combustion factor, now fixed to use the tree combustion factor.
+4. In emit.py: nitrogen_emit did not account for fire impacts on input amounts, this is now applies.
+5. In calculate_emissions.py: whether residues off-field are burned is now set by user in the input template.
+6. Some inconsistencies in how the input data questionnaire was set out have been updated.

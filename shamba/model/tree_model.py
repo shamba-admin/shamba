@@ -7,12 +7,12 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
-from marshmallow import Schema, fields, post_load, ValidationError
+from marshmallow import Schema, fields, post_load
 
 from . import configuration
 from .common import csv_handler
 from .common_schema import OutputSchema as ClimateDataOutputSchema
-from .tree_growth import TreeGrowthSchema, derivative_functions
+from .tree_growth import TreeGrowthSchema, fitting_functions, derivative_functions
 from .tree_params import TreeParamsSchema
 from .common.validations import validate_between_0_and_1
 import model.common.constants as CONSTANTS
@@ -31,7 +31,7 @@ class TreeModel:
 
     Instance variables
     ----------------
-    tree_params     TreeParams object with the params (dens, carbon, etc.)
+    tree_params     TreeParams object with the params (wood_dens, carbon, etc.)
     tree_growth     TreeGrowth object governing growth of trees
     alloc           vector with allocation for each year
     turnover        vector with turnover for each year
@@ -41,7 +41,7 @@ class TreeModel:
     mortality            vector with mortality regime for each year
     output          output to soil,fire in t C ha^-1
                     (dict with keys 'carbon,'nitrogen','DMon','DMoff')
-    woody_biomass   vector with yearly woody biomass pools
+    stand_biomass   vector with yearly woody biomass pools
     balance         MassBalanceData object with mass balance data
     """
 
@@ -56,7 +56,7 @@ class TreeModel:
         thinning,
         mortality,
         output,
-        woody_biomass,
+        stand_biomass,
         balance,
     ):
         self.tree_params = tree_params
@@ -68,7 +68,7 @@ class TreeModel:
         self.thinning = thinning
         self.mortality = mortality
         self.output = output
-        self.woody_biomass = np.array(woody_biomass)
+        self.stand_biomass = np.array(stand_biomass)
         self.balance = balance
 
 
@@ -76,45 +76,37 @@ class TreeModelSchema(Schema):
     tree_params = fields.Nested(TreeParamsSchema, required=True)
     tree_growth = fields.Nested(TreeGrowthSchema, required=True)
     alloc = fields.List(fields.Float, required=True)
-    turnover = fields.List(fields.Float, required=True)
+    turnover = fields.List(
+        fields.Float,
+        required=True,
+        validate=validate_between_0_and_1,
+    )
+
     thinning_fraction = fields.List(
         fields.Float,
         required=True,
-        validate=lambda value: (
-            ValidationError(validate_between_0_and_1(value))
-            if validate_between_0_and_1(value)
-            else None
-        ),
+        validate=validate_between_0_and_1,
     )
+
     mortality_fraction = fields.List(
         fields.Float,
         required=True,
-        validate=lambda value: (
-            ValidationError(validate_between_0_and_1(value))
-            if validate_between_0_and_1(value)
-            else None
-        ),
+        validate=validate_between_0_and_1,
     )
+
     thinning = fields.List(
         fields.Float,
         required=True,
-        validate=lambda value: (
-            ValidationError(validate_between_0_and_1(value))
-            if validate_between_0_and_1(value)
-            else None
-        ),
+        validate=validate_between_0_and_1,
     )
+
     mortality = fields.List(
         fields.Float,
         required=True,
-        validate=lambda value: (
-            ValidationError(validate_between_0_and_1(value))
-            if validate_between_0_and_1(value)
-            else None
-        ),
+        validate=validate_between_0_and_1,
     )
     output = fields.Nested(ClimateDataOutputSchema, required=True)
-    woody_biomass = fields.List(fields.List(fields.Float), required=True)
+    stand_biomass = fields.List(fields.List(fields.Float), required=True)
     balance = fields.Nested(MassBalanceData, required=True)
 
     @post_load
@@ -127,8 +119,8 @@ def create(
     tree_growth,
     pool_params,
     no_of_years,
+    initial_stand_density,
     year_planted=0,
-    initial_stand_density=0,  # Should initial_stand_density be 200?
     thinning=None,
     mortality=None,
 ) -> TreeModel:
@@ -152,16 +144,17 @@ def create(
     mortality_fraction = pool_params["mortality_fraction"]
     thinning = np.zeros(no_of_years + 1) if thinning is None else thinning
     mortality = np.zeros(no_of_years + 1) if mortality is None else mortality
-    initial_biomass = tree_growth.fit_data[0]
+    # Set initial_WAGB_tree to biomass at age (x) = 1 year. The fitting functions expect the age followed by parameter values (* unpacks fit_params).
+    initial_WAGB_tree = max(fitting_functions[tree_growth.best](1, *tree_growth.fit_params), 0)
 
-    output, woody_biomass, balance = get_inputs(
+    output, stand_biomass, balance = get_inputs(
         tree_params=tree_params,
         tree_growth=tree_growth,
         alloc=alloc,
         turnover=turnover,
         thinning_fraction=thinning_fraction,
         mortality_fraction=mortality_fraction,
-        initial_biomass=initial_biomass,
+        initial_WAGB_tree=initial_WAGB_tree,
         year_planted=year_planted,
         initial_stand_dens=initial_stand_density,
         thinning=thinning,
@@ -179,7 +172,7 @@ def create(
         "thinning": thinning,
         "mortality": mortality,
         "output": output,
-        "woody_biomass": woody_biomass,
+        "stand_biomass": stand_biomass,
         "balance": balance,
     }
 
@@ -196,8 +189,8 @@ def from_defaults(
     tree_params,
     tree_growth,
     no_of_years,
+    stand_density,
     year_planted=0,
-    stand_density=100,  # Should stand_density be 200?
     thinning=None,
     thinning_fraction=None,
     mortality=None,
@@ -208,7 +201,7 @@ def from_defaults(
 
     """
 
-    data = csv_handler.read_csv("biomass_pool_params.csv", cols=(3, 4, 5, 6))
+    data = csv_handler.read_csv("biomass_pool_params.csv", cols=(1, 2, 3, 4))
     turnover = data[:, 0]
     alloc = data[:, 1]
     temp_thinning_fraction = data[:, 2]
@@ -244,6 +237,21 @@ def from_defaults(
         mortality=mortality,
     )
 
+def calculate_fluxes(flux, pools, input_params, year_index):
+    """Compute dead/thinning/live biomass fluxes for the given year.
+        Ensures that total fluxes cannot be more than 1 x pool size."""
+    remaining_biomass = np.array(pools, copy = True)
+    
+    flux["thinning"][year_index] = remaining_biomass * input_params["thinning"][year_index]
+    remaining_biomass -= flux["thinning"][year_index]
+
+    flux["dead"][year_index] = remaining_biomass * input_params["dead"][year_index]
+    remaining_biomass -= flux["dead"][year_index]
+
+    flux["live"][year_index] = remaining_biomass * input_params["live"][year_index]
+    
+    return flux
+
 
 def get_inputs(
     thinning,
@@ -254,7 +262,7 @@ def get_inputs(
     alloc,
     tree_growth,
     tree_params,
-    initial_biomass,
+    initial_WAGB_tree,
     year_planted,
     initial_stand_dens,
     no_of_years,
@@ -267,15 +275,15 @@ def get_inputs(
     Returns:
         output: dict with soil,fire inputs due to this tree
                         (keys='carbon','nitrogen','DMon','DMoff')
-        woody_biomass: vector with yearly woody biomass pools
+        stand_biomass: vector with yearly woody biomass pools
 
     **NOTE** a lot of these arrays are implicitly 2d with 2nd
     dimension = [leaf, branch, stem, croot, froot]. Careful here.
     """
     # NOTE - initially quantities are in kg C
-    #   -> woody_biomass and output get converted at end before returning
+    #   -> stand_biomass and output get converted at end before returning
 
-    # First get params from bpFile and ppFile
+    # Get params
     stand_density = np.zeros(no_of_years + 1)
     stand_density[year_planted] = initial_stand_dens
 
@@ -291,9 +299,12 @@ def get_inputs(
     }
 
     # initialise stuff
-    pools = np.zeros((no_of_years + 1, 5))
-    woody_biomass = np.zeros((no_of_years + 1, 5))
+    tree_pools = np.zeros((no_of_years + 1, 5))
+    stand_biomass = np.zeros((no_of_years + 1, 5))
     t_NPP = np.zeros(no_of_years + 1)
+
+    WOODY_AGB_POOLS = [1, 2] # branch and stem
+    DEPENDENT_POOLS = [0, 3, 4] # leaf, coarse and fine roots: these pools are determined by the amount of woody biomass - not woody NPP
 
     flux = {}
     inputs = {}
@@ -307,13 +318,9 @@ def get_inputs(
     export_carbon = np.zeros((no_of_years + 1, 5))
     biomass_growth = np.zeros((no_of_years + 1, 5))
 
-    # set woody_biomass[0] to initial (allocated appropriately)
-    pools[year_planted] = initial_biomass * alloc
-    woody_biomass[year_planted] = pools[year_planted] * stand_density[year_planted]
-    for s in inputs:
-        flux[s][year_planted] = (
-            woody_biomass[year_planted] * input_params[s][year_planted]
-        )
+    # set stand_biomass[0] to initial (allocated appropriately)
+    tree_pools[year_planted] = initial_WAGB_tree * alloc # initial_WAGB_tree = initial woody AGB
+    stand_biomass[year_planted] = tree_pools[year_planted] * stand_density[year_planted]
 
     in_ = np.zeros(no_of_years + 1)
     acc = np.zeros(no_of_years + 1)
@@ -322,17 +329,32 @@ def get_inputs(
 
     for i in range(1 + year_planted, no_of_years + 1):
         # Careful with indices - using 1-based here
-        #   since, e.g., woody_biomass[2] should correspond to
+        #   since, e.g., stand_biomass[2] should correspond to
         #   biomass after 2 years
 
-        agb = pools[i - 1][1] + pools[i - 1][2]
+        wagb_tree = sum(tree_pools[i - 1][WOODY_AGB_POOLS])
 
         # Growth for one tree
-        t_NPP[i] = derivative_functions[tree_growth.best](tree_growth.fit_params, agb)
-        biomass_growth[i] = t_NPP[i] * alloc * stand_density[i - 1]
+        t_NPP[i] = derivative_functions[tree_growth.best](tree_growth.fit_params, wagb_tree)
+        biomass_growth[i][WOODY_AGB_POOLS] = t_NPP[i] * alloc[WOODY_AGB_POOLS] * stand_density[i - 1]
 
+        stand_biomass[i][WOODY_AGB_POOLS] = stand_biomass[i - 1][WOODY_AGB_POOLS]
+        stand_biomass[i][WOODY_AGB_POOLS] += biomass_growth[i][WOODY_AGB_POOLS]
+        
+        WAGB_biomass_total = sum(stand_biomass[i][WOODY_AGB_POOLS])
+        stand_biomass[i][DEPENDENT_POOLS] = WAGB_biomass_total*alloc[DEPENDENT_POOLS]
+
+        flux = calculate_fluxes(
+            flux=flux,
+            pools=stand_biomass[i],
+            input_params=input_params,
+            year_index=i
+        )
+
+        stand_biomass[i] -= sum(flux.values())[i] # this applies mortality, turnover and thinning
+        biomass_growth[i][DEPENDENT_POOLS] = stand_biomass[i][DEPENDENT_POOLS] - stand_biomass[i-1][DEPENDENT_POOLS] + sum(flux.values())[i][DEPENDENT_POOLS]
+        
         for s in inputs:
-            flux[s][i] = input_params[s][i] * pools[i - 1] * stand_density[i - 1]
             inputs[s][i] = retained_fraction[s] * flux[s][i]
             exports[s][i] = (1 - retained_fraction[s]) * flux[s][i]
 
@@ -340,21 +362,18 @@ def get_inputs(
         input_carbon[i] = sum(inputs.values())[i]
         export_carbon[i] = sum(exports.values())[i]
 
-        woody_biomass[i] = woody_biomass[i - 1]
-        woody_biomass[i] += biomass_growth[i]
-        woody_biomass[i] -= sum(flux.values())[i]
-
         stand_density[i] = stand_density[i - 1]
-        stand_density[i] *= 1 - (input_params["dead"][i] + input_params["thinning"][i])
+        stand_density[i] *= 1 - (input_params["thinning"][i])
+        stand_density[i] *= 1 - (input_params["dead"][i])
         if stand_density[i] < 1:
             print("SD [i] is less than 1, end of this tree cohort...")
             break
-        pools[i] = woody_biomass[i] / stand_density[i]
+        tree_pools[i] = stand_biomass[i] / stand_density[i]
 
         # Balance stuff
 
         in_[i] = biomass_growth[i].sum()
-        acc[i] = woody_biomass[i].sum() - woody_biomass[i - 1].sum()
+        acc[i] = stand_biomass[i].sum() - stand_biomass[i - 1].sum()
         out[i] = input_carbon[i].sum() + export_carbon[i].sum()
         bal[i] = in_[i] - out[i] - acc[i]
 
@@ -368,12 +387,12 @@ def get_inputs(
         "acc": acc * 0.001,
         "bal": bal * 0.001,
     }
-    woody_biomass *= 0.001  # convert to tonnes for emissions calc.
+    stand_biomass *= 0.001  # convert to tonnes for emissions calc.
     C = input_carbon[0:no_of_years]
     DM = C / tree_params.carbon
     N = np.zeros((no_of_years, 5))
     for i in range(no_of_years):
-        N[i] = tree_params.nitrogen[0:no_of_years] * DM[i]
+        N[i] = tree_params.nitrogen * DM[i]
 
     output = {}
     output["above"] = {
@@ -383,12 +402,13 @@ def get_inputs(
         "DMoff": np.zeros(len(C[:, 0])),
     }
     output["below"] = {
-        "carbon": 0.001 * CONSTANTS.ROOT_IN_TOP_30 * (C[:, 3] + C[:, 4]),
-        "nitrogen": 0.001 * CONSTANTS.ROOT_IN_TOP_30 * (N[:, 3] + N[:, 4]),
-        "DMon": 0.001 * CONSTANTS.ROOT_IN_TOP_30 * (DM[:, 3] + DM[:, 4]),
+        "carbon": 0.001 * CONSTANTS.TREE_ROOT_IN_TOP_30 * (C[:, 3] + C[:, 4]),
+        "nitrogen": 0.001 * CONSTANTS.TREE_ROOT_IN_TOP_30 * (N[:, 3] + N[:, 4]),
+        "DMon": 0.001 * CONSTANTS.TREE_ROOT_IN_TOP_30 * (DM[:, 3] + DM[:, 4]),
         "DMoff": np.zeros(len(C[:, 0])),
     }
-    return output, woody_biomass, mass_balance
+    
+    return output, stand_biomass, mass_balance
 
 
 def plot_biomass(tree_model, save_name=None):
@@ -397,11 +417,11 @@ def plot_biomass(tree_model, save_name=None):
     fig = plt.figure()
     fig.suptitle("Biomass Pools")
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(tree_model.woody_biomass[:, 0], label="leaf")
-    ax.plot(tree_model.woody_biomass[:, 1], label="branch")
-    ax.plot(tree_model.woody_biomass[:, 2], label="stem")
-    ax.plot(tree_model.woody_biomass[:, 3], label="coarse root")
-    ax.plot(tree_model.woody_biomass[:, 4], label="fine root")
+    ax.plot(tree_model.stand_biomass[:, 0], label="leaf")
+    ax.plot(tree_model.stand_biomass[:, 1], label="branch")
+    ax.plot(tree_model.stand_biomass[:, 2], label="stem")
+    ax.plot(tree_model.stand_biomass[:, 3], label="coarse root")
+    ax.plot(tree_model.stand_biomass[:, 4], label="fine root")
     ax.legend(loc="best")
     ax.set_xlabel("Time (years)")
     ax.set_ylabel("Pool biomass (t C ha^-1)")
@@ -435,7 +455,7 @@ def plot_balance(tree_model, save_name=None):
 
 
 def print_biomass(tree_model):
-    total_biomass = np.sum(tree_model.woody_biomass, axis=1)
+    total_biomass = np.sum(tree_model.stand_biomass, axis=1)
 
     # Prepare the data for tabulate
     table_data = [
@@ -460,7 +480,7 @@ def print_biomass(tree_model):
 def print_balance(tree_model):
     print("\nMass-balance sum (kg C /ha): ", np.sum(tree_model.balance["bal"]))
     to_difference = np.sum(tree_model.balance["bal"]) / np.sum(
-        tree_model.woody_biomass[-1]
+        tree_model.stand_biomass[-1]
     )
     print("Normalized mass balance (kg C /ha): ", to_difference)
 
@@ -488,7 +508,7 @@ def save(tree_model, file="tree_model.csv"):
     cols = ["leaf", "branch", "stem", "croot", "froot"]
     csv_handler.print_csv(
         biomass_file,
-        tree_model.woody_biomass,
+        tree_model.stand_biomass,
         col_names=cols,
         print_total=True,
         print_years=True,
@@ -504,7 +524,7 @@ def create_tree_projects(
     mortality_project,
     mortality_fraction_left_project,
     no_of_years,
-    tree_count,
+    cohort_count,
 ):
     return [
         from_defaults(
@@ -518,5 +538,5 @@ def create_tree_projects(
             mortality_fraction=mortality_fraction_left_project,
             no_of_years=no_of_years,
         )
-        for i in range(tree_count)
+        for i in range(cohort_count)
     ]

@@ -10,7 +10,6 @@ readme = "./README.md"
 requires-python = "==3.10.16"
 dependencies = [
     "basemap (>=1.4.1,<2.0.0)",
-    "gdal (>=3.11.3,<4.0.0)",
     "numpy (>=1.21,<1.27)",
     "scipy (>=1.15.2,<2.0.0)",
     "matplotlib (>=1.5,<3.9)",
