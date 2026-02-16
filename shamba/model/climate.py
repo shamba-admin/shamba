@@ -3,215 +3,257 @@
 """Module holding Climate class."""
 
 import logging as log
-import os
+import math
+import calendar
 import sys
+import os
+from model import configuration
 
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 import numpy as np
-import math
+from marshmallow import Schema, fields, post_load
 
-from shamba.model import cfg, io_
-from shamba.rasters import climate as climate_raster
+from model.common import csv_handler
+from model.common.data_sources.climate import get_climate_data
 
 
-class Climate(object):
+def validate_monthly_list_length(lst):
+    return ["List must contain 12 elements"] if len(lst) != 12 else []
 
+
+def validate_temperature(values):
+    length_errors = validate_monthly_list_length(values)
+    value_errors = [
+        "Temperature out of expected range or is NaN"
+        for val in values
+        if val < -100.0 or val > 100.0 or np.isnan(val)
+    ]
+    return length_errors + value_errors
+
+
+def validate_rain(values):
+    length_errors = validate_monthly_list_length(values)
+    value_errors = [
+        "Rain out of expected range or is NaN"
+        for val in values
+        if val < 0 or val > 4000.0 or np.isnan(val)
+    ]
+    return length_errors + value_errors
+
+
+def validate_evaporation(values):
+    length_errors = validate_monthly_list_length(values)
+    value_errors = [
+        "Evaporation out of expected range or is NaN"
+        for val in values
+        if val < 0 or val > 4000.0 or np.isnan(val)
+    ]
+    return length_errors + value_errors
+
+
+class ClimateData:
+    def __init__(self, temperature, rain, evaporation):
+        self.temperature = np.array(temperature)
+        self.rain = np.array(rain)
+        self.evaporation = np.array(evaporation)
+
+
+class ClimateDataSchema(Schema):
+    temperature = fields.List(
+        fields.Float, validate=lambda values: validate_temperature(values)
+    )
+    rain = fields.List(fields.Float, validate=lambda values: validate_rain(values))
+    evaporation = fields.List(
+        fields.Float, validate=lambda values: validate_evaporation(values)
+    )
+
+    @post_load
+    def build(self, data, **kwargs):
+        return ClimateData(**data)
+
+
+def from_location(location, use_api: bool) -> ClimateData:
+    """Construct Climate object using CRU-TS
+    dataset for a given location.
+
+    Args:
+        location
+    Returns:
+        Climate object
     """
-    Object with information about climate of a project.
-    Has methods to read, print, and plot climate data.
+    # Location stuff
+    latitude = location[0]
+    longitude = location[1]
 
-    Instance variables
-    ------------------
-    clim    3x12 array (or list) with the following climate data:
-    temp    array of temperature in *C for each month
-    rain    array of precipitation in mm for each month
-    evap    array of evaporation in mm for each month
-    
-    """
-    
-    def __init__(self, clim):
-        """Initialise climate data.
-        
-        Args:
-            clim: 3x12 array with climate data
-        Raises:
-            IndexError if the dimensions of clim are not 3x12
-        """
-        try:
-            self.clim = clim
-            if self.clim.shape != (3,12):
-                raise IndexError
-            
-            self.clim = clim
-            self.temp = self.clim[0]
-            self.rain = self.clim[1]
-            self.evap = self.clim[2]
-            self._sanitize_inputs()
-
-        except IndexError:
-            log.exception("Climate data not the right format")
-            sys.exit(1)
-
-    @classmethod
-    def from_location(cls, location):
-        """Construct Climate object using CRU-TS 
-        dataset for a given location.
-        
-        Args: 
-            location
-        Returns:
-            Climate object
-        Raises:
-            io_.FileOpenError if raster file(s) can't be opened/read
-
-        """
-        # Location stuff
-        lat = location[0]
-        long = location[1]
-        # Indices for picking out clim data from rasters
-        x = math.ceil(180 - 2*lat)
-        y = math.ceil(360 + 2*long)
-
-        # Read data from rasters
-        # file path of raster directory 
-        folder = os.path.dirname(os.path.abspath(climate_raster.__file__))
-        basename = ['tmp_', 'pre_', 'pet_']
-
-        # Populate climate matrix from CRU-TS data
-        clim = np.zeros((3,12))
-        for k in range(len(basename)):
-            for i in range(1,13):
-                filename = os.path.join(folder, basename[k], )
-                filename += "%d" % i
-                filename += ".txt"
-                try:
-                    clim[k,i-1] = np.loadtxt(
-                        filename, usecols=[int(y-1)], skiprows=6+int(x-1))[0]
-                except IOError:
-                    raise io_.FileOpenError(filename)
-
-        # Account for scaling factor in CRU-TS dataset
-        clim *= 0.1
-
-        # Convert pet to mm/month from mm/day
-        daysInMonth = np.array([31, 28, 31, 30,
-                                31, 30, 31, 31,
-                                30, 31, 30, 31])
-        clim[2] = clim[2]*daysInMonth
-        
-        # pet given in CRU-TS 3.1 instead of evaporation, so convert
-        clim[2] /= 0.75
-    
-        return cls(clim)
-    
-    @classmethod
-    def from_csv(
-            cls, filename='climate.csv', 
-            order=('temp','rain','evap'), 
-            isEvap=True):
-        """Construct Climate object from a csv file.
-
-        Args:
-            filename
-            order: tuple of str specifying the column order in csv
-            isEvap: whether data has evap or PET - convert to evap
-                    if not isEvap
-        Returns:
-            Climate object
-        Raises:
-            ValueError: if order doesn't contain 'temp,'rain', and 'evap'
-                        in some order
-            
-        """
-        data = io_.read_csv(filename)
-        
-        try:
-            # Create clim array with the correct rows
-            clim = np.zeros((3,12))
-            correctOrder = ('temp','rain','evap')
-            for i in range(3):
-                clim[i] = data[:, order.index(correctOrder[i])]
-        
-            if not isEvap:  # pet given, so convert to evap
-                clim[2] /= 0.75
-            climate = cls(clim)
-        except ValueError:
-            log.exception("INCORRECT VALUE(S) IN ORDER ARGUMENT")
-            sys.exit(1)
-        except IndexError:
-            log.exception("Data not in correct format")
-            sys.exit(1) 
-        
-        return climate
-
-    def _sanitize_inputs(self):
-        """Check that climate data makes sense."""
-        t = self.temp
-        r = self.rain
-        e = self.evap
-
-        somethingNotRight = False
-        for j in range(12):
-            if (t[j] < -100.0 or t[j] > 100.0 or np.isnan(t[j])
-                or r[j] < 0 or r[j] > 4000.0 or np.isnan(r[j])
-                or e[j] < 0 or e[j] > 4000.0 or np.isnan(e[j])
-            ):
-                somethingNotRight = True
-                break
-        if somethingNotRight:
-            log.warning("Unusual cliamte data. Please check")
-
-    def plot_(self):
-        """Plot climate data in a matplotlib figure."""
-
-        xAxis = range(1,13)
-        fig, ax1 = plt.subplots()
-        fig.canvas.set_window_title('Climate data')
-
-        ax1.bar(xAxis, self.rain, align='center', ec='k',fc='w')
-        ax1.plot(xAxis, self.evap, 'k--D')
-        ax1.set_xlabel('Month')
-        ax1.set_ylabel('Rain and evaporation (mm/month)')
-        ax1.set_title('Monthly Climate Data')
-
-        ax2 = ax1.twinx()
-        ax2.plot(xAxis, self.temp, 'b-o')
-        ax1.set_xlim(0,13)
-        ax2.set_ylabel('Temperature (C)', color='b')
-
-        # Set ax2 to blue to set apart from other axis
-        for tl in ax2.get_yticklabels():
-            tl.set_color('b')
-
-    def print_(self):
-        """Print climate data to stdout."""
-
-        monthNames = ['JAN','FEB','MAR','APR',
-                      'MAY','JUN','JUL','AUG',
-                      'SEP','OCT','NOV','DEC']
-
-        print ("\nCLIMATE DATA")
-        print ("============\n")
-        print ("Month   Temp.    Rain     Evap.")
-        print ("        (*C)     (mm)     (mm) ")
-        print ("-------------------------------")
-        for i in range(12):
-            print (" %s    %5.2f   %6.2f   %6.2f" % (
-                    monthNames[i], self.temp[i], self.rain[i], self.evap[i]
-            ))
-        print ("")
-
-    def save_(self, file='climate.csv'):
-        """Save climate data to a csv file.
-        Default path is in cfg.OUT_DIR with filename 'climate.csv'.
-        
-        Args:
-            file: name or path to csv file. If only name is given, file
-                  is put in cfg.INP_DIR.
-
-        """
-        io_.print_csv(
-                file, np.transpose(self.clim),      
-                col_names=['temp', 'rain', 'evap']
+    if use_api:
+        climate_data = get_climate_data(
+            latitude=latitude, longitude=longitude, use_api=use_api
         )
 
+        # pet given in OpenMeteo instead of evaporation, so convert
+        climate_data[2] /= 0.75
+
+        params = {
+            "temperature": climate_data[0],
+            "rain": climate_data[1],
+            "evaporation": climate_data[2],
+        }
+
+        schema = ClimateDataSchema()
+        errors = schema.validate(params)
+        climate = schema.load(params)
+
+        if errors != {}:
+            print(f"Errors in climate data: {str(errors)}")
+
+    else:
+        climate = from_csv()
+
+    return climate  # type: ignore
+
+
+def from_csv(filename="climate.csv") -> ClimateData:
+    """Construct Climate object from a csv file.
+
+    Args:
+        filename: path to csv file containing climate data
+    Returns:
+        Climate object
+    Raises:
+        ValueError: if headers don't contain 'temp', 'rain', and either 'evap' or 'pet'
+
+    """
+    data = csv_handler.read_csv(filename)
+    headers = np.genfromtxt(
+        os.path.join(configuration.INPUT_DIR, filename),
+        max_rows=1,
+        delimiter=",",
+        dtype=None,
+        encoding=None,
+    )
+    headers = np.char.lower(headers)
+
+    try:
+        # Check if PET or open-pan evaporation data is present
+        has_pet = "pet" in headers
+        has_evap = "evap" in headers
+
+        if has_pet and has_evap:
+            raise ValueError("Climate data cannot contain both 'pet' and 'evap'")
+        elif not has_pet and not has_evap:
+            raise ValueError("Climate data must contain either 'pet' or 'evap'")
+
+        # Set the correct order based on what's available
+        if has_pet:
+            correct_order = ("temp", "rain", "pet")
+        else:
+            correct_order = ("temp", "rain", "evap")
+
+        # Create clim array with the correct rows
+        climate_data = np.zeros((3, 12))
+        for i in range(3):
+            climate_data[i] = data[:, np.where(headers == correct_order[i])[0][0]]
+
+        # Convert PET to open-pan evaporation if PET data was used
+        if has_pet:
+            climate_data[2] /= 0.75
+
+        climate: ClimateData = ClimateDataSchema().load(
+            {
+                "temperature": climate_data[0],
+                "rain": climate_data[1],
+                "evaporation": climate_data[2],
+            }
+        )  # type: ignore
+    except ValueError as e:
+        log.exception(f"Error in climate data headers: {str(e)}")
+        sys.exit(1)
+    except IndexError:
+        log.exception("Data not in correct format")
+        sys.exit(1)
+
+    return climate
+
+
+def plot(climate):
+    """Plot climate data in a matplotlib figure."""
+
+    x_axis = list(range(1, 13))
+    fig, ax1 = plt.subplots()
+    fig.suptitle("Climate data")
+
+    ax1.bar(x_axis, climate.rain, align="center", ec="k", fc="w")
+    ax1.plot(x_axis, climate.evaporation, "k--D")
+    ax1.set_xlabel("Month")
+    ax1.set_ylabel("Rain and evaporation (mm/month)")
+    ax1.set_title("Monthly Climate Data")
+
+    ax2 = ax1.twinx()
+    ax2.plot(x_axis, climate.temperature, "b-o")
+    ax1.set_xlim(0, 13)
+    ax2.set_ylabel("Temperature (C)", color="b")
+
+    # Set ax2 to blue to set apart from other axis
+    for tl in ax2.get_yticklabels():
+        tl.set_color("b")
+
+
+def print_to_stdout(climate):
+    """Print climate data to stdout using tabulate."""
+
+    month_names = [
+        "JAN",
+        "FEB",
+        "MAR",
+        "APR",
+        "MAY",
+        "JUN",
+        "JUL",
+        "AUG",
+        "SEP",
+        "OCT",
+        "NOV",
+        "DEC",
+    ]
+
+    table_title = "CLIMATE DATA"
+
+    # Prepare the data for tabulate
+    table_data = [
+        [month, f"{temp:.2f}", f"{rain:.2f}", f"{evap:.2f}"]
+        for month, temp, rain, evap in zip(
+            month_names, climate.temperature, climate.rain, climate.evaporation
+        )
+    ]
+
+    # Define headers
+    headers = ["Month", "Temp. (°C)", "Rain (mm)", "Evap. (mm)"]
+
+    # Print the table using tabulate
+    print()  # Newline
+    print()  # Newline
+    print(table_title)
+    print("=" * len(table_title))
+    print(
+        tabulate(table_data, headers=headers, numalign="center", tablefmt="fancy_grid")
+    )
+
+
+def save(climate, file="climate.csv"):
+    """Save climate data to a csv file.
+    Default path is in cfg.OUTPUT_DIR with filename 'climate.csv'.
+
+    Args:
+        file: name or path to csv file. If only name is given, file
+                is put in cfg.INPUT_DIR.
+
+    """
+    temperature = climate.temperature
+    rain = climate.rain
+    evaporation = climate.evaporation
+    csv_handler.print_csv(
+        file,
+        np.transpose([temperature, rain, evaporation]),
+        col_names=["temp", "rain", "evap"],
+    )

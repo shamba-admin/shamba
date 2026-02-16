@@ -1,515 +1,733 @@
-#!/usr/bin/python
 """
 Module containing tree growth information and allometric functions
 
-class Growth:   for tree growth data and fitting
 def ryan      allometric function based on C. Ryan biotropica paper (2010)
-
 """
 
-import sys
-import os
+from typing import Dict, List, Tuple, Any, Optional
 import logging as log
-
-import numpy as np
 import math
-from scipy import optimize
+import os
+from typing import Dict, Tuple
+import importlib
+
 import matplotlib.pyplot as plt
+import numpy as np
+from marshmallow import Schema, fields, post_load
+from .common.validations import validate_positive_or_zero_numerical_list
+from scipy import optimize
+from tabulate import tabulate
+import model.tree_params as TreeParams
 
-from . import io_, cfg
+from . import configuration
+from .common import csv_handler
 
 
-class TreeGrowth(object):
+# Functions to fit to
+def hyperbolic_function(x, a, b):  # Eq. 6.3, SHAMBA model description
+    return a * (1 - np.exp(-b * x))
 
+
+def exponential_1param_function(x, a):  # Eq. 6.2, SHAMBA model description
+    return (1 + a) ** x - 1
+
+
+def linear_function(x, a):  # Eq. 6.1, SHAMBA model description
+    return a * x
+
+
+def logistic_function(x, a, b, c):  # Eq. 6.4, SHAMBA model description
+    return a / (1 + np.exp(-b * (x - c)))
+
+def exponential_2param_function(x, a, b): # Eq. 6.5, SHAMBA model description NOTE: 1+a used in exponential functions with a constrained as > 0 to generate growth
+    return b * (1 + a) ** x
+
+fitting_functions = {
+    "exp1": exponential_1param_function,
+    "exp2": exponential_2param_function,
+    "hyp": hyperbolic_function,
+    "lin": linear_function,
+    "log": logistic_function,
+}
+
+
+def exponential_1param_function_inverse(fit_params, agb):
+    if math.fabs(agb) < 0.00000001:
+        x = 0
+    else:
+        a = fit_params[0]
+        if agb <= -1:
+            raise ValueError(f"Invalid agb for exponential inverse: agb={agb}") # This is handled in the above line for when abs(agb) < 0.00000001, but this edge handling is left in for completeness.
+        x = math.log(agb + 1) / math.log(a + 1)
+    return x
+
+
+def exponential_1param_function_derivative(
+    fit_params, agb
+):  # Eq. 7.2, SHAMBA model description
+    a = fit_params[0]
+    x = exponential_1param_function_inverse(fit_params, agb)
+    dagb_dx = ((1 + a) ** x) * (math.log(1 + a))
+    return dagb_dx
+
+def exponential_2param_function_inverse(fit_params, agb):
+    if math.fabs(agb) < 0.00000001:
+        x = 0
+    else:
+        a = fit_params[0]
+        b = fit_params[1]
+        if agb <= 0 or b <= 0:
+            raise ValueError(f"Invalid arguments for exponential inverse: agb={agb}, b={b}") # The agb condition is handled in the above line for when abs(agb) < 0.00000001, but this edge handling is left in for completeness.
+        x = math.log(agb / b)/ math.log(a + 1)
+    return x
+
+def exponential_2param_function_derivative(
+        fit_params, agb
+        ): # Eq. 7.5, SHAMBA model description
+    a = fit_params[0]
+    b = fit_params[1]
+    x = exponential_2param_function_inverse(fit_params, agb)
+    dabg_dx = (b * (1 + a) ** x) * (math.log(1 + a))
+    return dabg_dx
+
+def hyperbolic_function_inverse(fit_params, agb):
+    if math.fabs(agb) < 0.00000001:
+        x = 0
+    else:
+        a = fit_params[0]
+        b = fit_params[1]
+        if agb >= a:
+            raise ValueError(f"No solution exists for hyperbolic inverse: agb ({agb}) >= a ({a})")
+        else:
+            x = (math.log(a) - math.log(a - agb)) / b
+    return x
+
+
+def hyperbolic_function_derivative(
+    fit_params, agb
+):  # Eq. 7.3, SHAMBA model description
+    a = fit_params[0]
+    b = fit_params[1]
+    x = hyperbolic_function_inverse(fit_params, agb)
+    dagb_dx = a * b * np.exp(-b * x)
+    return dagb_dx
+
+
+def linear_function_derivative(fit_params, agb):  # Eq. 7.1, SHAMBA model description
+    a = fit_params[0]
+    dagb_dx = a
+    return dagb_dx
+
+
+def logistic_function_inverse(fit_params, agb):
+    if math.fabs(agb) < 0.00000001:
+        x = 0
+    else:
+        a = fit_params[0]
+        b = fit_params[1]
+        c = fit_params[2]
+        
+        # Handle boundary cases
+        if agb >= a:
+            raise ValueError(f"No solution exists for logistic inverse: agb ({agb}) >= a ({a})")
+        elif agb <= 0:
+            raise ValueError(f"No solution exists for logistic inverse: agb ({agb}) <= 0)") # This is handled in the above line for when abs(agb) < 0.00000001, but this edge handling is left in for completeness.
+        else:
+            # Valid range: 0 < agb < a
+            x = c + (math.log(agb) - math.log(a - agb)) / b
+    
+    return x
+
+
+def logistic_function_derivative(fit_params, agb):  # Eq. 7.4, SHAMBA model description
+    x = logistic_function_inverse(fit_params, agb)
+
+    a = fit_params[0]
+    b = fit_params[1]
+    c = fit_params[2]
+    dagb_dx = (a * b * np.exp(-b * (x - c))) / ((np.exp(-b * (x - c)) + 1) ** 2)
+
+    return dagb_dx
+
+
+derivative_functions = {
+    "exp1": exponential_1param_function_derivative,
+    "exp2": exponential_2param_function_derivative,
+    "hyp": hyperbolic_function_derivative,
+    "lin": linear_function_derivative,
+    "log": logistic_function_derivative,
+}
+
+
+class FitData(Schema):
+    exp1 = fields.List(fields.Float(allow_nan=True), required=True)
+    exp2 = fields.List(fields.Float(allow_nan=True), required=True)
+    hyp = fields.List(fields.Float(allow_nan=True), required=True)
+    lin = fields.List(fields.Float(allow_nan=True), required=True)
+    log = fields.List(fields.Float(allow_nan=True), required=True)
+
+
+class FitMSEData(Schema):
+    exp1 = fields.Float(allow_nan=True)
+    exp2 = fields.Float(allow_nan=True)
+    hyp = fields.Float(allow_nan=True)
+    lin = fields.Float(allow_nan=True)
+    log = fields.Float(allow_nan=True)
+
+
+class TreeGrowth:
     """
-    Object holding tree growth data, and fit functions/params for this.
-    Also includes method for printing and plotting data and fits
+    Object holding tree growth data.
 
     Instance variables
     ----------------
-    tree_params TreeParams object (holds carbon and dens, among others)
-    func        dict holding the four fitting functions
-    funcDeriv   dict holding the four derivative functions
-    age         tree age data in years
-    diam        tree diameter data in cm
-    best        string with best fit ('exp, 'log', 'lin, or 'hyp')
-    fitDiam     dict holding fit diameter data in cm for all four fits 
-    fitParams   dict holding fitting params for all four fits
-    fitMSE      dict holding MSE for all four fits
+    age                 tree age data in years
+    all_fit_data        dict holding fit diameter data in cm for all four fits
+    all_fit_params      dict holding fitting params for all four fits
+    all_mse             dict holding MSE for all four fits
+    allometric_key      string with allometric key
+    best                string with best fit ('exp1', 'exp2', 'log', 'lin, or 'hyp')
+    biomass             vector with biomass data for each year
+    fit_data            dict holding fit diameter data in cm for all four fits
+    fit_mse             dict holding MSE for all four fits
+    fit_params          dict holding fitting params for all four fits
+    tree_diameter       vector with tree diameter data for each year
+    """
+
+    def __init__(
+        self,
+        age,
+        all_fit_data,
+        all_fit_params,
+        all_mse,
+        allometric_key,
+        best,
+        biomass,
+        fit_data,
+        fit_mse,
+        fit_params,
+        tree_diameter,
+    ):
+        self.age = age
+        self.all_fit_data = all_fit_data
+        self.all_fit_params = all_fit_params
+        self.all_mse = all_mse
+        self.allometric_key = allometric_key
+        self.best = best
+        self.biomass = biomass
+        self.fit_data = fit_data
+        self.fit_mse = fit_mse
+        self.fit_params = fit_params
+        self.tree_diameter = tree_diameter
+
+
+class TreeGrowthSchema(Schema):
+    age = fields.List(
+        fields.Float,
+        required=True,
+        validate=validate_positive_or_zero_numerical_list,)
+    all_fit_data = fields.Nested(FitData, required=True)
+    all_fit_params = fields.Nested(FitData, required=True)
+    all_mse = fields.Nested(FitMSEData, required=True)
+    allometric_key = fields.String(required=True)
+    best = fields.String(required=True)
+    biomass = fields.List(fields.Float(), required=True)
+    fit_data = fields.List(fields.Float(), required=True)
+    fit_mse = fields.Float(allow_nan=True)
+    fit_params = fields.List(fields.Float(), required=True)
+    tree_diameter = fields.List(
+        fields.Float,
+        required=True,
+        validate=validate_positive_or_zero_numerical_list,)
+
+    @post_load
+    def build(self, data, **kwargs):
+        return TreeGrowth(**data)
+
+
+def get_biomass(tree_diameter, allometric_key, tree_params):
+    if allometric_key in allometric:
+        allometric_function = allometric[allometric_key]
+        return np.array(
+            [allometric_function(diameter, tree_params) for diameter in tree_diameter]
+        )
+    else: # user should have provided different allometry
+        try: 
+            project_allometry = importlib.import_module('project_allometry')
+            project_allometric = project_allometry.allometric
+            allometric_function = project_allometric[allometric_key]
+            return np.array([allometric_function(diameter, tree_params) for diameter in tree_diameter])
+        except ValueError:
+        # Handle case where project allometry is not found
+            raise ValueError(f"Allometric key {allometric_key} not found")
+
+
+def create(
+    tree_params: List[TreeParams.TreeParamsData],
+    growth_params: Dict[str, np.ndarray],
+    allom="chave dry"
+) -> TreeGrowth:
+    """Create a TreeGrowth object from a tree parameters and a growth parameters
+    dictionary.
+
+    Args:
+        tree_params (dict): A dictionary containing the tree parameters.
+        growth_params (dict): A dictionary containing the growth parameters.
+        allom (str, optional): The allometric key. Defaults to "chave dry".
+
+    Returns:
+        TreeGrowth: A TreeGrowth object.
+    """
+    tree_diameter = growth_params["diam"]
+    allometric_key = allom.lower()
+    biomass = (
+        growth_params["biomass"]
+        if "biomass" in growth_params
+        else get_biomass(tree_diameter, allometric_key, tree_params)
+    )
+    age = growth_params["age"]
+
+    all_fit_data, all_fit_params, all_mse = fit(age, biomass)
+
+    # Find key with best fit
+    best = min(all_mse, key=lambda k: all_mse[k])
+    fit_data = all_fit_data[best]
+    fit_params = all_fit_params[best]
+    fit_mse = all_mse[best]
+
+    params = {
+        "age": age,
+        "all_fit_data": all_fit_data,
+        "all_fit_params": all_fit_params,
+        "all_mse": all_mse,
+        "allometric_key": allometric_key,
+        "best": best,
+        "biomass": biomass,
+        "fit_data": fit_data,
+        "fit_mse": fit_mse,
+        "fit_params": fit_params,
+        "tree_diameter": tree_diameter,
+    }
+
+    schema = TreeGrowthSchema()
+    errors = schema.validate(params)
+
+    if errors != {}:
+        print(f"Errors in tree growth: {errors}")
+
+    return schema.load(params)  # type: ignore
+
+
+def from_csv(
+    tree_params: List[TreeParams.TreeParamsData],
+    allometric_key: str,
+    csv_input_data: Dict[str, Any],
+    species_prefix: str = "",
+):
+    """Construct Growth object using data in a csv file.
+
+    When using input_csv from command line, constructing dictionary of
+    np.arrays for each new cohort.
+
+    Args:
+        tree_params: TreeParams object (holds tree params)
+        allometric_key: string with allometric key
+        csv_input_data: dictionary with csv input data
+        species_prefix: prefix for species-specific columns (e.g., "sp2_")
+
+    Returns:
+        tree_growth: TreeGrowth object
+    """
+
+    age_base = ["age1", "age2", "age3", "age4", "age5", "age6"]
+    age_input = [f"{species_prefix}{key}" for key in age_base]
+    age = {key: csv_input_data[key] for key in age_input}
+    age = np.array(list(age.values())).astype(float)
+    age = np.array(sorted(age, key=int))
+
+    diam_base = ["diam1", "diam2", "diam3", "diam4", "diam5", "diam6"]
+    diam_input = [f"{species_prefix}{key}" for key in diam_base]
+    diam = {key: csv_input_data[key] for key in diam_input}
+    diam = np.array(list(diam.values())).astype(float)
+
+    params = {
+        "age": age,
+        "diam": diam,
+    }
+
+    growth = create(tree_params, params, allometric_key)
+
+    return growth
+
+
+def plot(tree_growth, fit=True, save_name=None):
+    """Plot growth data and all four fits in a matplotlib figure."""
+
+    fig = plt.figure()
+    fig.suptitle("Tree Growth")
+
+    ax = fig.add_subplot(1, 1, 1)
+
+    ax.plot(tree_growth.age, tree_growth.biomass, "o", label="data")
+
+    if fit:
+        for curve in tree_growth.all_fit_data:
+            ax.plot(
+                tree_growth.age,
+                tree_growth.all_fit_data[curve],
+                "-",
+                label="%s fit" % curve,
+            )
+
+        ax.legend(loc="best")
+
+    ax.set_title("Tree biomass vs. Age")
+    ax.set_xlabel("Age (years)")
+    ax.set_ylabel("Biomass (kg C /ha) ")
+
+    # Shift ticks so points not cut off
+    xticks = ax.get_xticks()
+    xmin = xticks[0] - 0.5 * (xticks[1] - xticks[0])
+    xmax = xticks[-1] + 0.5 * (xticks[-1] - xticks[-2])
+    ax.set_xlim(xmin, xmax)
+
+    if save_name is not None:
+        plt.savefig(os.path.join(configuration.OUTPUT_DIR, save_name))
+
+
+def print_to_stdout(tree_growth, label, fit=True, params=True, mse=True):
+    """Print data and fits for tree growth data to stdout using tabulate."""
+    # Prepare the data for tabulate
+    table_data = [
+        [age, f"{diameter:.2f}", f"{biomass:.2f}"]
+        for age, diameter, biomass in zip(
+            tree_growth.age, tree_growth.tree_diameter, tree_growth.biomass
+        )
+    ]
+
+    # Define headers
+    headers = ["Age (years)", "Diameter (cm)", "Biomass (kg C)"]
+
+    table_title = f"TREE GROWTH Data for {label}"
+
+    # Print the table using tabulate
+    print()  # Newline
+    print()  # Newline
+    print(table_title)
+    print(f"Allometric: {tree_growth.allometric_key}")
+    print("=" * len(table_title))
+    print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
+
+    if fit:
+        table_data = [
+            [f"{data:.2f}", f"{exp1:.2f}", f"{exp2:.2f}", f"{hyp:.2f}", f"{lin:.2f}", f"{log:.2f}"]
+            for data, exp1, exp2, hyp, lin, log in zip(
+                tree_growth.biomass,
+                tree_growth.all_fit_data["exp1"],
+                tree_growth.all_fit_data["exp2"],
+                tree_growth.all_fit_data["hyp"],
+                tree_growth.all_fit_data["lin"],
+                tree_growth.all_fit_data["log"],
+            )
+        ]
+        headers = ["Data", "Exp1.", "Exp2." "Hyp.", "Lin.", "Log."]
+
+        print()  # Newline
+        print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
+
+    if params and mse:
+        table_data = [
+            [
+                "MSE",
+                f"{tree_growth.all_mse['exp1']:.2f}",
+                f"{tree_growth.all_mse['exp2']:.2f}",
+                f"{tree_growth.all_mse['hyp']:.2f}",
+                f"{tree_growth.all_mse['lin']:.2f}",
+                f"{tree_growth.all_mse['log']:.2f}",
+            ],
+            [
+                "a",
+                f"{tree_growth.all_fit_params['exp1'][0]:.2f}",
+                f"{tree_growth.all_fit_params['exp2'][0]:.2f}",
+                f"{tree_growth.all_fit_params['hyp'][0]:.2f}",
+                f"{tree_growth.all_fit_params['lin'][0]:.2f}",
+                f"{tree_growth.all_fit_params['log'][0]:.2f}",
+            ],
+            [
+                "b",
+                "",
+                f"{tree_growth.all_fit_params['exp2'][1]:.2f}",
+                f"{tree_growth.all_fit_params['hyp'][1]:.2f}",
+                "",
+                f"{tree_growth.all_fit_params['log'][1]:.2f}",
+            ],
+            ["c", "", "", "", f"{tree_growth.all_fit_params['log'][2]:.2f}"],
+        ]
+        headers = ["", "Exp1.", "Exp2", "Hyp.", "Lin.", "Log."]
+
+        print()  # Newline
+        print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
+
+
+def save(tree_growth, file="tree_growth.csv"):
+    """Save growth stuff to a csv file
+    Default path is in OUTPUT_DIR.
+
+    Args:
+        tree_growth: TreeGrowth object
+        file: name or path to csv file
 
     """
-    
-    def __init__(self, tree_params, growth_params, allom='Ryan'):
-        """Initialise tree growth data.
-        
-        Args: 
-            growth_params: dict with growth params 
-                           keys=are 'age','diam' OR 'age','biomass'
-            tree_params: tree_params.TreeParams object (holds tree params)
-            allom: which allometric to use - ignored if biomass is a key
-                   in growth_params since it won't be used
-        Raises:
-            KeyError: if dict doesn't have the right keys
-            KeyError: if allom isn't in the allometric dict
-        
-        """
-        
+    # growth data
+    csv_handler.print_csv(
+        file,
+        np.column_stack(
+            (tree_growth.age, tree_growth.tree_diameter, tree_growth.biomass)
+        ),
+        col_names=["age", "diam", "biomass", "allom=" + tree_growth.allometric_key],
+    )
+
+    # fitted data - in a list because of the size heterogeneity
+    fit_file = file.split(".csv")[0] + "_fit.csv"
+    data = np.column_stack(
+        (
+            tree_growth.biomass,
+            tree_growth.all_fit_data["exp1"],
+            tree_growth.all_fit_data["exp2"],
+            tree_growth.all_fit_data["hyp"],
+            tree_growth.all_fit_data["lin"],
+            tree_growth.all_fit_data["log"],
+        )
+    )
+    cols = ["data", "exp1", "exp2", "hyp", "lin", "log", "best=" + tree_growth.best]
+    csv_handler.print_csv(fit_file, data, col_names=cols)
+
+    # fit parameters
+    param_file = file.split(".csv")[0] + "_fit_params.csv"
+    row1 = []
+    row2 = []
+    row3 = []
+    row4 = []
+    for s in ["exp1", "exp2", "hyp", "lin", "log"]:
+        row1.append(tree_growth.all_mse[s])
+        row2.append(tree_growth.all_fit_params[s][0])
         try:
-            self.age = growth_params['age']
-            self.diam = growth_params['diam']
-            allom = allom.lower()
-            self.allom = allom
-        except KeyError:
-            try:
-                self.age = growth_params['age']
-                self.biomass = growth_params['biomass']
-            except KeyError:
-                log.exception("Growth parameters not specified properly")
-                sys.exit(1)
-
-        if 'biomass' not in growth_params:
-            self.biomass = np.zeros(len(self.diam))
-            try:
-                for i in range(len(self.diam)):
-                    self.biomass[i] = allometric[self.allom](
-                            self.diam[i], tree_params)
-            except KeyError:
-                log.exception("Allometric is not recognized")
-                sys.exit(1)
-
-        # Dictionaries for fitting functions and derivatives
-        self.func = {
-                'exp': self.exp_fn, 'hyp': self.hyp_fn,
-                'lin': self.lin_fn, 'log': self.log_fn
-        }
-        self.funcDeriv = {
-                'exp': self.exp_fn_deriv, 'hyp': self.hyp_fn_deriv,
-                'lin': self.lin_fn_deriv, 'log': self.log_fn_deriv
-        } 
-
-        # Find fits
-        self.allFitData, self.allFitParams, self.allMse = self.fit()
-        
-        # Find key with best fit
-        self.best = min(self.allMse, key=self.allMse.get)
-        self.fitData = self.allFitData[self.best]
-        self.fitParams = self.allFitParams[self.best]
-        self.fitMse = self.allMse[self.best]
-    
-    @classmethod
-    def from_csv(
-            cls, tree_params, filename='growth_measurements.csv', 
-            isBiomass=False, allom='Ryan'):
-        """Construct Growth object using data in a csv file.
-        
-        Args:
-            tree: Tree object with tree information
-            filename: csv to read data from with columns age,diam
-            True if data in column 2 is biomass (not dbh)
-            allom: which allometric to use
-        Returns:
-            Growth object
-        Raises:
-            IndexError: if file isn't the right format
-
-        """
-        data = io_.read_csv(filename)
-        try:
-            params = {
-                    'age': data[:,0],
-                    'diam': data[:,1]
-            }
-            growth = cls(tree_params, params, allom)
-
+            row3.append(tree_growth.all_fit_params[s][1])
         except IndexError:
-            log.exception("Can't read growth data from %s " % filename)
-            sys.exit(1)
+            row3.append("")
+        try:
+            row4.append(tree_growth.all_fit_params[s][2])
+        except IndexError:
+            row4.append("")
 
-        return growth
-   
-    @classmethod
-    def from_arrays(
-            cls, tree, age, data, isBiomass=False, allom='Ryan'):
-        """Construct Growth object using data from numpy arrays."""
-        pass
+    data = [row1, row2, row3, row4]
+    cols = ["exp1", "exp2", "hyp", "lin", "log"]
+    csv_handler.print_csv(param_file, data, col_names=cols)
 
-    def fit(self):
-        """Fit tree growth data using four fitting functions. 
-        
-        Returns:
-            **all dicts with keys 'lin','log','hyp','exp'**
-            data: data points from each of the fits
-            params: fitting parameters
-            mse: mean-square error
-        Raises:
-            RuntimeError: if curve_fit can't fit the data to a curve     
-        
-        """
 
-        data = {}
-        params = {}
-        mse = {}
-        init = {'exp': [20], 'hyp': [200,0.1],
-                'lin': [1], 'log': [100, 0,0]}
-        numParams = {'exp': 1, 'hyp': 2, 
-                     'lin': 1, 'log': 3}
-
-        for curve in self.func:
-            # Do the fitting
-            try:
-                fitParams = optimize.curve_fit(self.func[curve], self.age,
-                                               self.biomass, init[curve]
-                )
-                par = fitParams[0]
-                params[curve] = par
-                
-            except RuntimeError:
-                log.warning("Could not fit data to %s",curve)
-                fitParams = None
-                par = None
-
-            # Find data corresponding to those fitting params
-            # Set data and params to array of nan if there's no fit
-            if curve == 'log':
-                if fitParams is not None:
-                    data[curve] = self.func[curve](
-                            self.age, par[0], par[1], par[2]
-                    )
-                else:
-                    params[curve] = np.array(3 * [np.nan])
-                    data[curve] = np.array(len(self.age) * [np.nan])
-
-            elif curve == 'lin' or curve == 'exp':
-                if fitParams is not None:
-                    data[curve] = self.func[curve](self.age, par[0])
-                else:
-                    params[curve] = np.array(1 * [np.nan])
-                    data[curve] = np.array(len(self.age) * [np.nan])
-            else:   # hyp
-                if fitParams is not None:
-                    data[curve] = self.func[curve](
-                            self.age, par[0], par[1])
-                else:
-                    params[curve] = np.array(2 * [np.nan])
-                    data[curve] = np.array(len(self.age) * [np.nan])
-        
-            # Find mse
-            # set to inf if there's no fit for a given curve
-            if fitParams is not None:
-                mse[curve] = self.mse_fn(self.biomass, data[curve])
-            else:
-                mse[curve] = np.inf
-
-        return data,params,mse
-    
-
-    # Functions to fit to
-    def hyp_fn(self, x, a, b):
-        return a * (1 - np.exp(-b*x))
-    
-    def hyp_fn_inv(self, y):
-        if math.fabs(y) < 0.00000001:
-            x = 0
-        else:
-            a = self.fitParams[0]
-            b = self.fitParmas[1]
-            if y > a:
-                x = a
-            else:
-                x = (math.log(a) - math.log(a-y)) / b
-
-        return x 
-
-    def hyp_fn_deriv(self, x):
-        a = self.fitParams[0]
-        b = self.fitParams[1]
-        return a * b * np.exp(-b*x)
-    
-    def lin_fn(self, x, a):
-        return a * x 
-    
-    def lin_fn_inv(self, y):
-        if math.fabs(y) < 0.00000001:
-            x = 0
-        else:
-            a = float(self.fitParams[0])     # just to be safe
-            x = y / a
-
-        return x
-
-    def lin_fn_deriv(self, y):
-        x = self.lin_fn_inv(y)
-
-        a = self.fitParams[0]
-        return a
-
-    def log_fn(self, x, a, b, c):
-        return a / (1 + np.exp(-b*(x-c)))
-   
-    def log_fn_inv(self, y):
-        if math.fabs(y) < 0.00000001:
-            x = 0
-        else:
-            a = self.fitParams[0]
-            b = self.fitParams[1]
-            c = self.fitParams[2]
-            if y > a:   # should tend towards a
-                x = a
-            else:
-                x = c + (math.log(y)-math.log(a-y)) / b
-
-        return x
-
-    def log_fn_deriv(self, y): 
-        x = self.log_fn_inv(y)
-        
-        a = self.fitParams[0]
-        b = self.fitParams[1]
-        c = self.fitParams[2]
-        ret = (a * b * np.exp(-b*(x-c))) / ((np.exp(-b*(x-c)) + 1)**2)
-        
-        return ret
-
-    def exp_fn(self, x, a):
-        return (1+a)**x -1
-    
-    def exp_fn_inv(self, y):
-        if math.fabs(y) < 0.00000001:
-            x = 0
-        else:
-            a = self.fitParams[0]
-            x = math.log(y+1) / math.log(a+1)
-
-        return x
-
-    def exp_fn_deriv(self, x):
-        a = self.fitParams[0]
-        return ((1+a)**x) * (np.log(1+a))
-
-    def mse_fn(self, yMean, yReal):
-        return ((yMean - yReal)**2).mean()
-
-    def plot_(self, fit=True, saveName=None):
-        """Plot growth data and all four fits in a matplotlib figure."""
-        
-        fig = plt.figure()
-        fig.canvas.set_window_title('Tree Growth')
-
-        ax = fig.add_subplot(1,1,1)
-
-        ax.plot(self.age, self.biomass, 'o', label='data')
-
-        if fit:
-            for curve in self.allFitData:
-                ax.plot(self.age, self.allFitData[curve],
-                        '-', label="%s fit" % curve
-                )
-
-            ax.legend(loc='best')
-
-        ax.set_title('Tree biomass vs. Age')
-        ax.set_xlabel('Age (years)')
-        ax.set_ylabel('Biomass (kg /ha ')
-
-        # Shift ticks so points not cut off
-        xticks = ax.get_xticks()
-        yticks = ax.get_yticks()
-        xmin = xticks[0] - 0.5*(xticks[1]-xticks[0])
-        xmax = xticks[-1] + 0.5*(xticks[-1]-xticks[-2])
-        ymin = yticks[0] - 0.5*(yticks[1]-yticks[0])
-        ymax = yticks[-1] + 0.5*(yticks[-1]-yticks[-2])
-        ax.set_xlim(xmin, xmax)
-
-        if saveName is not None:
-            plt.savefig(os.path.join(cfg.OUT_DIR, saveName))
-
-    def print_(self, fit=None, params=None, mse=None):
-        """Print data and fits for tree growth data to stdout."""
-        fit = True
-        params = True
-        mse = True
-
-        
-        print ("\n\nTREE GROWTH DATA")
-        print ("=========\n")
-        print ("Allometric: ",self.allom)
-        print ("\n  Age    Diameter  Biomass")
-        print ("(years)    (cm)     (kg C)")
-        print ("--------------------------")
-        for i in range(len(self.age)):
-            print ("  %2d      %5.2f     %6.2f" % (
-                    self.age[i], self.diam[i], self.biomass[i]))
-        if fit:
-            print ("\n Data      Exp.     Hyp.     Lin.     Log.")
-            print ("-----------------------------------------")
-            for i in range(len(self.age)):
-                print ("%6.2f   %6.2f   %6.2f   %6.2f   %6.2f" % (
-                        self.biomass[i], 
-                        self.allFitData['exp'][i],
-                        self.allFitData['hyp'][i],
-                        self.allFitData['lin'][i], 
-                        self.allFitData['log'][i])
-                )
-        if params and mse:
-            print ("\nMSE      %6.2f   %6.2f   %6.2f   %6.2f" % (
-                    self.allMse['exp'], 
-                    self.allMse['hyp'], 
-                    self.allMse['lin'], 
-                    self.allMse['log']
-            ))
-            print ("a        %6.2f   %6.2f   %6.2f   %6.2f" % (
-                    self.allFitParams['exp'][0], 
-                    self.allFitParams['hyp'][0],
-                    self.allFitParams['lin'][0], 
-                    self.allFitParams['log'][0]
-            ))
-            print ("b          -     %6.2f    -      %6.2f" % (
-                    self.allFitParams['hyp'][1],
-                    self.allFitParams['log'][1]
-            ))
-            print ("c           -         -       -      %5.2f" % (
-                    self.allFitParams['log'][2]
-            ))
-
-    def save_(self, file='tree_growth.csv'):
-        """Save growth stuff to a csv file
-        Default path is in OUT_DIR.
-
-        Args:
-            file: name or path to csv file
-
-        """
-        # growth data
-        io_.print_csv(
-                file, np.column_stack((self.age, self.diam, self.biomass)),
-                col_names=['age','diam','biomass',"allom="+self.allom]
-        )
-        
-        # fitted data - in a list because of the size heterogeneity
-        fit_file = file.split(".csv")[0] + "_fit.csv"
-        data = np.column_stack(
-                (self.biomass, self.allFitData['exp'], 
-                 self.allFitData['hyp'], self.allFitData['lin'], 
-                 self.allFitData['log'])
-        )
-        cols = ['data', 'exp', 'hyp', 'lin', 'log']
-        io_.print_csv(fit_file, data, col_names=cols)
-        
-        # fit parameters
-        param_file = file.split(".csv")[0] + "_fit_params.csv"
-        temp = {'exp':[], 'hyp':[], 'lin':[], 'log':[]}
-        row1 = []
-        row2 = []
-        row3 = []
-        row4 = []
-        for s in ['exp', 'hyp', 'lin', 'log']:
-            row1.append(self.allMse[s])
-            row2.append(self.allFitParams[s][0])
-            try:
-                row3.append(self.allFitParams[s][1])
-            except IndexError:
-                row3.append('')
-            try:
-                row4.append(self.allFitParams[s][2])
-            except IndexError:
-                row4.append('')
-        
-        data = [row1, row2, row3, row4]
-        cols = ['exp', 'hyp', 'lin', 'log']
-        io_.print_csv(param_file, data, col_names=cols)
-
-        # biomass, and four fits
-        # params for each fit
-
-#--------------------------------------------------
+# --------------------------------------------------
 # Begin methods for allometric equations
 # NOTE: RETURNS kg C - WHEN USING WITH CARBON POOLS
 # (TREE MODEL), MAKE SURE TO CONVERT TO t C
-#--------------------------------------------------
+# --------------------------------------------------
+
+DIAMETER_THRESHOLD = 1e-8
+
 
 # Return AGB of general allometric of type diam = -c*(agb)^c
 #   -> solving for agb gives agb = exp[(ln(diam) - ln(c)) / d]
 #   -> agb = exp[a + b*ln(diam)]    since c,d are arbitrary
-
-def log_allom(params, d, dens=None):
-    """General log type allometric.
-    
-    Args:
-        params: array-like holding fit params
-                with p[0] multiplied by highest power of ln(d)
-                e.g. p=np.array([2.601, -3.629])
-                     -> agb = exp(2.601*log(d)-3.629) (kg) is the ryan allom
-        d: diameter
-        dens: tree density (only needed for some allometrics)
-    Returns:
-        agb: agb corresponding to diameter of d
-        
+def calculate_above_ground_biomass(
+    allometric_params: List[float],
+    diameter: float,
+    wood_density: Optional[float] = None,
+) -> float:
     """
-    if math.fabs(d) < 0.00000001:
-        agb = 0
-    else:
-        logd = math.log(d)
-        agb = np.polyval(params, logd)
-        agb = math.exp(agb)     # kg C
-        if dens is not None:    # for Chave allometric (and possibly others)
-            agb *= dens
-    
-    return agb
+    Calculate above-ground biomass using a general log-type allometric equation.
+
+    This function applies a polynomial function to the log of the diameter,
+    then exponentiates the result. If wood density is provided, the result
+    is multiplied by the density.
+
+    Args:
+        allometric_params: List of coefficients for the allometric equation.
+            The first coefficient is multiplied by the highest power of ln(diameter).
+            E.g., [2.601, -3.629] represents the equation:
+            agb = exp(2.601 * log(diameter) - 3.629)
+        diameter: Tree diameter in consistent units (e.g., meters)
+        wood_density: Wood density in g/cm^3 (optional, used in some allometric equations)
+
+    Returns:
+        float: Above-ground biomass in kg. Returns 0 for non-positive diameters.
+    """
+    if diameter <= DIAMETER_THRESHOLD:
+        return 0.0
+
+    log_diameter = math.log(diameter)
+    log_biomass = np.polyval(allometric_params, log_diameter)
+    biomass = math.exp(log_biomass)
+
+    if wood_density is not None:
+        biomass *= wood_density
+
+    return biomass
+
 
 # Some specific log allometrics
 # All take dbh vectors and tree object as arguments
 def ryan(dbh, tree_params):
     """C. Ryan, biotropica (2010)."""
-    return log_allom([2.601,-3.629], dbh)
+    return calculate_above_ground_biomass([2.601, -3.629], dbh)
+
 
 def tumwebaze_grevillea(dbh, tree_params):
     """Tumwebaze et al. (2013) - Grevillea."""
 
-    agb = log_allom([3.06,-5.5], dbh) + log_allom([1.32,1.06], dbh)
+    agb = calculate_above_ground_biomass(
+        [3.06, -5.5], dbh
+    ) + calculate_above_ground_biomass([1.32, 1.06], dbh)
     return agb * tree_params.carbon
+
 
 def tumwebaze_maesopsis(dbh, tree_params):
     """Tumwebaze et al. (2013) - Maesopsis."""
 
-    agb = log_allom([3.33,-7.02], dbh) + log_allom([2.38,-2.9], dbh)
-    return agb * tree_params.carbon    
+    agb = calculate_above_ground_biomass(
+        [3.33, -7.02], dbh
+    ) + calculate_above_ground_biomass([2.38, -2.9], dbh)
+    return agb * tree_params.carbon
+
 
 def tumwebaze_markhamia(dbh, tree_params):
     """Tumwebaze et al. (2013) - Markhamia."""
-    agb = log_allom([2.63,-4.91], dbh) + log_allom([2.43,-3.08], dbh)
+    agb = calculate_above_ground_biomass(
+        [2.63, -4.91], dbh
+    ) + calculate_above_ground_biomass([2.43, -3.08], dbh)
     return agb * tree_params.carbon
 
+
 def chave_dry(dbh, tree_params):
-    """Chave et al. (2005) generic tropical tree 
+    """Chave et al. (2005) generic tropical tree
     with < 1500 mm/year rainfall, > 5 months dry season
-        
+
     """
-    agb = log_allom([-0.0281,0.207,1.784,-0.667], dbh, dens=tree_params.dens)
+    agb = calculate_above_ground_biomass(
+        [-0.0281, 0.207, 1.784, -0.730], dbh, wood_density=tree_params.wood_dens
+    )
     return agb * tree_params.carbon
+
 
 def chave_moist(dbh, tree_params):
     """Chave et al. (2005) generic tropical tree
     with 1500-3000 mm/year rainfall, 1-4 months dry season
-    
+
     """
-    agb = log_allom([-0.0281,0.207,2.148,-1.499], dbh, dens=tree_params.dens)
+    agb = calculate_above_ground_biomass(
+        [-0.0281, 0.207, 2.148, -1.562], dbh, wood_density=tree_params.wood_dens
+    )
     return agb * tree_params.carbon
+
 
 def chave_wet(dbh, tree_params):
     """Chave et al. (2005) generic tropical tree
     with > 3500 mm/year rainfall, no seasonality
-    
+
     """
-    agb = log_allom([-0.0281,0.207,1.98,-1.239], dbh, dens=tree_params.dens)
+    agb = calculate_above_ground_biomass(
+        [-0.0281, 0.207, 1.98, -1.302], dbh, wood_density=tree_params.wood_dens
+    )
     return agb * tree_params.carbon
-    
+
+
 allometric = {
-        'ryan': ryan,
-        'grevillea': tumwebaze_grevillea,
-        'maesopsis': tumwebaze_maesopsis,
-        'markhamia': tumwebaze_markhamia,
-        'chave dry': chave_dry,
-        'chave moist': chave_moist,
-        'chave wet': chave_wet,
-        'log_allom': log_allom
+    "ryan": ryan,
+    "grevillea": tumwebaze_grevillea,
+    "maesopsis": tumwebaze_maesopsis,
+    "markhamia": tumwebaze_markhamia,
+    "chave dry": chave_dry,
+    "chave moist": chave_moist,
+    "chave wet": chave_wet,
 }
+
+
+# Uses spp_prefix_map to get the correct prefix for the species-specific columns
+def get_growth(csv_input_data, spp_key, tree_params, allometric_key):
+    spp_number = int(csv_input_data[spp_key])
+    if spp_number == 1:
+        prefix = ""
+    else:
+        prefix = f"sp{spp_number}_"
+
+    return from_csv(
+        tree_params=tree_params,
+        allometric_key=allometric_key,
+        csv_input_data=csv_input_data,
+        species_prefix=prefix,
+    )
+
+
+def create_tree_growths(csv_input_data, tree_params, allometric_keys, cohort_count):
+    return [
+        get_growth(
+            csv_input_data,
+            f"species{i + 1}",
+            tree_params[i],
+            allometric_key=allometric_keys[i+1], # baseline allometry is at index 0 in allometric_keys
+        )
+        for i in range(cohort_count)
+    ]
+
+
+def fit(
+    age: np.ndarray, biomass: np.ndarray
+) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, float]]:
+    """
+    Fit tree growth data using four fitting functions.
+
+    Args:
+        age: Array of tree ages
+        biomass: Array of corresponding biomass values
+
+    Returns:
+        Tuple containing:
+        - data: Dict with data points from each of the fits
+        - params: Dict with fitting parameters
+        - mse: Dict with mean-square error for each fit
+    """
+    curve_configs = {
+        "exp1": {"init": [1], "num_params": 1, "bounds": ([0.0001], [10])},
+        "exp2": {"init": [0.05, 0.05], "num_params":2, "bounds": ([0.0001, 0.0001], [10, 1000])},
+        "hyp": {"init": [1000, 0.05], "num_params": 2, "bounds": ([0.0001, 0.0001], [100000, 10])},
+        "lin": {"init": [1], "num_params": 1, "bounds": ([0.0001], [1000])},
+        "log": {"init": [100, 0, 0], "num_params": 3, "bounds": ([0.0001, -100, -100], [100000, 100, 100])},
+    }
+
+    data, params, mse = {}, {}, {}
+
+    for curve, config in curve_configs.items():
+        try:
+            fit_params = optimize.curve_fit(
+                fitting_functions[curve], 
+                age, 
+                biomass, 
+                p0=config["init"],
+                bounds=config["bounds"],
+                maxfev=50000,
+                full_output=False
+            )
+            
+            params[curve] = fit_params[0]
+            data[curve] = fitting_functions[curve](age, *params[curve])
+            mse[curve] = mse_fn(biomass, data[curve])
+        except RuntimeError:
+            log.warning(f"Could not fit data to {curve}")
+            params[curve] = np.array([np.nan] * config["num_params"])
+            data[curve] = np.array([np.nan] * len(age))
+            mse[curve] = np.inf
+
+    return data, params, mse
+
+
+def mse_fn(y_mean: np.ndarray, y_real: np.ndarray) -> float:
+    """Calculate mean squared error."""
+    return float(np.mean((y_mean - y_real) ** 2))

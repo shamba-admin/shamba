@@ -109,5 +109,13 @@ dmypy.json
 # End of https://www.gitignore.io/api/python
 
 
-shamba/shamba_projects/*/output_WL/
-shamba/rasters/soil/hwsd.bil
+shamba/projects/*
+!shamba/projects/examples
+
+# MacOS
+**/.DS_Store
+**/*.swp
+
+# Server
+shamba/server/static/
+!shamba/server/static/index.html

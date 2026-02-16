@@ -1,0 +1,52 @@
+[project]
+name = "shamba"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "PlanVivo"}
+]
+license = {text = "UNLICENSED"}
+readme = "./README.md"
+requires-python = "==3.10.16"
+dependencies = [
+    "basemap (>=1.4.1,<2.0.0)",
+    "numpy (>=1.21,<1.27)",
+    "scipy (>=1.15.2,<2.0.0)",
+    "matplotlib (>=1.5,<3.9)",
+    "pandas (>=2.2.3,<3.0.0)",
+    "setuptools (>=75.8.0,<76.0.0)",
+    "marshmallow (>=3.26.1,<4.0.0)",
+    "tabulate (>=0.9.0,<0.10.0)",
+    "fastapi[standard] (>=0.115.12,<0.116.0)",
+    "toolz (>=1.0.0,<2.0.0)",
+    "requests (>=2.32.3,<3.0.0)",
+    "types-tabulate (>=0.9.0.20241207,<0.10.0.0)",
+    "questionary (>=2.1.0,<3.0.0)",
+]
+
+[tool.poetry]
+packages = [
+    {include = "model"}
+]
+# package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+pytest = "^8.3.5"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
+isort = "^6.0.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# addopts = "--verbose --cov=your_package_name"
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+ignore_missing_imports = true
