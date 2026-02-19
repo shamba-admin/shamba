@@ -171,12 +171,14 @@ def get_inputs(
         Ninput = np.zeros(no_of_years)
         DMinput = np.zeros(no_of_years)
 
-        # loop through years when litter is added
+        # Years when litter is applied.
+        # Note: `litter_frequency == 0` means "no applications" 
+        # (consistent with fire interval handling).
         if litter_frequency == 0:
-            years = 0
+            years = np.array([], dtype=int)
         else:
-            years = list(range(-1, no_of_years, litter_frequency))
-            years = years[1:]
+            years = np.arange(0, no_of_years, litter_frequency, dtype=int)
+
         DMinput[years] = litter_quantity
         Cinput[years] = litter_quantity * carbon
         Ninput[years] = litter_quantity * nitrogen
