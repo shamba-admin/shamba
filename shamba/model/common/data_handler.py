@@ -17,6 +17,11 @@ HEADER_DATATYPE_UNIQUE = {
     "analysis_no": "scalar integer",
     "plot_name": "scalar integer",
     "year": "integer",
+    "Temp": "float",
+    "Rain": "float",
+    "evap": "float",
+    "pet": "float",
+    "cover": "float",
 }
 
 # Pattern-based types (regex patterns as keys)
@@ -105,8 +110,9 @@ def build_field_specs(headers):
 def broadcast_to_length(data: dict, target_length: int, keys_to_broadcast: list[str]) -> np.ndarray:
     """Broadcasts a 1D array to a specified target length by repeating its values as needed."""
     for key, arr in data.items():
-        if key in keys_to_broadcast and arr.size == 1:
-            data[key] = np.full(target_length, arr.item())
+        if key in keys_to_broadcast and arr.size < target_length:
+            # repeat the array values to the target length
+            data[key] = np.tile(arr, target_length // arr.size + 1)[:target_length]
         elif arr.size == target_length:
             pass  # No need to change
         else:
