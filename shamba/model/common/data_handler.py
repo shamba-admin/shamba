@@ -9,7 +9,7 @@ import re
 from typing import Optional
 
 
-HEADER_DATATYPE_UNIQUE = {
+REQUIRED_HEADER_DATATYPE = {
     "lat": "scalar float",
     "lon": "scalar float",
     "yrs_proj": "scalar integer",
@@ -19,18 +19,35 @@ HEADER_DATATYPE_UNIQUE = {
     "year": "integer",
     "Temp": "float",
     "Rain": "float",
-    "evap": "float",
+    "evap": "float", # TODO: evap OR pet required
     "pet": "float",
-    "cover": "float",
+    "base_cover": "binary",
+    "proj_cover": "binary",
+    "fire_on_base": "binary",
+    "fire_on_proj": "binary",
+    "fire_off_base": "binary",
+    "fire_off_proj": "binary",
 }
 
-# Pattern-based types (regex patterns as keys)
-HEADER_DATATYPE_PATTERNS = {
+ANCHOR_HEADER_DATATYPE_PATTERNS = {
+    r"^crop_(base|proj)_spp\d+$": "scalar integer",
+     r"^(base|proj)_species\d+$": "scalar integer",  ## TODO: this is different from current naming "species_base" "species1" etc
+     r"^(base|proj)_sf_qty$": "float", # only SF not LIT here, as only SF needs a matching _n proportion
+}
+
+CROP_HEADER_DATATYPE_PATTERNS = {
     # Crops (baseline & project), any index
     r"^crop_(base|proj)_spp\d+$": "scalar integer",
     r"^crop_(base|proj)_yd\d+$": "float",
-    r"^crop_(base|proj)_left\d+$": "proportion",
+    r"^crop_(base|proj)_left\d+$": "proportion",}
 
+SPECIES_HEADER_DATATYPE_PATTERNS = { # TODO: this needs a specific check: what species numbers are contained in the data under headers {r"^(base|proj)_species\d+$"}, and also needs to match the species data in the related file
+    # Tree ages/diams: tree1 / sp2 / sp3 generalized ## TODO: this needs a new data input file: species index should be embedded in the header, and there may be more than 3 species, so will need to be in a different input file and validated separately
+    r"^(age|sp2_age|sp3_age)\d+$": "integer",
+    r"^(diam|sp2_diam|sp3_diam)\d+$": "float",
+}
+
+COHORT_HEADER_DATATYPE_PATTERNS = {
     # Cohort species, planting years & densities by cohort index
     r"^(base|proj)_species\d+$": "scalar integer",  ## TODO: this is different from current naming "species_base" "species1" etc
     r"^(base|proj)_plant_yr\d+$": "scalar integer", ## TODO: base doesn't currently have cohort-specific planting years, but may need to be added
@@ -45,36 +62,31 @@ HEADER_DATATYPE_PATTERNS = {
     # Mortality by cohort
     r"^(base|proj)_mort_cohort\d+$": "proportion",
     r"^mort_(base|proj)_(br|st)_cohort\d+$": "proportion",
+}
 
-    # Fire
-    r"^fire_(on|off)_(base|proj)$": "binary",
-
+LITTER_FERT_HEADER_DATATYPE_PATTERNS = {
     # Litter & synthetic fertiliser
     r"^(base|proj)_(lit|sf)_qty$": "float",
     r"^(base|proj)_sf_n$": "proportion",
+    }
 
-    # Soil cover ## TODO: this should be either 12 or 12xyears of monthly data, so will need to be in a different input file and validated separately
-    r"^(base|proj)_cvr_pres$": "binary",
-    r"^(base|proj)_cvr_mth_(st|en)$": "integer",
 
-    # Tree ages/diams: tree1 / sp2 / sp3 generalized ## TODO: this needs a new data input file: cohort index should be embedded in the header, and there may be more than 3 cohorts, so will need to be in a different input file and validated separately
-    r"^(age|sp2_age|sp3_age)\d+$": "integer",
-    r"^(diam|sp2_diam|sp3_diam)\d+$": "float",
-}
+# Pattern-based types for optional headers (regex patterns as keys)
+HEADER_DATATYPE_OPT_PATTERNS = CROP_HEADER_DATATYPE_PATTERNS | SPECIES_HEADER_DATATYPE_PATTERNS | COHORT_HEADER_DATATYPE_PATTERNS | LITTER_FERT_HEADER_DATATYPE_PATTERNS
 
 
 
 def get_header_type(header: str) -> Optional[str]:
     # Exact match first
-    if header in HEADER_DATATYPE_UNIQUE:
-        return HEADER_DATATYPE_UNIQUE[header]
+    if header in REQUIRED_HEADER_DATATYPE:
+        return REQUIRED_HEADER_DATATYPE[header]
     # Pattern match
-    for pattern, type_name in HEADER_DATATYPE_PATTERNS.items():
+    for pattern, type_name in HEADER_DATATYPE_OPT_PATTERNS.items():
         if re.match(pattern, header):
             return type_name
     return None
 
-def make_field_for_type(type_name: str): # TODO: required vs optional fields: tricky for variable numbers of cohorts, but maybe we can say that all cohort-specific fields are optional and if any are present then they must all be present and have the same number of cohorts? This would need to be validated in the build_field_specs function
+def make_field_for_type(type_name: str):
     if type_name == "scalar float":
         return fields.Float()
     if type_name == "scalar integer":
@@ -92,7 +104,7 @@ def make_field_for_type(type_name: str): # TODO: required vs optional fields: tr
     if type_name == "binary":
         return fields.List(fields.Integer(validate=OneOf([0, 1])))
     # fallback
-    return fields.Raw()
+    raise ValueError(f"Header type name not linked to a field spec.")
 
 def build_field_specs(headers):
     field_specs = {}
@@ -193,3 +205,22 @@ def read_and_validate_timeseries_by_header(file_path: str, permitted_vector_leng
     validated_data_dict = broadcast_to_length(validated_data_dict, target_length= target_vector_length, keys_to_broadcast=keys_to_broadcast)
     
     return validated_data_dict
+
+
+def cohort_indices(headers, pattern):
+    return {
+        int(m.group(1))
+        for h in headers
+        if (m := re.match(pattern, h))
+    }
+
+def validate_cohort_headers(headers, anchor_pattern, required_patterns):
+    errors = []
+
+    anchor_indexes = cohort_indices(headers, anchor_pattern)
+    for i in anchor_indexes:
+        for required_pattern in required_patterns:
+            h = f"{required_pattern}{i}"
+            if h not in headers:
+                errors.append(f"Header '{h}' is required because '{anchor_pattern}{i}' is present")
+    return errors
