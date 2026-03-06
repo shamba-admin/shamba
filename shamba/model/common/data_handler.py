@@ -74,8 +74,6 @@ LITTER_FERT_HEADER_DATATYPE_PATTERNS = {
 # Pattern-based types for optional headers (regex patterns as keys)
 HEADER_DATATYPE_OPT_PATTERNS = CROP_HEADER_DATATYPE_PATTERNS | SPECIES_HEADER_DATATYPE_PATTERNS | COHORT_HEADER_DATATYPE_PATTERNS | LITTER_FERT_HEADER_DATATYPE_PATTERNS
 
-
-
 def get_header_type(header: str) -> Optional[str]:
     # Exact match first
     if header in REQUIRED_HEADER_DATATYPE:
@@ -104,7 +102,7 @@ def make_field_for_type(type_name: str):
     if type_name == "binary":
         return fields.List(fields.Integer(validate=OneOf([0, 1])))
     # fallback
-    raise ValueError(f"Header type name not linked to a field spec.")
+    raise ValueError(f"Header type name '{type_name}' not linked to a field spec.")
 
 def build_field_specs(headers):
     field_specs = {}
@@ -146,7 +144,7 @@ def first_error_text(x):
                 return s
     return None
 
-def read_and_validate_timeseries_by_header(file_path: str, permitted_vector_lengths: list[int], target_vector_length: int) -> dict[str, np.ndarray]:
+def read_and_validate_timeseries_by_header(file_path: str, permitted_vector_lengths: list[int], target_vector_length: int = None) -> dict[str, np.ndarray]:
     """Reads a CSV file and returns a validated dictionary where each key is a header and the value is a 
         numpy array of the corresponding column data.
         The intended use is to read timeseries data from a CSV file where the first row contains 
@@ -159,6 +157,7 @@ def read_and_validate_timeseries_by_header(file_path: str, permitted_vector_leng
     headers = np.char.strip(headers)  # Remove leading/trailing whitespace from headers
 
     data = np.genfromtxt(file_path, delimiter=",", skip_header=1, dtype=float)
+    data = np.atleast_2d(data)
     data_dict = {header: data[:, i] for i, header in enumerate(headers)}
     # remove Inf and NaN values from data_dict
     for header, values in data_dict.items():
@@ -183,7 +182,19 @@ def read_and_validate_timeseries_by_header(file_path: str, permitted_vector_leng
     
     # If field_specs creatd, validate data against the schema, collect and then print error messages
     InputSchema = Schema.from_dict(field_specs)
-    data_for_validation = {h: arr.tolist() for h, arr in data_dict.items()}  # Convert numpy arrays to lists for validation
+    # Convert numpy arrays to scalars or lists for validation
+    data_for_validation = {}
+    for header, arr in data_dict.items():
+       type_name = get_header_type(header)
+       if type_name and "scalar" in type_name:
+           # enforce exactly one value for scalars
+           if arr.size != 1:
+               raise ValueError(f"Header '{header}' must have exactly one value, found {arr.size}.")
+           data_for_validation[header] = arr.item()      # scalar
+       else:
+           # keep vectors as lists for schema
+           data_for_validation[header] = arr.tolist()
+
     try:
         validated = InputSchema().load(data_for_validation)  # Validate data against the schema
         validated_data_dict = {h: np.array(validated[h]) for h in validated}  # Convert validated data back to numpy arrays
@@ -201,8 +212,9 @@ def read_and_validate_timeseries_by_header(file_path: str, permitted_vector_leng
         raise ValueError(error_message)
     
     # Broadcast any keys that are marked for broadcasting in the field specs, and convert to final 2d array for model input
-    keys_to_broadcast = [h for h, spec in field_specs.items() if isinstance(spec, fields.List)] # checks the field specs for which keys are lists (i.e. vectors) and should be broadcast if they have only one value
-    validated_data_dict = broadcast_to_length(validated_data_dict, target_length= target_vector_length, keys_to_broadcast=keys_to_broadcast)
+    if target_vector_length is not None:
+        keys_to_broadcast = [h for h, spec in field_specs.items() if isinstance(spec, fields.List)] # checks the field specs for which keys are lists (i.e. vectors) and should be broadcast if they have only one value
+        validated_data_dict = broadcast_to_length(validated_data_dict, target_length= target_vector_length, keys_to_broadcast=keys_to_broadcast)
     
     return validated_data_dict
 
