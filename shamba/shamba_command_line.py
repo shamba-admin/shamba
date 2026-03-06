@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 
-from model.common import csv_handler, io_handler
+from model.common import csv_handler, io_handler, data_handler
 
 import model.climate as Climate
 import model.crop_model as CropModel
@@ -296,18 +296,28 @@ def setup_project_directory(project_name, arguments):
 
     # List of files to copy
     files_to_copy = [
-        "crop_params.csv",
-        "tree_params.csv",
-        "litter_params",
-        "biomass_pool_params.csv",
-        arguments["input-file-name"],
     ]
 
     optional_files_to_copy = [
         "climate.csv",
         "soil-info.csv",
-        "project_allometry.py"
+        "project_allometry.py",
+        "crop_params.csv",
+        "tree_params.csv",
+        "litter_params.csv",
+        "biomass_pool_params.csv",
     ]
+
+    if arguments["split-input-file-id"] is not None:
+        prefix = arguments["split-input-file-id"] 
+        files_to_copy.append(str(prefix + "_plot_data.csv"))
+        files_to_copy.append(str(prefix + "_mgmt_data.csv"))
+        files_to_copy.append(str(prefix + "_tree_size_data.csv"))
+        if arguments["use-api"] is False:
+            files_to_copy.append(str(prefix + "_climate_cover_data.csv"))
+        files_to_copy.append(arguments["input-file-name"]) # TODO: remove this if only allowing one or the other
+    else:
+        files_to_copy.append(arguments["input-file-name"])
 
     # Source directory (using an existing project as an example)
     source_dir = os.path.join(configuration.PROJECT_DIR, arguments["source-directory"])
@@ -324,7 +334,7 @@ def setup_project_directory(project_name, arguments):
                 print(f"File {file} already in source directory")
                 pass
         else:
-            ValueError(f"File {file} does not exist. Please add it to the source directory.")
+            raise ValueError(f"File {file} does not exist. Please add it to the source directory.")
 
     # Copy each available optional file
     for file in optional_files_to_copy:
@@ -363,29 +373,48 @@ def main(n, arguments):
     configuration.INPUT_DIR = os.path.join(configuration.SAVE_DIR, "input")
     configuration.OUTPUT_DIR = os.path.join(configuration.SAVE_DIR, "output")
 
-    input_csv = arguments["input-file-name"]
-
-    # ----------
-    # getting input data
-    # ----------
-
-    ## creating dictionary of input data from input.csv
-    file_path = os.path.join(configuration.INPUT_DIR, input_csv)
-    csv_input_data = csv_handler.get_csv_input_data(n, file_path)
-
-    # terms in coded below preceded by csv_input_data are values being pulled in from dictionary
-    # created above. Converting to float or interger as needed for each
-    # key
-
-    ## getting plot anlaysis number to name output
-    st = int(csv_input_data["analysis_no"])
-
-    # ----------
-    # project length
-    # ----------
-    # YEARS = length of tree data. ACCT = years in accounting period
-    N_YEARS = int(csv_input_data["yrs_proj"])
     N_COHORTS = arguments["n-cohorts"]
+
+    if "input-file-name" in arguments: # TODO: at the moment both of these run so that there aren't errors
+        input_csv = arguments["input-file-name"]
+
+
+        # ----------
+        # getting input data
+        # ----------
+
+        ## creating dictionary of input data from input.csv
+        file_path = os.path.join(configuration.INPUT_DIR, input_csv)
+        csv_input_data = csv_handler.get_csv_input_data(n, file_path)
+
+        # terms in coded below preceded by csv_input_data are values being pulled in from dictionary
+        # created above. Converting to float or interger as needed for each
+        # key
+
+        ## getting plot anlaysis number to name output
+        st = int(csv_input_data["analysis_no"])
+
+        # ----------
+        # project length
+        # ----------
+        # YEARS = length of tree data. ACCT = years in accounting period
+        N_YEARS = int(csv_input_data["yrs_proj"])
+       
+
+    if arguments["split-input-file-id"] is not None:
+        prefix = arguments["split-input-file-id"]
+        scalar_input_csv_path = os.path.join(configuration.INPUT_DIR, str(prefix + "_plot_data.csv"))
+        scalar_input_data = data_handler.read_and_validate_timeseries_by_header(file_path = scalar_input_csv_path, permitted_vector_lengths=[1], target_vector_length=1)
+        N_YEARS = int(scalar_input_data["yrs_proj"])
+        st = int(scalar_input_data["analysis_no"])
+        mgmt_input_csv_path = os.path.join(configuration.INPUT_DIR, str(prefix + "_mgmt_data.csv"))
+        mgmt_input_data = data_handler.read_and_validate_timeseries_by_header(file_path = mgmt_input_csv_path, permitted_vector_lengths= [1, N_YEARS], target_vector_length=N_YEARS)
+        tree_size_csv_path = os.path.join(configuration.INPUT_DIR, str(prefix + "_tree_size_data.csv"))
+        tree_size_data = data_handler.read_and_validate_timeseries_by_header(file_path= tree_size_csv_path, permitted_vector_lengths=[i for i in range(5,N_YEARS+1)])
+        vector_input_data = scalar_input_data | mgmt_input_data | tree_size_data
+        if arguments["use-api"] is False: # TODO: maybe move this one to where climate data is handled?
+            climate_input_csv_path = os.path.join(configuration.INPUT_DIR, str(prefix + "_climate_cover_data.csv"))
+            climate_input_data = data_handler.read_and_validate_timeseries_by_header(file_path = climate_input_csv_path, permitted_vector_lengths= [1] + [i*12 for i in range(1, N_YEARS+1)], target_vector_length=12*N_YEARS)
 
     allometric_keys = arguments["allometric-keys"]
 
@@ -560,6 +589,36 @@ def main(n, arguments):
     os.makedirs(dir)
 
     plot_name = dir + "\plot_" + str(n + st)
+
+    if arguments["split-input-file-id"] is not None:
+        datasets = [
+            ("plot", scalar_input_data),
+            ("mgmt", mgmt_input_data),
+            ("tree_size", tree_size_data),
+        ]
+
+        for name, d in datasets:
+            cols = list(d.keys())
+
+            arrays = [np.atleast_1d(np.asarray(d[k], dtype=float)) for k in cols]
+
+            # All columns must be the same length
+            target_len = max(a.size for a in arrays)
+            padded = []
+            for a in arrays:
+                if a.size < target_len:
+                    a = np.pad(a, (0, target_len - a.size), constant_values=np.nan)
+                padded.append(a)
+
+            data_to_save = np.column_stack(padded)
+
+            out_path = os.path.join(dir, f"validated_{name}_input_data_{st}.csv")
+            csv_handler.print_csv(file_out=out_path, array=data_to_save, col_names=cols)
+
+        if arguments["use-api"] is False:
+            cols = list(climate_input_data.keys())
+            data_to_save = np.column_stack([np.asarray(climate_input_data[k], dtype=float) for k in cols])
+            csv_handler.print_csv(file_out=os.path.join(configuration.OUTPUT_DIR, dir, f"validated_climate_data_{st}.csv"), array=data_to_save, col_names=cols) ## TODO: where to put this?
 
     Climate.save(intervention_emissions.climate, plot_name + "_climate.csv")
 

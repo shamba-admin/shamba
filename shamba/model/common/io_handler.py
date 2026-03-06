@@ -122,6 +122,12 @@ ________________________________________________________________________________
     ).ask()
     arguments["source-directory"] = source_directory
 
+    # Prompt for annual input data # TODO: this question is temporary, to preserve both pathways
+    arguments["annual-input-file-name"] = None
+    split_input_data_presence = questionary.confirm(
+        "Do you have split vector data saved in the source directory?", default=False
+    ).ask()
+    
     # Prompt for use-api (boolean)
     use_api = questionary.confirm("Use API for climate and soil data?", default=DEFAULT_USE_API).ask()
     arguments["use-api"] = use_api
@@ -189,10 +195,17 @@ ________________________________________________________________________________
     arguments["print-to-stdout"] = print_to_stdout
 
     # Prompt for input file name with default
-    input_file_name = questionary.text(
-        "Enter the name of the input file:", default="WL_input.csv"
-    ).ask()
-    arguments["input-file-name"] = input_file_name
+    if split_input_data_presence:
+        split_input_file_id = questionary.text(
+            "Enter the prefix of the split input data files:", default="WL"
+        ).ask()
+        arguments["split-input-file-id"] = split_input_file_id
+        arguments["input-file-name"] = str(split_input_file_id+"_input.csv")
+    else:
+        input_file_name = questionary.text(
+            "Enter the name of the single input file:", default="WL_input.csv"
+        ).ask()
+        arguments["input-file-name"] = input_file_name
 
     # Prompt for output title
     output_title = questionary.text(
